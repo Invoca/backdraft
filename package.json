@@ -1,0 +1,18 @@
+{
+  "name": "backdraft",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "grunt": "^0.4.2",
+    "grunt-contrib-watch": "^0.5.3",
+    "grunt-contrib-jst": "^0.5.1",
+    "grunt-contrib-jasmine": "^0.6.1",
+    "grunt-contrib-concat": "^0.3.0"
+  }
+}
