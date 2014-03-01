@@ -4,10 +4,14 @@
   Backdraft.Utils = {};
 
   {%= inline("src/utils/class.js") %}
-  {%= inline("src/app.js") %}
 
-  {%= inline("src/plugins/plugin_loader.js") %}
-  Backdraft.plugin = PluginLoader.factory;
+  {%= inline("src/app.js") %}
+  Backdraft.app = App.factory;
+  Backdraft.destroyAll = App.destroyAll;
+  Backdraft.destroy = App.destroy;
+
+  {%= inline("src/plugins/plugin.js") %}
+  Backdraft.plugin = Plugin.factory;
 
   window.Backdraft = Backdraft;
 

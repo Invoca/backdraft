@@ -53,25 +53,78 @@
   return Class;
 
 })();
+
+  var App = (function() {
+
+  var getInstance = function(name) {
+    if (App.instances[name]) return App.instances[name];
+    throw new Error("App " + name + " does not exist");
+  };
+
   var App = Backdraft.Utils.Class.extend({
 
-  constructor : function() {
-    // default list of plugin names this app should load, defaulting to none.
-    // apps should either override this property or append to it
-    this.plugins = [];
-   
-    // call parent constructor
-    App.__super__.constructor.apply(this, arguments);
+    constructor : function() {
+      // default list of plugin names this app should load, defaulting to none.
+      // apps should either override this property or append to it
+      this.plugins = [];
+     
+      // call parent constructor
+      App.__super__.constructor.apply(this, arguments);
 
-    // load plugins for this application
-    PluginLoader.load(this.plugins, this);
-  },
+      // load plugins for this application
+      Plugin.load(this.plugins, this);
+    },
 
-  render : function() {
-    throw new Error("the render must be implemented in your class");
-  }
+    activate : function() {
+      throw new Error("the activate must be implemented in your class");
+    },
 
-})
+    destroy : function() {
+      // to be implemented in subclasses
+    }
+
+  }, {
+
+    instances : {
+
+    },
+
+    factory : function(name, obj) {
+      if (!obj) {
+        return getInstance(name);
+      } else if (_.isFunction(obj)) {
+        obj(getInstance(name));
+      } else if (_.isObject(obj)) {
+        // define app and create an instance of it
+        if (App.instances[name]) throw new Error("App " + name + " is already defined");
+        var appClass = App.extend(_.extend(obj, { name : name }));
+        App.instances[name] = new appClass();
+        return App.instances[name];
+      }
+
+    },
+
+    // destroys all existing applications
+    destroyAll : function() {
+      _.chain(App.instances).keys().each(function(name) { 
+        App.destroy(name);
+      });
+    },
+
+    // destroy a single application with provided name
+    destroy : function(name) {
+      getInstance(name).destroy();
+      delete App.instances[name];
+    }
+
+  });
+
+  return App;
+
+})();
+  Backdraft.app = App.factory;
+  Backdraft.destroyAll = App.destroyAll;
+  Backdraft.destroy = App.destroy;
 
   var Plugin = Backdraft.Utils.Class.extend({
 
@@ -100,9 +153,6 @@
     });
   }
 
-})
-
-var PluginLoader = Backdraft.Utils.Class.extend({
 }, {
 
   registered : {
@@ -116,7 +166,7 @@ var PluginLoader = Backdraft.Utils.Class.extend({
       return this.registered[name];
     } else {
       // create and register new plugin. afterwards invoke callback with it
-      if (this.registered[name]) throw new Error("Plugin " + name + " has already been registered");
+      if (this.registered[name]) throw new Error("Plugin " + name + " is already registered");
       this.registered[name] = new Plugin(name);
       fn(this.registered[name]);
     }
@@ -129,8 +179,10 @@ var PluginLoader = Backdraft.Utils.Class.extend({
     });
   }
 
+
 });
-  Backdraft.plugin = PluginLoader.factory;
+
+  Backdraft.plugin = Plugin.factory;
 
   window.Backdraft = Backdraft;
 
