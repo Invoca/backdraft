@@ -67,6 +67,9 @@
       // list of plugins by name this app should load, defaulting to none.
       // apps should either override this property or append to it in their #initialize method
       if (!this.plugins) this.plugins = [];
+
+      // ensure that the Base plugin as always loaded
+      if (!_.include(this.plugins, "Base")) this.plugins.unshift("Base");
      
       // call parent constructor
       App.__super__.constructor.apply(this, arguments);
@@ -194,12 +197,42 @@ _.extend(Plugin.factory, {
 
   destroyAll : function() {
     _.each(Plugin.registered, function(plugin, name) {
-      delete Plugin.registered[name];
+      // the Base plugin cannot be destroyed
+      if (name !== "Base") delete Plugin.registered[name];
     })
   }
 });
 
   Backdraft.plugin = Plugin.factory;
+
+  Backdraft.plugin("Base", function(plugin) {
+
+  
+  
+  
+  
+
+  plugin.initializer(function(app) {
+    app.view = function() {
+
+    };
+
+    app.collection = function() {
+
+    };
+
+    app.model = function() {
+
+    };
+
+    app.router = function() {
+
+    };
+
+  });
+
+
+});
 
   window.Backdraft = Backdraft;
 

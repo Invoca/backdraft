@@ -11,6 +11,9 @@ var App = (function() {
       // list of plugins by name this app should load, defaulting to none.
       // apps should either override this property or append to it in their #initialize method
       if (!this.plugins) this.plugins = [];
+
+      // ensure that the Base plugin as always loaded
+      if (!_.include(this.plugins, "Base")) this.plugins.unshift("Base");
      
       // call parent constructor
       App.__super__.constructor.apply(this, arguments);

@@ -58,7 +58,8 @@ _.extend(Plugin.factory, {
 
   destroyAll : function() {
     _.each(Plugin.registered, function(plugin, name) {
-      delete Plugin.registered[name];
+      // the Base plugin cannot be destroyed
+      if (name !== "Base") delete Plugin.registered[name];
     })
   }
 });

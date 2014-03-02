@@ -11,6 +11,8 @@
   {%= inline("src/plugin.js") %}
   Backdraft.plugin = Plugin.factory;
 
+  {%= inline("src/plugins/base/base.js") %}
+
   window.Backdraft = Backdraft;
 
 })(jQuery);
