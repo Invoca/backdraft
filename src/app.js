@@ -20,7 +20,7 @@ var App = (function() {
     },
 
     activate : function() {
-      throw new Error("the activate must be implemented in your class");
+      throw new Error("#activate must be implemented in your class");
     },
 
     destroy : function() {
@@ -50,6 +50,10 @@ var App = (function() {
 
   });
 
+  // add pub/sub support to the app
+  _.extend(App.prototype, Backbone.Events);
+
+  // support for destroying apps
   _.extend(App.factory, {
 
     // destroys all existing applications
@@ -65,7 +69,9 @@ var App = (function() {
       delete App.instances[name];
     }
 
-  })
+  });
+
+
 
   return App;
 

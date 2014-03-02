@@ -58,4 +58,27 @@ describe("App", function() {
 
   });
 
+  describe("activate", function() {
+
+    it("should require that apps implement #activate", function() {
+      expect(function() {
+        var app = Backdraft.app("myapp", {});
+        app.activate();
+      }).toThrow();
+    });
+
+  });
+
+  describe("events", function() {
+
+    it("should have Backbone.Events mixed in", function() {
+      var app = Backdraft.app("myapp", {});
+      var eventSpy = jasmine.createSpy();
+      app.on("something", eventSpy);
+      app.trigger("something");
+
+      expect(eventSpy).toHaveBeenCalled();
+    });
+  });
+
 });
