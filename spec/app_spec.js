@@ -1,7 +1,7 @@
-describe("App Factory", function() {
+describe("App", function() {
 
   beforeEach(function() {
-    Backdraft.destroyAll();
+    Backdraft.app.destroyAll();
   });
 
   describe("create", function() {
@@ -52,7 +52,7 @@ describe("App Factory", function() {
         }
       });
 
-      Backdraft.destroy("myapp");
+      Backdraft.app.destroy("myapp");
       expect(destroySpy).toHaveBeenCalled();
     });
 

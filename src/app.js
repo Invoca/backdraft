@@ -8,9 +8,9 @@ var App = (function() {
   var App = Backdraft.Utils.Class.extend({
 
     constructor : function() {
-      // default list of plugin names this app should load, defaulting to none.
-      // apps should either override this property or append to it
-      this.plugins = [];
+      // list of plugins by name this app should load, defaulting to none.
+      // apps should either override this property or append to it in their #initialize method
+      if (!this.plugins) this.plugins = [];
      
       // call parent constructor
       App.__super__.constructor.apply(this, arguments);
@@ -46,12 +46,16 @@ var App = (function() {
         return App.instances[name];
       }
 
-    },
+    }
+
+  });
+
+  _.extend(App.factory, {
 
     // destroys all existing applications
     destroyAll : function() {
       _.chain(App.instances).keys().each(function(name) { 
-        App.destroy(name);
+        App.factory.destroy(name);
       });
     },
 
@@ -61,7 +65,7 @@ var App = (function() {
       delete App.instances[name];
     }
 
-  });
+  })
 
   return App;
 

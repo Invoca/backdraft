@@ -64,9 +64,9 @@
   var App = Backdraft.Utils.Class.extend({
 
     constructor : function() {
-      // default list of plugin names this app should load, defaulting to none.
-      // apps should either override this property or append to it
-      this.plugins = [];
+      // list of plugins by name this app should load, defaulting to none.
+      // apps should either override this property or append to it in their #initialize method
+      if (!this.plugins) this.plugins = [];
      
       // call parent constructor
       App.__super__.constructor.apply(this, arguments);
@@ -102,12 +102,16 @@
         return App.instances[name];
       }
 
-    },
+    }
+
+  });
+
+  _.extend(App.factory, {
 
     // destroys all existing applications
     destroyAll : function() {
       _.chain(App.instances).keys().each(function(name) { 
-        App.destroy(name);
+        App.factory.destroy(name);
       });
     },
 
@@ -117,21 +121,19 @@
       delete App.instances[name];
     }
 
-  });
+  })
 
   return App;
 
 })();
   Backdraft.app = App.factory;
-  Backdraft.destroyAll = App.destroyAll;
-  Backdraft.destroy = App.destroy;
 
   var Plugin = Backdraft.Utils.Class.extend({
 
   initialize : function(name) {
     this.name = name;
     this.initializers = [];
-    this.exports = {};
+    this.exportedData = {};
   },
 
   // store a list of callback functions that will be executed in order
@@ -143,7 +145,7 @@
 
   // allow plugins to export static helpers, constants, etc
   exports : function(data) {
-    _.extend(this.exports, data);
+    _.extend(this.exportedData, data);
   },
 
   // call all initializers, providing Backdraft app instance to each
@@ -161,25 +163,34 @@
 
   factory : function(name, fn) {
     if (!fn) {
-      // return plugin instance with provided name
-      if (!this.registered[name]) throw new Error("Plugin " + name + " could has not been registered");
-      return this.registered[name];
+      // return exports of plugin with provided name
+      if (!Plugin.registered[name]) throw new Error("Plugin " + name + " has not been registered");
+      return Plugin.registered[name].exportedData;
     } else {
       // create and register new plugin. afterwards invoke callback with it
-      if (this.registered[name]) throw new Error("Plugin " + name + " is already registered");
-      this.registered[name] = new Plugin(name);
-      fn(this.registered[name]);
+      if (Plugin.registered[name]) throw new Error("Plugin " + name + " is already registered");
+      Plugin.registered[name] = new Plugin(name);
+      fn(Plugin.registered[name]);
     }
   },
 
   load : function(pluginNames, app) {
-    // load plugins the app has requested
-    _.chain(this.registered).pick(pluginNames).each(function(plugin) {
-      plugin.runInitializers(app);
+    // load plugins the app has specified
+    _.each(pluginNames, function(name) {
+      if (!Plugin.registered[name]) throw new Error("Plugin " + name + " has not been registered");
+      Plugin.registered[name].runInitializers(app);
     });
   }
 
+});
 
+_.extend(Plugin.factory, {
+
+  destroyAll : function() {
+    _.each(Plugin.registered, function(plugin, name) {
+      delete Plugin.registered[name];
+    })
+  }
 });
 
   Backdraft.plugin = Plugin.factory;
