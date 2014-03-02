@@ -213,18 +213,22 @@ _.extend(Plugin.factory, {
   
 
   plugin.initializer(function(app) {
+    app.Views = {};
     app.view = function() {
 
     };
 
+    app.Collections = {}
     app.collection = function() {
 
     };
 
+    app.Models = {};
     app.model = function() {
 
     };
 
+    app.Routers = {};
     app.router = function() {
 
     };
