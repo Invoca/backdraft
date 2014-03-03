@@ -20,26 +20,32 @@ describe("Base Plugin", function() {
   describe("factories", function() {
 
     var app;
+    var exports;
 
     beforeEach(function() {
       Backdraft.app.destroyAll();
       app = Backdraft.app("myapp", {});
+      exports = Backdraft.plugin("Base");
     });
 
     it("should expose #view", function() {
-      expect(_.isFunction(app.view)).toBe(true);
+      app.view("abc", {});
+      expect(new app.Views.abc).toEqual(jasmine.any(exports.View));
     });
 
     it("should expose #model", function() {
-      expect(_.isFunction(app.model)).toBe(true);
+      app.model("abc", {});
+      expect(new app.Models.abc).toEqual(jasmine.any(exports.Model));
     });
 
     it("should expose #collection", function() {
-      expect(_.isFunction(app.collection)).toBe(true);
+      app.collection("abc", {});
+      expect(new app.Collections.abc).toEqual(jasmine.any(exports.Collection));
     });
 
     it("should expose #router", function() {
-      expect(_.isFunction(app.router)).toBe(true);
+      app.router("abc", {});
+      expect(new app.Routers.abc).toEqual(jasmine.any(exports.Router));
     });
 
   });
@@ -67,7 +73,6 @@ describe("Base Plugin", function() {
     it("should expose a Model", function() {
       expect(new exports.Model()).toEqual(jasmine.any(Backbone.Model))
     });
-
 
   });
 

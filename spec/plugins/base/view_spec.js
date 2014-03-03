@@ -60,7 +60,7 @@ describe("Base Plugin", function() {
         expect(child2.close).toHaveBeenCalled();
         expect(child1.parent).not.toBeDefined();
         expect(child2.parent).not.toBeDefined();
-        
+
         expect(function() {
           parent.child("child1");
         }).toThrow();

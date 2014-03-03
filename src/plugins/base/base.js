@@ -12,25 +12,26 @@ Backdraft.plugin("Base", function(plugin) {
     Collection : Collection
   });
 
+  // factories
   plugin.initializer(function(app) {
     app.Views = {};
-    app.view = function() {
-
+    app.view = function(name, properties) {
+      app.Views[name] = View.extend(properties);
     };
 
     app.Collections = {}
-    app.collection = function() {
-
+    app.collection = function(name, properties) {
+      app.Collections[name] = Collection.extend(properties);
     };
 
     app.Models = {};
-    app.model = function() {
-
+    app.model = function(name, properties) {
+      app.Models[name] = Model.extend(properties);
     };
 
     app.Routers = {};
-    app.router = function() {
-
+    app.router = function(name, properties) {
+      app.Routers[name] = Router.extend(properties);
     };
 
   });
