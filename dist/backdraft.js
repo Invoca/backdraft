@@ -207,10 +207,92 @@ _.extend(Plugin.factory, {
 
   Backdraft.plugin("Base", function(plugin) {
 
-  
-  
-  
-  
+  var View = (function() {
+
+  function closeAllChildren() {
+
+  }
+
+  var View = Backbone.View.extend({
+
+    constructor : function() {
+      this.children = {};
+      View.__super__.constructor.apply(this, arguments);
+    },
+
+    child : function() {
+    },
+
+    close : function() {
+      this.trigger("beforeClose");
+
+      closeAllChildren(this);
+
+      // remove from the DOM
+      this.remove();
+
+      this.trigger("afterClose");
+    }
+
+  });
+
+  return View;
+
+})();
+
+  var Collection = (function() {
+
+  var Collection = Backbone.Collection.extend({
+
+  });
+
+  return Collection;
+
+})();
+  var Model = (function() {
+
+  var Model = Backbone.Model.extend({
+
+  });
+
+  return Model;
+
+})();
+  var Router = (function() {
+
+  var Router = Backbone.Router.extend({
+
+    constructor : function(options) {
+      options || (options = {});
+      if (options.$el) this.$el = options.$el;
+      Router.__super__.constructor.apply(this, arguments);
+    },
+
+    swap : function(nextView) {
+      this.activeView && this.activeView.close();
+
+      this.activeView = nextView;
+      this.activeView.trigger("beforeSwap", this);
+
+      // render new view and place into router's element
+      this.activeView.render();
+      this.$el.html(this.activeView.$el);
+
+      this.activeView.trigger("afterSwap", this);
+    }
+
+  });
+
+  return Router;
+
+})();
+
+  plugin.exports({
+    Router : Router,
+    View : View,
+    Model : Model,
+    Collection : Collection
+  });
 
   plugin.initializer(function(app) {
     app.Views = {};

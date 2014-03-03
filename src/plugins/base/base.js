@@ -5,6 +5,13 @@ Backdraft.plugin("Base", function(plugin) {
   {%= inline("src/plugins/base/model.js") %}
   {%= inline("src/plugins/base/router.js") %}
 
+  plugin.exports({
+    Router : Router,
+    View : View,
+    Model : Model,
+    Collection : Collection
+  });
+
   plugin.initializer(function(app) {
     app.Views = {};
     app.view = function() {

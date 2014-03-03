@@ -44,4 +44,31 @@ describe("Base Plugin", function() {
 
   });
 
+  describe("exports", function() {
+
+    var exports;
+
+    beforeEach(function() {
+      exports = Backdraft.plugin("Base");
+    });
+
+    it("should expose a Router", function() {
+      expect(new exports.Router()).toEqual(jasmine.any(Backbone.Router))
+    });
+
+    it("should expose a View", function() {
+      expect(new exports.View()).toEqual(jasmine.any(Backbone.View))
+    });
+
+    it("should expose a Collection", function() {
+      expect(new exports.Collection()).toEqual(jasmine.any(Backbone.Collection))
+    });
+
+    it("should expose a Model", function() {
+      expect(new exports.Model()).toEqual(jasmine.any(Backbone.Model))
+    });
+
+
+  });
+
 });
