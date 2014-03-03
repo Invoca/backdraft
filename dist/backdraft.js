@@ -339,12 +339,61 @@ _.extend(Plugin.factory, {
   return Router;
 
 })();
+  var Cache = (function() {
+
+  function getKey(key) {
+    if (key.cid) return key.cid;
+    if (_.isString(key)) return key;
+    throw new Error("Invalid key type");
+  }
+
+  var Cache = Backdraft.Utils.Class.extend({
+
+    initialize : function() {
+      this.reset();
+    },
+
+    set : function(key, value) {
+      this.data[getKey(key)] = value;
+      return value;
+    },
+
+    unset : function(key) {
+      key = getKey(key);
+      var value = this.data[key];
+      delete this.data[key];
+      return value;
+    },
+
+    get : function(key) {
+      return this.data[getKey(key)];
+    },
+
+    size : function() {
+      return _.keys(this.data).length;
+    },
+
+    reset : function() {
+      this.data = {};
+    },
+
+    each : function(fn) {
+      _.each(this.data, fn);
+    }
+
+  });
+
+  return Cache;
+
+
+})();
 
   plugin.exports({
     Router : Router,
     View : View,
     Model : Model,
-    Collection : Collection
+    Collection : Collection,
+    Cache : Cache
   });
 
   // factories

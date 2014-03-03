@@ -4,12 +4,14 @@ Backdraft.plugin("Base", function(plugin) {
   {%= inline("src/plugins/base/collection.js") %}
   {%= inline("src/plugins/base/model.js") %}
   {%= inline("src/plugins/base/router.js") %}
+  {%= inline("src/plugins/base/cache.js") %}
 
   plugin.exports({
     Router : Router,
     View : View,
     Model : Model,
-    Collection : Collection
+    Collection : Collection,
+    Cache : Cache
   });
 
   // factories

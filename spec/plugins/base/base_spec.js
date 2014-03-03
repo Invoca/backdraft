@@ -74,6 +74,10 @@ describe("Base Plugin", function() {
       expect(new exports.Model()).toEqual(jasmine.any(Backbone.Model))
     });
 
+    it("should expose a Cache", function() {
+      expect(new exports.Cache()).toEqual(jasmine.any(Backdraft.Utils.Class));
+    });
+
   });
 
 });
