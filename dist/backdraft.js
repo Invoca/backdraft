@@ -209,10 +209,6 @@ _.extend(Plugin.factory, {
 
   var View = (function() {
 
-  function closeAllChildren() {
-
-  }
-
   var View = Backbone.View.extend({
 
     constructor : function() {
@@ -220,18 +216,35 @@ _.extend(Plugin.factory, {
       View.__super__.constructor.apply(this, arguments);
     },
 
-    child : function() {
+    child : function(name, view) {
+      var existing = this.children[name];
+      if (!view) {
+        if (!existing) throw new Error("View " + name + " does not exist");
+        return existing;
+      }
+      if (existing) throw new Error("View " + name + " already exists");
+      this.children[name] = _.extend(view, { 
+        parent : this,
+        name : name
+      });
+      return this.children[name];
     },
 
     close : function() {
       this.trigger("beforeClose");
-
-      closeAllChildren(this);
-
+      // close children
+      _.each(this.children, function(child) {
+        child.close();
+      });
+      // detach from parent
+      if (this.parent) {
+        delete this.parent.children[this.name];
+        delete this.parent;
+      }
       // remove from the DOM
       this.remove();
-
       this.trigger("afterClose");
+      this.off();
     }
 
   });
@@ -270,14 +283,11 @@ _.extend(Plugin.factory, {
 
     swap : function(nextView) {
       this.activeView && this.activeView.close();
-
       this.activeView = nextView;
       this.activeView.trigger("beforeSwap", this);
-
       // render new view and place into router's element
       this.activeView.render();
       this.$el.html(this.activeView.$el);
-
       this.activeView.trigger("afterSwap", this);
     }
 
