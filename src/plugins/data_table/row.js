@@ -6,18 +6,18 @@ var Row = (function() {
   function invokeRenderer(row, node, config) {
     var renderer;
     if (config.bulk) {
-      renderer = this.renderers.bulk;
+      renderer = row.renderers.bulk;
     } else if (config.title) {
-      renderer = this.renderers[config.title];
+      renderer = row.renderers[config.title];
     } else {
-      renderer = this.renderers.base;
+      renderer = row.renderers.base;
     }
-    renderer.call(row, cell, config);
+    (renderer || row.renderers.base).call(row, node, config);
   }
 
   function selectorForCell(config) {
     if (config.title) {
-      return "." + Row.getCSSClass(title);
+      return "." + Row.getCSSClass(config.title);
     } else if (config.bulk) {
       return ".bulk";
     }
@@ -27,7 +27,7 @@ var Row = (function() {
 
     constructor : function() {
       Row.__super__.constructor.apply(this, arguments);
-      this.$el.data("view", this);
+      this.$el.data("row", this);
     },
 
     render : function() {

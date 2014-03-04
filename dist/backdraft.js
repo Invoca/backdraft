@@ -432,18 +432,18 @@ _.extend(Plugin.factory, {
   function invokeRenderer(row, node, config) {
     var renderer;
     if (config.bulk) {
-      renderer = this.renderers.bulk;
+      renderer = row.renderers.bulk;
     } else if (config.title) {
-      renderer = this.renderers[config.title];
+      renderer = row.renderers[config.title];
     } else {
-      renderer = this.renderers.base;
+      renderer = row.renderers.base;
     }
-    renderer.call(row, cell, config);
+    (renderer || row.renderers.base).call(row, node, config);
   }
 
   function selectorForCell(config) {
     if (config.title) {
-      return "." + Row.getCSSClass(title);
+      return "." + Row.getCSSClass(config.title);
     } else if (config.bulk) {
       return ".bulk";
     }
@@ -453,7 +453,7 @@ _.extend(Plugin.factory, {
 
     constructor : function() {
       Row.__super__.constructor.apply(this, arguments);
-      this.$el.data("view", this);
+      this.$el.data("row", this);
     },
 
     render : function() {
@@ -536,7 +536,7 @@ _.extend(Plugin.factory, {
 
     constructor : function(options) {
       this.options = options || {};
-      _.bindAll(this, "_onDraw");
+      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
@@ -578,7 +578,7 @@ _.extend(Plugin.factory, {
     selectAll : function(state) {
       this.bulkCheckbox.prop("checked", state);
       this._resetSelected();
-      _.each(this.getVisibleRows(), function(index, row) {
+      _.each(this.getVisibleRows(), function(row) {
         this._setRowSelectedState(row, state);
       }, this);
       this.trigger("change:stats");
@@ -605,7 +605,7 @@ _.extend(Plugin.factory, {
           }
         }
       }
-      row.setBulkStatue(state);
+      row.setBulkState(state);
     },
 
     _dataTableCreate : function() {
@@ -723,7 +723,7 @@ _.extend(Plugin.factory, {
       // figure out which rows are visible
       var visible = {}, row, cid;
       _.each(this.getVisibleRows(), function(r) {
-        visible[r].cid = r;
+        visible[r.cid] = r;
       });
       // unselect the ones that are no longer visible
       for (cid in this.selected.rows) {

@@ -16,7 +16,7 @@ var Table = (function() {
 
     constructor : function(options) {
       this.options = options || {};
-      _.bindAll(this, "_onDraw");
+      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
@@ -58,7 +58,7 @@ var Table = (function() {
     selectAll : function(state) {
       this.bulkCheckbox.prop("checked", state);
       this._resetSelected();
-      _.each(this.getVisibleRows(), function(index, row) {
+      _.each(this.getVisibleRows(), function(row) {
         this._setRowSelectedState(row, state);
       }, this);
       this.trigger("change:stats");
@@ -85,7 +85,7 @@ var Table = (function() {
           }
         }
       }
-      row.setBulkStatue(state);
+      row.setBulkState(state);
     },
 
     _dataTableCreate : function() {
@@ -203,7 +203,7 @@ var Table = (function() {
       // figure out which rows are visible
       var visible = {}, row, cid;
       _.each(this.getVisibleRows(), function(r) {
-        visible[r].cid = r;
+        visible[r.cid] = r;
       });
       // unselect the ones that are no longer visible
       for (cid in this.selected.rows) {

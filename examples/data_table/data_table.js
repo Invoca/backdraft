@@ -63,8 +63,15 @@ Backdraft.app("TableExample", function(app) {
 
     columns : [
       { bulk : true },
-      { attr : "name", title : "Name" }
-    ]
+      { attr : "name", title : "Name" },
+      { title : "random" }
+    ],
+
+    renderers : {
+      "random" : function(node, config) {
+        node.html(Math.random());
+      }
+    }
 
   });
 
@@ -76,6 +83,11 @@ Backdraft.app("TableExample", function(app) {
 
     render : function() {
       var collection  = new app.Collections.Books();
+      collection.add([
+        { name : "bob" },
+        { name : "joe" },
+        { name : "euge" }
+      ]);
       var table = new app.Views.BookTable({ collection : collection });
       this.$el.html(table.render().$el);
       return this;
