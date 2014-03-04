@@ -12,6 +12,7 @@
   Backdraft.plugin = Plugin.factory;
 
   {%= inline("src/plugins/base/base.js") %}
+  {%= inline("src/plugins/data_table/data_table.js") %}
 
   window.Backdraft = Backdraft;
 

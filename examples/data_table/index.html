@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" class="bs">
+  <head>
+    <meta charset="utf-8">
+    <title>Backdraft DataTable Examples</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="shortcut icon" href="#">
+    <link type="text/css" href="../../vendor/dataTables.bootstrap.css" rel="stylesheet" />
+
+  </head>
+
+  <body>
+    <div id="example-area"></div>
+
+    <!-- libraries -->
+    <script type="text/javascript" src="../../vendor/json2.js"></script>
+    <script type="text/javascript" src="../../vendor/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="../../vendor/underscore-1.6.0.js"></script>
+    <script type="text/javascript" src="../../vendor/backbone-1.1.2.js"></script>
+    <script type="text/javascript" src="../../vendor/jquery.dataTables-1.9.4.js"></script>
+    <script type="text/javascript" src="../../vendor/dataTables.bootstrap.js"></script>
+    <script type="text/javascript" src="../../dist/backdraft.js"></script>
+
+    <!-- demo -->
+    <script type="text/javascript" src="data_table.js"></script>
+    <script type="text/javascript">
+      Backdraft.app("TableExample").activate($("#example-area"));
+    </script>
+
+  </body>
+</html>
