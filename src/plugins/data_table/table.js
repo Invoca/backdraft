@@ -14,10 +14,11 @@ var Table = (function() {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
-    constructor : function() {
+    constructor : function(options) {
       this.options = options || {};
+      _.bindAll(this, "_onDraw");
       this.cache = new Base.Cache();
-      this.rowClass = app.getRowClass();
+      this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
       this._resetSelected();
       // inject our own events in addition to the users
@@ -88,8 +89,8 @@ var Table = (function() {
     },
 
     _dataTableCreate : function() {
-      this.dataTable = this.$("table").dataTable(_getDataTableConfig());
-      if (collection.length) this.dataTable.fnAddData(cidMap(this.collection));
+      this.dataTable = this.$("table").dataTable(this._getDataTableConfig());
+      if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
       var bulkCheckbox = this.$el.find("th :checkbox");
       if (bulkCheckbox.length) {
         this.bulkCheckbox = bulkCheckbox;
@@ -104,7 +105,8 @@ var Table = (function() {
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
         fnDrawCallback : this._onDraw,
-        aoColumns      : this._getColumnConfig()
+        aoColumns      : this._getColumnConfig(),
+        aaSorting :  [ [ 0, 'asc' ] ]
       };
     },
 

@@ -7,12 +7,12 @@ Backdraft.plugin("DataTable", function(plugin) {
 
     app.view.dataTable = function(name, properties) {
       app.Views[name] = Table.extend(properties);
-      Table.finalize(name, app.Views[name], views);
+      Table.finalize(name, app.Views[name], app.Views);
     };
 
     app.view.dataTable.row = function(name, properties) {
       app.Views[name] = Row.extend(properties);
-      Row.finalize(name, app.Views[name], views);
+      Row.finalize(name, app.Views[name], app.Views);
     }
   });
 

@@ -534,10 +534,11 @@ _.extend(Plugin.factory, {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
-    constructor : function() {
+    constructor : function(options) {
       this.options = options || {};
+      _.bindAll(this, "_onDraw");
       this.cache = new Base.Cache();
-      this.rowClass = app.getRowClass();
+      this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
       this._resetSelected();
       // inject our own events in addition to the users
@@ -608,8 +609,8 @@ _.extend(Plugin.factory, {
     },
 
     _dataTableCreate : function() {
-      this.dataTable = this.$("table").dataTable(_getDataTableConfig());
-      if (collection.length) this.dataTable.fnAddData(cidMap(this.collection));
+      this.dataTable = this.$("table").dataTable(this._getDataTableConfig());
+      if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
       var bulkCheckbox = this.$el.find("th :checkbox");
       if (bulkCheckbox.length) {
         this.bulkCheckbox = bulkCheckbox;
@@ -624,7 +625,8 @@ _.extend(Plugin.factory, {
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
         fnDrawCallback : this._onDraw,
-        aoColumns      : this._getColumnConfig()
+        aoColumns      : this._getColumnConfig(),
+        aaSorting :  [ [ 0, 'asc' ] ]
       };
     },
 
@@ -793,12 +795,12 @@ _.extend(Plugin.factory, {
 
     app.view.dataTable = function(name, properties) {
       app.Views[name] = Table.extend(properties);
-      Table.finalize(name, app.Views[name], views);
+      Table.finalize(name, app.Views[name], app.Views);
     };
 
     app.view.dataTable.row = function(name, properties) {
       app.Views[name] = Row.extend(properties);
-      Row.finalize(name, app.Views[name], views);
+      Row.finalize(name, app.Views[name], app.Views);
     }
   });
 
