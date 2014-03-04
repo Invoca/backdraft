@@ -17,6 +17,7 @@ Backdraft.app("TableExample", function(app) {
 
     index : function() {
       var view = new app.Views.Index();
+      $("#example").dataTable();
       this.swap(view);
     }
 
