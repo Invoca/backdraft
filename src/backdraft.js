@@ -13,6 +13,7 @@
 
   {%= inline("src/plugins/base/base.js") %}
   {%= inline("src/plugins/data_table/data_table.js") %}
+  {%= inline("src/plugins/listing/listing.js") %}
 
   window.Backdraft = Backdraft;
 
