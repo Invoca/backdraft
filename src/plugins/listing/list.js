@@ -20,16 +20,18 @@ var List = (function() {
     },
 
     _onRemove : function(model) {
-      this.cache.unset(model).closeOriginal();
+      this._closeItem(this.cache.unset(model));
     },
 
     _onReset : function(collection) {
       this.cache.each(function(item) {
-        item.closeOriginal();
-      });
+        this._closeItem(item);
+      }, this);
       this.cache.reset();
       this.$el.empty();
-      var item, fragment = document.createDocumentFragment();
+
+      // optimized bulk insertion of views
+      var fragment = document.createDocumentFragment();
       this.collection.each(function(model) {
         fragment.appendChild(this._createNewItem(model).render().el);
       }, this);
@@ -41,6 +43,12 @@ var List = (function() {
       this.cache.set(model, item);
       this.child("child" + item.cid, item);
       return item;
+    },
+
+    _closeItem : function(item) {
+      // since the item's close method just removes it from
+      // the collection, we need to call the Base#close method to actually remove it
+      Base.View.prototype.close.call(item);
     },
 
     render : function() {

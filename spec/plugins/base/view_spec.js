@@ -21,11 +21,9 @@ describe("Base Plugin", function() {
 
     describe("#child", function() {
 
-      it("should raise an error when accessing invalid children", function() {
-        expect(function() {
-          var view = new exports.View();
-          view.child("invalid");
-        }).toThrow();
+      it("should return undefined when accessing invalid children", function() {
+        var view = new exports.View();
+        expect(view.child("invalid")).toBeUndefined();
       });
 
       it("should raise an error when setting a child with an existing name", function() {
@@ -61,12 +59,8 @@ describe("Base Plugin", function() {
         expect(child1.parent).not.toBeDefined();
         expect(child2.parent).not.toBeDefined();
 
-        expect(function() {
-          parent.child("child1");
-        }).toThrow();
-        expect(function() {
-          parent.child("child2");
-        }).toThrow();
+        expect(parent.child("child1")).toBeUndefined();
+        expect(parent.child("child2")).toBeUndefined();
       });
 
     });

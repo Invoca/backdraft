@@ -218,10 +218,7 @@ _.extend(Plugin.factory, {
 
     child : function(name, view) {
       var existing = this.children[name];
-      if (!view) {
-        if (!existing) throw new Error("View " + name + " does not exist");
-        return existing;
-      }
+      if (!view) return existing;
       if (existing) throw new Error("View " + name + " already exists");
       this.children[name] = _.extend(view, { 
         parent : this,
@@ -377,8 +374,8 @@ _.extend(Plugin.factory, {
       this.data = {};
     },
 
-    each : function(fn) {
-      _.each(this.data, fn);
+    each : function(iterator, context) {
+      _.each(this.data, iterator, context);
     }
 
   });
@@ -829,16 +826,18 @@ _.extend(Plugin.factory, {
     },
 
     _onRemove : function(model) {
-      this.cache.unset(model).closeOriginal();
+      this._closeItem(this.cache.unset(model));
     },
 
     _onReset : function(collection) {
       this.cache.each(function(item) {
-        item.closeOriginal();
-      });
+        this._closeItem(item);
+      }, this);
       this.cache.reset();
       this.$el.empty();
-      var item, fragment = document.createDocumentFragment();
+
+      // optimized bulk insertion of views
+      var fragment = document.createDocumentFragment();
       this.collection.each(function(model) {
         fragment.appendChild(this._createNewItem(model).render().el);
       }, this);
@@ -850,6 +849,12 @@ _.extend(Plugin.factory, {
       this.cache.set(model, item);
       this.child("child" + item.cid, item);
       return item;
+    },
+
+    _closeItem : function(item) {
+      // since the item's close method just removes it from
+      // the collection, we need to call the Base#close method to actually remove it
+      Base.View.prototype.close.call(item);
     },
 
     render : function() {
@@ -877,15 +882,14 @@ _.extend(Plugin.factory, {
   var Base = Backdraft.plugin("Base");
 
   var Item = Base.View.extend({
+
+    close : function() {
+      this.model.collection.remove(this.model);
+    }
+
   }, {
 
     finalize : function(name, listClass, views) {
-      // override the default #close method to simply remove from the collection which
-      // triggers an event that will do the closing among other things
-      listClass.prototype.closeOriginal = listClass.prototype.close;
-      listClass.prototype.close = function() {
-        this.model.collection.remove(this.model);
-      }
     }
 
   });

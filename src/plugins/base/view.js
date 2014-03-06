@@ -9,10 +9,7 @@ var View = (function() {
 
     child : function(name, view) {
       var existing = this.children[name];
-      if (!view) {
-        if (!existing) throw new Error("View " + name + " does not exist");
-        return existing;
-      }
+      if (!view) return existing;
       if (existing) throw new Error("View " + name + " already exists");
       this.children[name] = _.extend(view, { 
         parent : this,

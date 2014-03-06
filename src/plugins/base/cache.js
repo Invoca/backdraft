@@ -36,8 +36,8 @@ var Cache = (function() {
       this.data = {};
     },
 
-    each : function(fn) {
-      _.each(this.data, fn);
+    each : function(iterator, context) {
+      _.each(this.data, iterator, context);
     }
 
   });
