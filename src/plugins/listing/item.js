@@ -4,7 +4,7 @@ var Item = (function() {
 
   var Item = Base.View.extend({
 
-    close : function() {
+    closeItem : function() {
       this.model.collection.remove(this.model);
     }
 

@@ -149,17 +149,32 @@ describe("Listing Plugin", function() {
 
     });
 
-    describe("#close helper", function() {
+    describe("#closeItem helper", function() {
 
       beforeEach(function() {
         collection.reset([ { name : "Bob"}, { name : "Joe"} ]);
         var model = collection.models[0];
         var view = listing.cache.get(model);
-        view.close();
+        view.closeItem();
       });
 
       removeTests();
 
+    });
+
+  });
+
+  describe("scenarios", function() {
+
+    it("should not remove models from the collection when #close is called", function() {
+      app.view.listing("Main", { itemClassName : "Sub" });
+      app.view.listing.item("Sub", {});
+      collection.add({ id : 1 });
+      collection.add({ id : 2 });
+      var listing = new app.Views.Main({ collection : collection });
+      listing.render();
+      listing.close();
+      expect(collection.length).toEqual(2);
     });
 
   });

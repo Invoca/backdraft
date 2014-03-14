@@ -20,12 +20,12 @@ var List = (function() {
     },
 
     _onRemove : function(model) {
-      this._closeItem(this.cache.unset(model));
+      this.cache.unset(model).close();
     },
 
     _onReset : function(collection) {
       this.cache.each(function(item) {
-        this._closeItem(item);
+        item.close();
       }, this);
       this.cache.reset();
       this.$el.empty();
@@ -43,12 +43,6 @@ var List = (function() {
       this.cache.set(model, item);
       this.child("child" + item.cid, item);
       return item;
-    },
-
-    _closeItem : function(item) {
-      // since the item's close method just removes it from
-      // the collection, we need to call the Base#close method to actually remove it
-      Base.View.prototype.close.call(item);
     },
 
     render : function() {
