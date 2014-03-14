@@ -115,6 +115,25 @@ describe("Base Plugin", function() {
 
     });
 
+    describe("Scenarios", function() {
+
+      it("should not cache an generated routes", function() {
+
+        Backdraft.app.destroyAll();
+        var app = Backdraft.app("myapp", {});
+        app.router("abc", {
+          routes : {
+            "files/:id" : "show"
+          }
+        });
+        var router = new app.Routers.abc();
+        expect(router.nameHelper.show({ id: 10 })).toEqual("files/10");
+        expect(router.nameHelper.show({ id: 11 })).toEqual("files/11");
+
+      });
+
+    });
+
   });
 
 });

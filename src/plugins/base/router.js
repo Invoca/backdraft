@@ -7,22 +7,22 @@ var Router = (function() {
   function createNameHelper(name, route) {
     var helper = function(params, splat) {
       // replace splat
-      route = route.replace(splatParam, splat || "");
+      var genRoute = route.replace(splatParam, splat || "");
       // replace required params
       _.each(params, function(v, k) {
-        route = route.replace(":" + k, v);
+        genRoute = genRoute.replace(":" + k, v);
       });
-      _.each(route.match(optionalParam), function(p) {
+      _.each(genRoute.match(optionalParam), function(p) {
         if (_.include(p, ":")) {
           // optional param unfulfilled, remove it
-          route = route.replace(p, "");
+          genRoute = genRoute.replace(p, "");
         } else {
           // optional param fulfilled, remove just the parens
-          route = route.replace(p, p.slice(1, -1));
+          genRoute = genRoute.replace(p, p.slice(1, -1));
         }
       });
-      if (_.include(route, ":")) throw new Error("Route for " + name + " can't be created");
-      return route;
+      if (_.include(genRoute, ":")) throw new Error("Route for " + name + " can't be created");
+      return genRoute;
     };
 
     this.nameHelper[name] = helper;
