@@ -65,6 +65,33 @@ describe("Base Plugin", function() {
 
     });
 
+    describe("#close", function() {
+
+      it("should unbind all events from the view", function() {
+        var view = new exports.View();
+        var spy = jasmine.createSpyObj("eventSpy", [ "abc", "xyz" ]);
+
+        view.on({
+          abc : spy.abc,
+          xyz : spy.xyz
+        });
+
+        view.trigger("abc");
+        view.trigger("xyz");
+
+        expect(spy.abc.calls.count()).toBe(1);
+        expect(spy.xyz.calls.count()).toBe(1);
+
+        view.close();
+        view.trigger("abc");
+        view.trigger("xyz");
+
+        expect(spy.abc.calls.count()).toBe(1);
+        expect(spy.xyz.calls.count()).toBe(1);
+      });
+
+    });
+
   });
 
 });
