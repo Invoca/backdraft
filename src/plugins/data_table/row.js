@@ -76,7 +76,7 @@ var Row = (function() {
 
       base : function(cell, config) {
         var content = this.model.get(config.attr);
-        cell.html(content);
+        cell.text(content);
       },
 
       bulk : function(cell, config) {

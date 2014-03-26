@@ -71,13 +71,12 @@ describe("Listing Plugin", function() {
     describe("collection is reset", function() {
 
       beforeEach(function() {
-        collection.reset([ { name : "Bob"}, { name : "Joe"} ]);
+        collection.reset([ { name : "Bob"}, { name : "Joe" } ]);
       });
 
       it("should render a view for every model in the collection", function() {
         expect(listing.$("li").length).toEqual(2);
         expect(listing.$el.html()).toEqual("<li>Bob</li><li>Joe</li>");
-
       });
 
       it("should have children views for every model", function() {

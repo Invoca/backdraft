@@ -235,7 +235,7 @@ var Table = (function() {
     _onRemove : function(model) {
       if (!this.dataTable) return;
       var cache = this.cache, row = cache.get(model);
-      this.dataTable.fnDeleteRow(view.el, function() {
+      this.dataTable.fnDeleteRow(row.el, function() {
         cache.unset(model);
         row.close();
       });

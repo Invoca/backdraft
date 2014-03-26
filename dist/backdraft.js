@@ -499,7 +499,7 @@ _.extend(Plugin.factory, {
 
       base : function(cell, config) {
         var content = this.model.get(config.attr);
-        cell.html(content);
+        cell.text(content);
       },
 
       bulk : function(cell, config) {
@@ -752,7 +752,7 @@ _.extend(Plugin.factory, {
     _onRemove : function(model) {
       if (!this.dataTable) return;
       var cache = this.cache, row = cache.get(model);
-      this.dataTable.fnDeleteRow(view.el, function() {
+      this.dataTable.fnDeleteRow(row.el, function() {
         cache.unset(model);
         row.close();
       });

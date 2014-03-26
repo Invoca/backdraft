@@ -69,7 +69,7 @@ Backdraft.app("TableExample", function(app) {
 
     renderers : {
       "random" : function(node, config) {
-        node.html(Math.random());
+        node.text(Math.random());
       }
     }
 
