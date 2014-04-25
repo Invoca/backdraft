@@ -61,11 +61,13 @@ Backdraft.app("TableExample", function(app) {
 
   app.view.dataTable.row("BookRow", {
 
-    columns : [
-      { bulk : true },
-      { attr : "name", title : "Name" },
-      { title : "random" }
-    ],
+    columns : function(){
+      return [
+        { bulk : true },
+        { attr : "name", title : "Name" },
+        { title : "random" }
+      ]  
+    },
 
     renderers : {
       "random" : function(node, config) {
