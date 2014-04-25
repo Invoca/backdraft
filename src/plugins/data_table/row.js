@@ -32,7 +32,8 @@ var Row = (function() {
 
     render : function() {
       var cells = this.getCells(), node;
-      _.each(this.columns, function(config) {
+      var columns = (this.columns.call) ? this.columns.call(this) : this.columns;
+      _.each(columns, function(config) {
         node = cells.filter(selectorForCell(config));
         if (node.length) invokeRenderer(this, node, config);
       }, this);

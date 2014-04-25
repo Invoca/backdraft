@@ -455,7 +455,8 @@ _.extend(Plugin.factory, {
 
     render : function() {
       var cells = this.getCells(), node;
-      _.each(this.columns, function(config) {
+      var columns = (this.columns.call) ? this.columns.call(this) : this.columns;
+      _.each(columns, function(config) {
         node = cells.filter(selectorForCell(config));
         if (node.length) invokeRenderer(this, node, config);
       }, this);
@@ -536,7 +537,12 @@ _.extend(Plugin.factory, {
       _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
-      this.columns = this.rowClass.prototype.columns;
+      this.columns = (this.rowClass.prototype.columns.call) ? this.rowClass.prototype.columns.call(this) : this.rowClass.prototype.columns;
+      // Check columns is an array
+      if (!Array.isArray(this.columns)) {
+        throw Error('Columns should be a valid array');
+      }
+
       this._resetSelected();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
