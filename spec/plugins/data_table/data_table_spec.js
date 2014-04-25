@@ -20,7 +20,7 @@ describe("DataTable Plugin", function() {
   describe("factories", function() {
 
     it("should expoose #dataTable and #dataTable.row", function() {
-      app.view.dataTable.row("abc", {});
+      app.view.dataTable.row("abc", {columns:[]});
       app.view.dataTable("def", {
         rowClassName : "abc"
       });
@@ -190,7 +190,7 @@ describe("DataTable Plugin", function() {
               rowClassName : "ArrayCol"
             });
 
-            table = new app.Views.T({ collection : collection });
+            table = new app.Views.TableCol({ collection : collection });
             table.render();
           };
 
@@ -206,7 +206,7 @@ describe("DataTable Plugin", function() {
               rowClassName : "ArrayCol"
             });
 
-            table = new app.Views.T({ collection : collection });
+            table = new app.Views.TableCol({ collection : collection });
             table.render();
           };
 
@@ -220,7 +220,7 @@ describe("DataTable Plugin", function() {
               rowClassName : "ArrayCol"
             });
 
-            table = new app.Views.T({ collection : collection });
+            table = new app.Views.TableCol({ collection : collection });
             table.render();
           };
 
