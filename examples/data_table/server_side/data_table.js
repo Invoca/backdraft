@@ -19,8 +19,6 @@ Backdraft.app("TableExample", function(app) {
 
     index : function() {
       var view = new app.Views.Index();
-      // $("#example").dataTable();
-      $("#example").hide()
       this.swap(view);
     }
 
@@ -40,7 +38,9 @@ Backdraft.app("TableExample", function(app) {
 
   app.collection("Books", {
 
-    model : app.Models.Book
+    model : app.Models.Book,
+
+    url : "/data"
     
   });
 
@@ -52,7 +52,10 @@ Backdraft.app("TableExample", function(app) {
 
   app.view.dataTable("BookTable", {
 
-    rowClassName : "BookRow"
+    rowClassName : "BookRow",
+
+    serverSide : true
+
   });
 
 });
@@ -83,11 +86,6 @@ Backdraft.app("TableExample", function(app) {
 
     render : function() {
       var collection  = new app.Collections.Books();
-      collection.add([
-        { name : "bob" },
-        { name : "joe" },
-        { name : "euge" }
-      ]);
       var table = new app.Views.BookTable({ collection : collection });
       this.$el.html(table.render().$el);
       return this;

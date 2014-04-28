@@ -220,4 +220,41 @@ describe("DataTable Plugin", function() {
 
   });
 
+  describe("pagination", function() {
+
+    it("should paginate by default", function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      expect(table.$(".dataTables_paginate").length).toEqual(1);
+    });
+
+    it("should allow pagination to be disabled", function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        paginate : false
+      });
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      expect(table.$(".dataTables_paginate").length).toEqual(0);
+    });
+
+  });
+
 });
