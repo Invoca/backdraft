@@ -50,7 +50,7 @@ describe("DataTable Plugin", function() {
         expect(function() {
           collection.add({ name : "Bob" }, { silent : true });
           collection.remove(collection.models[0]);
-        }).toThrowError("Server side dataTables do not allow remove from collection");
+        }).toThrowError("Server side dataTables do not allow removing from collection");
       });
 
       it("should require that collections define a url", function() {

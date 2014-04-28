@@ -810,7 +810,7 @@ _.extend(Plugin.factory, {
     },
 
     _onRemove : function() {
-      throw new Error("Server side dataTables do not allow remove from collection")
+      throw new Error("Server side dataTables do not allow removing from collection")
     },
 
     _onReset : function(collection, options) {
