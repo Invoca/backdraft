@@ -40,7 +40,7 @@ Backdraft.app("TableExample", function(app) {
 
     model : app.Models.Book,
 
-    url : "/data"
+    url : "/server_side_data"
     
   });
 

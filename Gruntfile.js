@@ -13,6 +13,8 @@ module.exports = function(grunt) {
     return grunt.template.process(contents, { delimiters : "inline" });
   };
 
+  var exampleServer = require("./lib/example_server");
+
   grunt.initConfig({
 
     inline : inline,
@@ -60,8 +62,12 @@ module.exports = function(grunt) {
     grunt.file.write("dist/backdraft.js", inline("src/backdraft.js"));
   });
 
+  grunt.registerTask("servers", function() {
+    exampleServer(9873);
+  });
+
   grunt.registerTask("spec", [ "build", "jasmine:specs" ]);
-  grunt.registerTask("dev", [ "watch:autotest" ]);
+  grunt.registerTask("dev", [ "servers", "watch:autotest" ]);
   grunt.registerTask("default", "dev");
 
 };
