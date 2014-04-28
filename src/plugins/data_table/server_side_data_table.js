@@ -39,8 +39,13 @@ var ServerSideDataTable = (function() {
         cache : false,
         type : "GET",
         success : function(json) {
-          // TODO - this is where we should handle out of order responses - I think fnCallback
-          // has logic in it to ignore previous data and we only call it after reseting the collection which is no good
+          // ensure we ignore old Ajax responses
+          // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
+          // what gets called by fnCallback. However, fnCallback should only be invoked after we reset the
+          // collection, so we must perform the check at this point as well.
+          if (_.isUndefined(json.sEcho)) return;
+          if (json.sEcho * 1 < oSettings.iDraw) return;
+
           self.collection.reset(json.aaData, { 
             addData : function(data) {
               // calling fnCallback is what will actually cause the data to be populated
