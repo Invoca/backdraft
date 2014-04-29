@@ -40,8 +40,23 @@ var Table = (function() {
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
-    // return the row objects that are visible
+    // return the row objects that have not been filtered out
     getVisibleRows : function() {
+      return this.dataTable.$("tr", { filter : "applied" }).map(function(index, node) {
+        return $(node).data("row");
+      });
+    },
+
+    // returns row objects that have not been filtered out and are on the current page
+    _visibleRowsOnCurrentPage : function() {
+      return this.dataTable.$("tr", { filter : "applied", page : "current" }).map(function(index, node) {
+        return $(node).data("row");
+      });
+    },
+
+    // returns row objects that have not been filtered out and are on all pages
+    _visibleRowsOnAllPages : function() {
+      if (!this.paginate) throw new Error("#_visibleRowsOnAllPages should only be used for paginated tables");
       return this.dataTable.$("tr", { filter : "applied" }).map(function(index, node) {
         return $(node).data("row");
       });
@@ -63,10 +78,19 @@ var Table = (function() {
     selectAll : function(state) {
       this.bulkCheckbox.prop("checked", state);
       this._resetSelected();
-      _.each(this.getVisibleRows(), function(row) {
+      _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row, state);
       }, this);
       this.trigger("change:stats");
+    },
+
+    selectAllComplete : function() {
+      if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
+      if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
+
+      _.each(this._visibleRowsOnAllPages(), function(row) {
+        this._setRowSelectedState(row, true);
+      }, this);
     },
 
     // private
@@ -117,7 +141,7 @@ var Table = (function() {
 
     _getDataTableConfig : function() {
       return {
-        bDeferRender : true,
+        bDeferRender : false,
         bPaginate : this.paginate,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
@@ -310,16 +334,21 @@ var Table = (function() {
 
 TODO 
   - selecting single is not adjusting selected counts or adding rows/models
-  - define selectAllAll? method
+  - define selectAllComplete method
       - no pagination - throw exception
       - local paginated - throw exception if there is no more paginated pages
                         - select using visible
       - remote paginated - throw exception if there is no more paginated pages
                          - persist current filters
+  - clear selectAllComplete data on fnDrawCallback or fnInfoCallback
+  - getVisibleRows is returning other pages in case of local pagination, all ones that have been created
 
 Questions:
   When should we unselect the "all selected" ones?
-  How do you find out if there is more than 1 page of paginated data from dataTables?
+    - as soon as anything is changed
+  On a local paginated page, if you select a bunch of things and then move to another page, should those previous options be persisted?
+    - for the complete all case, we will nuke it
+    - but what about just selection of that page, what should we do with header, leave it checked?
 
 
 
