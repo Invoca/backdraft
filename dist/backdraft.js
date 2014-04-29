@@ -450,13 +450,13 @@ _.extend(Plugin.factory, {
 
     constructor : function() {
       Row.__super__.constructor.apply(this, arguments);
+      this.columns = _.result(this, 'columns');
       this.$el.data("row", this);
     },
 
     render : function() {
       var cells = this.getCells(), node;
-      var columns = (this.columns.call) ? this.columns.call(this) : this.columns;
-      _.each(columns, function(config) {
+      _.each(this.columns, function(config) {
         node = cells.filter(selectorForCell(config));
         if (node.length) invokeRenderer(this, node, config);
       }, this);
@@ -537,7 +537,7 @@ _.extend(Plugin.factory, {
       _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
-      this.columns = (this.rowClass.prototype.columns.call) ? this.rowClass.prototype.columns.call(this) : this.rowClass.prototype.columns;
+      this.columns = _.result(this.rowClass.prototype, 'columns');
       // Check columns is an array
       if (!_.isArray(this.columns)) {
         throw Error('Columns should be a valid array');
