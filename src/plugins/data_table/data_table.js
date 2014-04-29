@@ -2,6 +2,15 @@ var Table = (function() {
 
   var Base = Backdraft.plugin("Base");
 
+  var SelectionHelper = Backdraft.Utils.Class.extend({
+
+    initialize : function() {
+      // change to track models
+      // render with bulk set correctly
+    }
+
+  });
+
   var Table = Base.View.extend({
 
     template : '\
@@ -9,6 +18,7 @@ var Table = (function() {
     ',
 
     constructor : function(options) {
+      X = this;
       this.options = options || {};
       _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
@@ -30,14 +40,14 @@ var Table = (function() {
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
-    // return the row object that is visible
+    // return the row objects that are visible
     getVisibleRows : function() {
       return this.dataTable.$("tr", { filter : "applied" }).map(function(index, node) {
         return $(node).data("row");
       });
     },
 
-    getSelectedModels : function() {
+    selectedModels : function() {
       return _.map(this.selected.rows, function(row) {
         return row.model;
       })
@@ -74,19 +84,25 @@ var Table = (function() {
     },
 
     _setRowSelectedState : function(row, state) {
-      var existing = this.selected.rows[row.cid];
-      if (state) {
-        if (!existing) {
-          this.selected.rows[row.cid] = row;
-          this.selected.count += 1;
+      // for paginated tables, the row may not have been rendered yet
+      // TODO: selected math adjustments need to be done regardless of row or not, move logic outside of if (row)
+      
+      if (row) {
+        var existing = this.selected.rows[row.cid];
+        if (state) {
+          if (!existing) {
+            this.selected.rows[row.cid] = row;
+            this.selected.count += 1;
+          }
         } else {
           if (existing) {
             delete this.selected.rows[row.cid];
             this.selected.count = Math.max(0, this.selected.count -1);
           }
         }
+
+        row.setBulkState(state);
       }
-      row.setBulkState(state);
     },
 
     _dataTableCreate : function() {
@@ -271,3 +287,40 @@ var Table = (function() {
   return Table;
 
 })();
+
+/*
+  No pagination
+    - select all - should select only what is visible on the screen, as some rows may have been filtered. all rows are rendered upfront since there is no pagination
+    - no gmail style
+
+  Pagination - local
+    - select all (first time)  - should select only only what is visible on the screen - we don't want to select other pages.
+    - select all (gmail style) - should only appear if there is more than 1 page of paginated data
+                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models. 
+                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34, 
+                                 hit select all, we will select 10 visible ones. say you want all all. the 34 results will be selected
+
+  ServerSide (pagination is implied)
+    - disable datatables filtering as it's default issues too many ajax
+    - select all (first time)  - should select whats in the collection, since its server side, everything in the collection is what we have.
+    - select all (gmail style) - should only appear if there is more than 1 page of paginated data
+                               - need to persist current filters and return those instead of selected ids.
+
+
+
+TODO 
+  - selecting single is not adjusting selected counts or adding rows/models
+  - define selectAllAll? method
+      - no pagination - throw exception
+      - local paginated - throw exception if there is no more paginated pages
+                        - select using visible
+      - remote paginated - throw exception if there is no more paginated pages
+                         - persist current filters
+
+Questions:
+  When should we unselect the "all selected" ones?
+  How do you find out if there is more than 1 page of paginated data from dataTables?
+
+
+
+*/

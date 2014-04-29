@@ -257,4 +257,60 @@ describe("DataTable Plugin", function() {
 
   });
 
+  describe("select all", function() {
+
+    describe("without pagination", function() {
+
+      var data;
+
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { bulk : true },
+            { attr : "name", title : "Name" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R",
+          paginate : false
+        });
+
+        data = [];
+        for (var iter = 0; iter < 100; ++iter) {
+          data.push({ name : "hi " + iter });
+        }
+      });
+      
+      it("should select all visible models", function() {
+        collection.reset(data);
+        table = new app.Views.T({ collection : collection });
+        table.render();
+
+        expect(table.selectedModels().length).toEqual(0);
+        table.selectAll(true)
+        expect(table.selectedModels().length).toEqual(data.length);
+      });
+
+      it("should only select models that are not filtered out", function() {
+        data.push({ name : "monkey "});
+        data.push({ name : "monkey and more "});
+
+        collection.reset(data);
+        table = new app.Views.T({ collection : collection });
+        table.render();
+
+        expect(table.selectedModels().length).toEqual(0);
+        table.filter("monkey");
+        table.selectAll(true)
+        expect(table.selectedModels().length).toEqual(2);
+      });
+
+    });
+
+    describe("with pagination", function() {
+      
+    });
+
+  });
+
 });

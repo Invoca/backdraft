@@ -65,7 +65,17 @@ describe("DataTable Plugin", function() {
           table = new app.Views.T({ collection : collection });
           collection.reset();
         }).toThrowError("An addData option is required to reset the collection");
-      })
+      });
+
+      it("should force pagination", function() {
+        app.view.dataTable("T2", {
+          rowClassName : "R",
+          serverSide : true,
+          paginate : false
+        });
+        table = new app.Views.T2({ collection : collection });
+        expect(table.paginate).toEqual(true);
+      });
 
     });
 
@@ -118,6 +128,14 @@ describe("DataTable Plugin", function() {
         expect(table.$("tbody tr").length).toEqual(10);
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
+
+      it("should disable filtering", function() {
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse);
+        expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
+      });
+
 
     });
 

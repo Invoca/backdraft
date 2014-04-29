@@ -3,6 +3,8 @@ var ServerSideDataTable = (function() {
   var ServerSideDataTable = Table.extend({
 
     constructor : function() {
+      // force pagination
+      this.paginate = true;
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
@@ -66,6 +68,11 @@ var ServerSideDataTable = (function() {
         sAjaxSource : this.collection.url,
         fnServerData : this._fetchServerData
       });
+    },
+
+    _dataTableCreate : function() {
+      ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
+      this.$(".dataTables_filter").css("visibility", "hidden");
     }
 
   });
