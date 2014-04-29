@@ -450,6 +450,7 @@ _.extend(Plugin.factory, {
 
     constructor : function() {
       Row.__super__.constructor.apply(this, arguments);
+      this.columns = _.result(this, 'columns');
       this.$el.data("row", this);
     },
 
@@ -536,7 +537,11 @@ _.extend(Plugin.factory, {
       _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
-      this.columns = this.rowClass.prototype.columns;
+      this.columns = _.result(this.rowClass.prototype, 'columns');
+      // Check columns is an array
+      if (!_.isArray(this.columns)) {
+        throw Error('Columns should be a valid array');
+      }
       this._resetSelected();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {

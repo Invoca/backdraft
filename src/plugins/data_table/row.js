@@ -27,6 +27,7 @@ var Row = (function() {
 
     constructor : function() {
       Row.__super__.constructor.apply(this, arguments);
+      this.columns = _.result(this, 'columns');
       this.$el.data("row", this);
     },
 

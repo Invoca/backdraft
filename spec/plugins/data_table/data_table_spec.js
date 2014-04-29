@@ -20,7 +20,7 @@ describe("DataTable Plugin", function() {
   describe("factories", function() {
 
     it("should expoose #dataTable and #dataTable.row", function() {
-      app.view.dataTable.row("abc", {});
+      app.view.dataTable.row("abc", {columns: []});
       app.view.dataTable("def", {
         rowClassName : "abc"
       });
@@ -176,8 +176,58 @@ describe("DataTable Plugin", function() {
           collection.add({});
           expect(table.$("tbody tr td:first :checkbox").length).toEqual(1);
         });
+      });
 
+      describe("columns", function(){
+        it("can only be provided as an array or a function that returns an array", function(){
+          var passingArray = function() {
+            app.view.dataTable.row("ArrayCol", {
+              columns : [
+                { bulk : "true" }
+              ]
+            });
+            app.view.dataTable("TableCol", {
+              rowClassName : "ArrayCol"
+            });
 
+            table = new app.Views.TableCol({ collection : collection });
+            table.render();
+          };
+
+          var passingFn = function() {
+            app.view.dataTable.row("ArrayCol", {
+              columns : function() {
+                return [
+                  { bulk : "true" }
+                ];
+              }
+            });
+            app.view.dataTable("TableCol", {
+              rowClassName : "ArrayCol"
+            });
+
+            table = new app.Views.TableCol({ collection : collection });
+            table.render();
+          };
+
+          var failing = function() {
+            app.view.dataTable.row("ArrayCol", {
+              columns : function() {
+                return { bulk : "true" };
+              }
+            });
+            app.view.dataTable("TableCol", {
+              rowClassName : "ArrayCol"
+            });
+
+            table = new app.Views.TableCol({ collection : collection });
+            table.render();
+          };
+
+          expect(passingArray).not.toThrow();
+          expect(passingFn).not.toThrow();
+          expect(failing).toThrow();
+        });
       });
 
       describe("user defined", function() {
