@@ -20,7 +20,7 @@ var Table = (function() {
     constructor : function(options) {
       X = this;
       this.options = options || {};
-      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
+      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
@@ -136,7 +136,9 @@ var Table = (function() {
       if (bulkCheckbox.length) {
         this.bulkCheckbox = bulkCheckbox;
         this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
+        this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
       }
+
     },
 
     _getDataTableConfig : function() {
@@ -232,11 +234,18 @@ var Table = (function() {
 
     // events
 
-    _onBulkHeaderClick : function() {
+    _onBulkHeaderClick : function(event) {
       var state = this.bulkCheckbox.prop("checked");
       if (!$(event.target).is(this.bulkCheckbox)) state = !state;
       this.selectAll(state);
       return true;
+    },
+
+    _onBulkRowClick : function(event) {
+      var checkbox = $(event.target), row = checkbox.closest("tr").data("row"), checked = checkbox.prop("checked");
+      // ensure that when a single row checkbox is un-checked, we un-check the header bulk checkbox
+      if (!checked) this.bulkCheckbox.prop("checked", false);
+      this._setRowSelectedState(row, checked);
     },
 
     _onDraw : function() {
@@ -334,14 +343,9 @@ var Table = (function() {
 
 TODO 
   - selecting single is not adjusting selected counts or adding rows/models
-  - define selectAllComplete method
-      - no pagination - throw exception
-      - local paginated - throw exception if there is no more paginated pages
-                        - select using visible
-      - remote paginated - throw exception if there is no more paginated pages
-                         - persist current filters
   - clear selectAllComplete data on fnDrawCallback or fnInfoCallback
-  - getVisibleRows is returning other pages in case of local pagination, all ones that have been created
+  - getVisibleRows is returning other pages in case of local pagination, all ones that have been created - we may not need this method any more, see next note about drawcallback
+  - need to fix drawcallback to deal with unselecting stuff
 
 Questions:
   When should we unselect the "all selected" ones?
@@ -349,6 +353,7 @@ Questions:
   On a local paginated page, if you select a bunch of things and then move to another page, should those previous options be persisted?
     - for the complete all case, we will nuke it
     - but what about just selection of that page, what should we do with header, leave it checked?
+  Should we even bother with the selectallcomplete on a local paginated page???
 
 
 

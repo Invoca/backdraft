@@ -11,6 +11,12 @@ var ServerSideDataTable = (function() {
       _.bindAll(this, "_fetchServerData");
     },
 
+    selectAllComplete : function() {
+      if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
+      if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
+      alert("Storing search variables");
+    },
+
     _onAdd : function() {
       throw new Error("Server side dataTables do not allow adding to the collection");
     },
@@ -72,6 +78,7 @@ var ServerSideDataTable = (function() {
 
     _dataTableCreate : function() {
       ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
+      // hide inefficient filter
       this.$(".dataTables_filter").css("visibility", "hidden");
     }
 

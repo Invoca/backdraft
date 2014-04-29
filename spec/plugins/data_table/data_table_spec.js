@@ -270,6 +270,8 @@ describe("DataTable Plugin", function() {
         }
       });
 
+
+
       describe("without pagination", function() {
 
         beforeEach(function() {
@@ -370,6 +372,61 @@ describe("DataTable Plugin", function() {
             table.selectAllComplete();
           }).toThrowError("#selectAllComplete cannot be used when there are no additional paginated results");
 
+        });
+
+      });
+
+      describe("regardless of pagination", function() {
+
+        beforeEach(function() {
+          app.view.dataTable.row("R", {
+            columns : [
+              { bulk : true },
+              { attr : "name", title : "Name" }
+            ]
+          });
+          app.view.dataTable("T", {
+            rowClassName : "R",
+            paginate : false
+          });
+          collection.reset(data);
+        });
+
+        it("should check/uncheck the header bulk checkbox when #selectAll is called", function() {
+          table = new app.Views.T({ collection : collection });
+          table.render();
+
+          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+          table.selectAll(true);
+          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
+          table.selectAll(false);
+          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+        });
+        
+        it("should uncheck the header bulk checkbox when a row's checkbox is unchecked", function() {
+          table = new app.Views.T({ collection : collection });
+          // need to append to body in order to do clicks on checkboxes
+          $("body").append(table.render().$el);
+
+          table.selectAll(true)
+
+          // un-check a single row checkbox
+          table.$("td.bulk :checkbox:first").click();
+          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+        });
+
+        it("should toggle the 'selected' class on the row when a row's checkbox is toggled", function() {
+          table = new app.Views.T({ collection : collection });
+          // need to append to body in order to do clicks on checkboxes
+          $("body").append(table.render().$el);
+
+          expect(table.$(".selected").length).toEqual(0);
+          table.selectAll(true);
+          expect(table.$(".selected").length).toEqual(data.length);
+
+          // un-check a single row checkbox
+          table.$("td.bulk :checkbox:first").click();
+          expect(table.$(".selected").length).toEqual(data.length - 1);
         });
 
       });
