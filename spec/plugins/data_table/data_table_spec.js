@@ -180,7 +180,7 @@ describe("DataTable Plugin", function() {
 
       describe("columns", function(){
         it("can only be provided as an array or a function that returns an array", function(){
-          var passing_array = function() {
+          var passingArray = function() {
             app.view.dataTable.row("ArrayCol", {
               columns : [
                 { bulk : "true" }
@@ -194,7 +194,7 @@ describe("DataTable Plugin", function() {
             table.render();
           };
 
-          var passing_fn = function() {
+          var passingFn = function() {
             app.view.dataTable.row("ArrayCol", {
               columns : function() {
                 return [
@@ -224,8 +224,8 @@ describe("DataTable Plugin", function() {
             table.render();
           };
 
-          expect(passing_array).not.toThrow();
-          expect(passing_fn).not.toThrow();
+          expect(passingArray).not.toThrow();
+          expect(passingFn).not.toThrow();
           expect(failing).toThrow();
         });
       });
