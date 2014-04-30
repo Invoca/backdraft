@@ -17,6 +17,8 @@ var Table = (function() {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
+    _visibleRowsCurrentPageArgs : { filter : "applied", page : "current" },
+
     constructor : function(options) {
       X = this;
       this.options = options || {};
@@ -55,15 +57,7 @@ var Table = (function() {
 
     // returns row objects that have not been filtered out and are on the current page
     _visibleRowsOnCurrentPage : function() {
-      return this.dataTable.$("tr", { filter : "applied", page : "current" }).map(function(index, node) {
-        return $(node).data("row");
-      });
-    },
-
-    // returns row objects that have not been filtered out and are on all pages
-    _visibleRowsOnAllPages : function() {
-      if (!this.paginate) throw new Error("#_visibleRowsOnAllPages should only be used for paginated tables");
-      return this.dataTable.$("tr", { filter : "applied" }).map(function(index, node) {
+      return this.dataTable.$("tr", this._visibleRowsCurrentPageArgs).map(function(index, node) {
         return $(node).data("row");
       });
     },
@@ -135,18 +129,16 @@ var Table = (function() {
 
     _initPaginationHandling : function() {
       var self = this;
+      // when changing between pages we set the header bulk checkbox state based on whether all rows are selected or not
+      // note: we defer execution as the "page" event is called before new rows are swapped in
+      // this allows our code to run after the all the new rows are inserted
       this.dataTable.on("page", function() {
-        console.log("PPPPPPPP");
         _.defer(function() {
-
-
           var allChecked = _.all(self._visibleRowsOnCurrentPage(), function(row) {
             return row.bulkState() == true;
           });
-          console.log(allChecked)
           self.bulkCheckbox.prop("checked", allChecked);
         });
-
       });
     },
 

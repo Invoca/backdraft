@@ -2,6 +2,8 @@ var ServerSideDataTable = (function() {
 
   var ServerSideDataTable = Table.extend({
 
+    _visibleRowsCurrentPageArgs : { filter : "applied" },
+
     constructor : function() {
       // force pagination
       this.paginate = true;
@@ -80,6 +82,15 @@ var ServerSideDataTable = (function() {
       ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
       // hide inefficient filter
       this.$(".dataTables_filter").css("visibility", "hidden");
+    },
+
+    // overriden to just clear the header bulk checkbox between page transitions
+    // since rows are re-rendered with every interaction with the server
+    _initPaginationHandling : function() {
+      var self = this;
+      this.dataTable.on("page", function() {
+        self.bulkCheckbox.prop("checked", false);
+      });
     }
 
   });
