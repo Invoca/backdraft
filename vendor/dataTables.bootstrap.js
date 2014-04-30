@@ -188,8 +188,8 @@ else {
               .insertBefore( $('li:last', an[i])[0] )
               .bind('click', function (e) {
                 e.preventDefault();
-                oSettings._iDisplayStart = (parseInt($('a', this).text(),10)-1) * oPaging.iLength;
-                fnDraw( oSettings );
+                // EUGE - patched to make sure the "page" event is fired when click on numbers
+                oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
               } );
           }
 

@@ -36,8 +36,14 @@ var Table = (function() {
       this.listenTo(this.collection, "reset", this._onReset);
     },
 
+    // apply filtering
     filter : function() {
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
+    },
+
+    // change pagination
+    changePage : function() {
+      return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
     // return the row objects that have not been filtered out
@@ -71,6 +77,8 @@ var Table = (function() {
     render : function() {
       this.$el.html(this.template);
       this._dataTableCreate();
+      this._initBulkHandling();
+      this.paginate && this._initPaginationHandling();
       this.trigger("change:stats");
       return this;
     },
@@ -82,15 +90,6 @@ var Table = (function() {
         this._setRowSelectedState(row, state);
       }, this);
       this.trigger("change:stats");
-    },
-
-    selectAllComplete : function() {
-      if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
-      if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
-
-      _.each(this._visibleRowsOnAllPages(), function(row) {
-        this._setRowSelectedState(row, true);
-      }, this);
     },
 
     // private
@@ -125,20 +124,42 @@ var Table = (function() {
           }
         }
 
-        row.setBulkState(state);
+        row.bulkState(state);
       }
     },
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._getDataTableConfig());
       if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
+    },
+
+    _initPaginationHandling : function() {
+      var self = this;
+      this.dataTable.on("page", function() {
+        console.log("PPPPPPPP");
+        _.defer(function() {
+
+
+          var allChecked = _.all(self._visibleRowsOnCurrentPage(), function(row) {
+            return row.bulkState() == true;
+          });
+          console.log(allChecked)
+          self.bulkCheckbox.prop("checked", allChecked);
+        });
+
+      });
+    },
+
+    _initBulkHandling : function() {
       var bulkCheckbox = this.$el.find("th :checkbox");
       if (bulkCheckbox.length) {
         this.bulkCheckbox = bulkCheckbox;
         this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
         this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
+        this.dataTable.on("filter", function() {
+          bulkCheckbox.prop("checked", false);
+        });
       }
-
     },
 
     _getDataTableConfig : function() {
@@ -342,19 +363,43 @@ var Table = (function() {
 
 
 TODO 
-  - selecting single is not adjusting selected counts or adding rows/models
+  - counting selected items and tests
   - clear selectAllComplete data on fnDrawCallback or fnInfoCallback
   - getVisibleRows is returning other pages in case of local pagination, all ones that have been created - we may not need this method any more, see next note about drawcallback
   - need to fix drawcallback to deal with unselecting stuff
+  - handle clicks on previous in pagination that have no more previos. same with next
+  - fix usage of uncheck vs un-check
+  - When should we unselect the "all selected" ones?
+    - as soon as anything is changed
+  - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
+  - for search change, should we just run same code as pagination change? as above line
+
+
 
 Questions:
-  When should we unselect the "all selected" ones?
-    - as soon as anything is changed
-  On a local paginated page, if you select a bunch of things and then move to another page, should those previous options be persisted?
-    - for the complete all case, we will nuke it
-    - but what about just selection of that page, what should we do with header, leave it checked?
-  Should we even bother with the selectallcomplete on a local paginated page???
+
+
+
+
+
+
+
+Done:
+  basic - when something basic filtered, unselect, and get rid of header checkbox. ANY change to filter, should remove the all selected header checkbox
+  local paginated - nuke the complete select, 
+                    also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
+                    X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
+  Should we even bother with the selectallcomplete on a local paginated page??? - Nope, we nuked it
+
+
+
+
+
+
+
+
 
 
 
 */
+

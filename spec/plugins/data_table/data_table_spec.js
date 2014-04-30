@@ -259,7 +259,7 @@ describe("DataTable Plugin", function() {
 
     });
 
-    describe("select all", function() {
+    describe("bulk selection", function() {
 
       var data;
 
@@ -269,8 +269,6 @@ describe("DataTable Plugin", function() {
           data.push({ name : "hi " + iter });
         }
       });
-
-
 
       describe("without pagination", function() {
 
@@ -304,14 +302,6 @@ describe("DataTable Plugin", function() {
           expect(table.selectedModels().length).toEqual(2);
         });
 
-        it("should throw an exception if #selectAllComplete is called", function() {
-          table = new app.Views.T({ collection : collection });
-          expect(function() {
-            table.selectAllComplete();            
-          }).toThrowError("#selectAllComplete cannot be used when pagination is disabled");
-
-        });
-
       });
 
       describe("with pagination", function() {
@@ -335,45 +325,42 @@ describe("DataTable Plugin", function() {
           table.render();
           expect(table.selectedModels().length).toEqual(0);
 
-          table.filter("hi 2")
           table.selectAll(true);
           expect(table.selectedModels().length).toEqual(10);
+          // TODO: verify the models are the first 10
         });
 
-        it("should select models that are not filtered out from all pages when calling #selectAllComplete", function() {
+        it("should uncheck the header bulk checkbox when a page transitions and the next page doesn't have all rows already selected", function(done) {
           table = new app.Views.T({ collection : collection });
           table.render();
-          expect(table.selectedModels().length).toEqual(0);
-
-          table.filter("hi 2");
           table.selectAll(true);
-          table.selectAllComplete();
-          expect(table.selectedModels().length).toEqual(19);
+
+          // we need to test this using an async strategy because the checkbox is toggled async as well
+          table.dataTable.on("page", function() {
+            _.defer(function() {
+              expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+              done()
+            });
+          });
+
+          table.changePage("next");
         });
 
-        it("should throw an exception if selectAllComplete is called when there are no more paginated results", function() {
+        it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
-          table.filter("hi 21");
+          table.selectAll(true);
+          table.changePage("next");
           table.selectAll(true);
 
-          // there is 1 page of results
-          expect(table.selectedModels().length).toEqual(1);
-          expect(function() {
-            table.selectAllComplete();
-          }).toThrowError("#selectAllComplete cannot be used when there are no additional paginated results");
-
-          table.filter("not gonna find me");
-          table.selectAll(true);
-
-          // there are 0 pages of results
-          expect(table.selectedModels().length).toEqual(0);
-          expect(function() {
-            table.selectAllComplete();
-          }).toThrowError("#selectAllComplete cannot be used when there are no additional paginated results");
-
+          table.dataTable.on("page", function() {
+            _.defer(function() {
+              table.changePage("previous");
+              expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
+            });
+          });
         });
-
+        
       });
 
       describe("regardless of pagination", function() {
@@ -390,6 +377,11 @@ describe("DataTable Plugin", function() {
             paginate : false
           });
           collection.reset(data);
+        });
+
+        it("should not expose #selectAllComplete", function() {
+          table = new app.Views.T({ collection : collection });
+          expect(table.selectAllComplete).toBeUndefined();
         });
 
         it("should check/uncheck the header bulk checkbox when #selectAll is called", function() {
@@ -414,6 +406,16 @@ describe("DataTable Plugin", function() {
           table.$("td.bulk :checkbox:first").click();
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
         });
+
+        it("should uncheck the header bulk checkbox when additional filtering is applied", function() {
+          table = new app.Views.T({ collection : collection });
+          table.render();
+          table.selectAll(true);
+          table.filter("hey 2");
+
+          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+        });
+
 
         it("should toggle the 'selected' class on the row when a row's checkbox is toggled", function() {
           table = new app.Views.T({ collection : collection });
