@@ -65,7 +65,8 @@ Backdraft.app("TableExample", function(app) {
       return [
         { bulk : true },
         { attr : "name", title : "Name" },
-        { title : "random" }
+        { title : "random" },
+        { columnPicker: true}
       ]  
     },
 

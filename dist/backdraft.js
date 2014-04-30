@@ -534,7 +534,7 @@ _.extend(Plugin.factory, {
 
     constructor : function(options) {
       this.options = options || {};
-      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
+      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick", "_onColumnPickerClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = _.result(this.rowClass.prototype, 'columns');
@@ -545,7 +545,8 @@ _.extend(Plugin.factory, {
       this._resetSelected();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
-        "click .dataTable tbody tr" : "_onRowClick"
+        "click .dataTable tbody tr" : "_onRowClick",
+        "click a.column-picker" : "_onColumnPickerClick"
       });
       Table.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
@@ -633,15 +634,25 @@ _.extend(Plugin.factory, {
     },
 
     _getColumnConfig : function() {
-      return _.map(this.columns, function(config) {
+      var usePicker = false;
+      var column_config = _.compact(_.map(this.columns, function(config) {
         if (config.bulk) {
           return this._columnBulk(config);
         } else if (config.attr) {
           return this._columnAttr(config);
+        } else if (config.columnPicker) {
+          usePicker = true;
+          return null;
         } else {
           return this._columnBase(config);
         }
-      }, this);
+      }, this));
+      
+      if (usePicker) {
+        column_config.push(this._addColumnPicker(this.columns));
+      }
+
+      return column_config;
     },
 
     _columnBulk : function(config) {
@@ -711,6 +722,40 @@ _.extend(Plugin.factory, {
       };
     },
 
+    _addColumnPicker: function(columns) {
+      var dropdown = '' +
+        '<div class="dropdown">' +
+          '<a role="button" data-toggle="dropdown" data-target="#" class="dropdown-toggle">X</a>' +
+          '<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">' +
+            this._addColumnsToPicker(columns).join('') +
+          '</ul>' +
+        '</div>';
+
+      return {
+        bSortable: false,
+        bSearchable: false,
+        sTitle: dropdown,
+        sClass : "visible",
+        mData: null,
+        mRender : function() {
+          return "";
+        }
+      };
+    },
+
+    _addColumnsToPicker: function(columns) {
+      return _.compact(_.map(columns, function(column, idx){
+        if (column.bulk || column.columnPicker) {
+          return null;
+        }
+        return '<li role="presentation">' +
+          '<a class="column-picker" role="menuitem" tabindex="-1" href="#" data-col_id="' + idx + '">' +
+            column.title +
+          '</a>' +
+        '</li>';
+      }));
+    },
+
     // events
 
     _onBulkHeaderClick : function() {
@@ -718,6 +763,21 @@ _.extend(Plugin.factory, {
       if (!$(event.target).is(this.bulkCheckbox)) state = !state;
       this.selectAll(state);
       return true;
+    },
+
+    _onColumnPickerClick: function(evt) {
+      var column = evt.currentTarget.dataset.col_id;
+      // Check column visibility
+      column_visible = this.dataTable.fnSettings().aoColumns[column].bVisible;
+      
+      if (column_visible) {
+        // Hide the column
+        this.dataTable.fnSetColumnVis(column, false);
+        $(evt.currentTarget).removeClass('checked');
+      } else {
+        this.dataTable.fnSetColumnVis(column, true);
+        $(ect.currentTarget).addClass('checked');
+      }
     },
 
     _onDraw : function() {
