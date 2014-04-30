@@ -724,7 +724,7 @@ _.extend(Plugin.factory, {
 
     _addColumnPicker: function(columns) {
       var dropdown = '' +
-        '<div class="dropdown">' +
+        '<div class="dropdown" id="column_picker">' +
           '<a role="button" data-toggle="dropdown" data-target="#" class="dropdown-toggle">X</a>' +
           '<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">' +
             this._addColumnsToPicker(columns).join('') +
@@ -776,7 +776,7 @@ _.extend(Plugin.factory, {
         $(evt.currentTarget).removeClass('checked');
       } else {
         this.dataTable.fnSetColumnVis(column, true);
-        $(ect.currentTarget).addClass('checked');
+        $(evt.currentTarget).addClass('checked');
       }
     },
 
