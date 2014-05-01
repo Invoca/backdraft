@@ -2,6 +2,7 @@ var ServerSideDataTable = (function() {
 
   var ServerSideDataTable = Table.extend({
 
+    // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
     _visibleRowsCurrentPageArgs : { filter : "applied" },
 
     constructor : function() {
@@ -85,7 +86,7 @@ var ServerSideDataTable = (function() {
     },
 
     // overriden to just clear the header bulk checkbox between page transitions
-    // since rows are re-rendered with every interaction with the server
+    // since rows are re-rendered on every interaction with the server
     _initPaginationHandling : function() {
       var self = this;
       this.dataTable.on("page", function() {

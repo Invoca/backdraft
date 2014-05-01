@@ -94,10 +94,6 @@ Backdraft.app("TableExample", function(app) {
       collection.add(data);
       var table = new app.Views.BookTable({ collection : collection });
 
-      table.on("change:stats", function() {
-        console.log("changed stats");
-      });
-
       this.$el.html(table.render().$el);
       return this;
     }

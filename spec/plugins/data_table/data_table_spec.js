@@ -286,7 +286,7 @@ describe("DataTable Plugin", function() {
           collection.reset(data);
         });
         
-        it("should only select models that are not filtered out", function() {
+        it("should not unselect models that are filtered out", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
 
@@ -298,8 +298,8 @@ describe("DataTable Plugin", function() {
           collection.add({ name : "monkey and more "});
 
           table.filter("monkey");
-          table.selectAll(true)
-          expect(table.selectedModels().length).toEqual(2);
+          table.selectAll(true);
+          expect(table.selectedModels().length).toEqual(data.length + 2);
         });
 
       });
@@ -324,10 +324,17 @@ describe("DataTable Plugin", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
           expect(table.selectedModels().length).toEqual(0);
-
           table.selectAll(true);
-          expect(table.selectedModels().length).toEqual(10);
-          // TODO: verify the models are the first 10
+
+          var selectedModels = _.map(table.selectedModels(), function(m) {
+            return m.toJSON();
+          });
+
+          var selectedModelsExpected = _.map(collection.slice(0,10), function(m) {
+            return m.toJSON();
+          });
+
+          expect(selectedModelsExpected).toEqual(selectedModels);
         });
 
         it("should uncheck the header bulk checkbox when a page transitions and the next page doesn't have all rows already selected", function(done) {
@@ -353,6 +360,7 @@ describe("DataTable Plugin", function() {
           table.changePage("next");
           table.selectAll(true);
 
+          // we need to test this using an async strategy because the checkbox is toggled async as well
           table.dataTable.on("page", function() {
             _.defer(function() {
               table.changePage("previous");
@@ -360,7 +368,7 @@ describe("DataTable Plugin", function() {
             });
           });
         });
-        
+
       });
 
       describe("regardless of pagination", function() {
@@ -407,13 +415,61 @@ describe("DataTable Plugin", function() {
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
         });
 
-        it("should uncheck the header bulk checkbox when additional filtering is applied", function() {
+        it("should uncheck the header bulk checkbox when a filter is applied and the result set doesn't have all rows already selected", function(done) {
           table = new app.Views.T({ collection : collection });
           table.render();
+          table.filter("89");
           table.selectAll(true);
-          table.filter("hey 2");
 
-          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+          expect(table.selectedModels().length).toEqual(1);
+
+          // we need to test this using an async strategy because the checkbox is toggled async as well
+          table.dataTable.on("filter", function() {
+            _.defer(function() {
+              expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+              done()
+            });
+          });
+
+          // relax the filter and verify that the checkbox is not checked
+          table.filter("");
+        });
+
+        it("should check the header bulk checkbox when a filter is applied and the result set has all rows already selected", function(done) {
+          table = new app.Views.T({ collection : collection });
+          table.render();
+          table.filter("9");
+          table.selectAll(true);
+
+          // there are 19 rows with the number "9" in them
+          expect(table.selectedModels().length).toEqual(19);
+
+          // we need to test this using an async strategy because the checkbox is toggled async as well
+          table.dataTable.on("filter", function() {
+            _.defer(function() {
+              expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
+              done()
+            });
+          });
+
+          // restrict the filter and verify that the checkbox is checked
+          table.filter("89");
+        });
+
+        it("should uncheck the header bulk checkbox when a filter is applied and the result set is empty", function(done) {
+          table = new app.Views.T({ collection : collection });
+          table.render();
+
+          // we need to test this using an async strategy because the checkbox is toggled async as well
+          table.dataTable.on("filter", function() {
+            _.defer(function() {
+              expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+              done()
+            });
+          });
+
+          // filter by something that doesn't exist and verify that the checkbox is not checked
+          table.filter("not gonna find me");
         });
 
 

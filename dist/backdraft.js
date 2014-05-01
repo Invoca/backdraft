@@ -427,20 +427,6 @@ _.extend(Plugin.factory, {
     });
   }
 
-  $.fn.dataTableExt.oApi.fnPagingInfo = function (oSettings) {
-    return {
-      "iStart":         oSettings._iDisplayStart,
-      "iEnd":           oSettings.fnDisplayEnd(),
-      "iLength":        oSettings._iDisplayLength,
-      "iTotal":         oSettings.fnRecordsTotal(),
-      "iFilteredTotal": oSettings.fnRecordsDisplay(),
-      "iPage":          oSettings._iDisplayLength === -1 ?
-          0 : Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
-      "iTotalPages":    oSettings._iDisplayLength === -1 ?
-          0 : Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
-    };
-  };
-
   var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
@@ -563,12 +549,13 @@ _.extend(Plugin.factory, {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
+    // non-paginated tables will return all rows, ignoring the page param
     _visibleRowsCurrentPageArgs : { filter : "applied", page : "current" },
 
     constructor : function(options) {
       X = this;
       this.options = options || {};
-      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
@@ -582,6 +569,7 @@ _.extend(Plugin.factory, {
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
       this.listenTo(this.collection, "reset", this._onReset);
+
     },
 
     // apply filtering
@@ -591,21 +579,8 @@ _.extend(Plugin.factory, {
 
     // change pagination
     changePage : function() {
+      if (!this.paginate) throw new Error("#changePage requires the table be enabled for pagination");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
-    },
-
-    // return the row objects that have not been filtered out
-    getVisibleRows : function() {
-      return this.dataTable.$("tr", { filter : "applied" }).map(function(index, node) {
-        return $(node).data("row");
-      });
-    },
-
-    // returns row objects that have not been filtered out and are on the current page
-    _visibleRowsOnCurrentPage : function() {
-      return this.dataTable.$("tr", this._visibleRowsCurrentPageArgs).map(function(index, node) {
-        return $(node).data("row");
-      });
     },
 
     selectedModels : function() {
@@ -625,7 +600,6 @@ _.extend(Plugin.factory, {
 
     selectAll : function(state) {
       this.bulkCheckbox.prop("checked", state);
-      this._resetSelected();
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row, state);
       }, this);
@@ -646,26 +620,28 @@ _.extend(Plugin.factory, {
       };
     },
 
-    _setRowSelectedState : function(row, state) {
-      // for paginated tables, the row may not have been rendered yet
-      // TODO: selected math adjustments need to be done regardless of row or not, move logic outside of if (row)
-      
-      if (row) {
-        var existing = this.selected.rows[row.cid];
-        if (state) {
-          if (!existing) {
-            this.selected.rows[row.cid] = row;
-            this.selected.count += 1;
-          }
-        } else {
-          if (existing) {
-            delete this.selected.rows[row.cid];
-            this.selected.count = Math.max(0, this.selected.count -1);
-          }
-        }
+    // returns row objects that have not been filtered out and are on the current page
+    _visibleRowsOnCurrentPage : function() {
+      return this.dataTable.$("tr", this._visibleRowsCurrentPageArgs).map(function(index, node) {
+        return $(node).data("row");
+      });
+    },
 
-        row.bulkState(state);
+    _setRowSelectedState : function(row, state) {
+      var existing = this.selected.rows[row.cid];
+      if (state) {
+        if (!existing) {
+          // add new entry
+          this.selected.rows[row.cid] = row;
+          this.selected.count += 1;
+        }
+      } else {
+        if (existing) {
+          delete this.selected.rows[row.cid];
+          this.selected.count = Math.max(0, this.selected.count -1);
+        }
       }
+      row.bulkState(state);
     },
 
     _dataTableCreate : function() {
@@ -673,31 +649,39 @@ _.extend(Plugin.factory, {
       if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
     },
 
-    _initPaginationHandling : function() {
+    // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
+    // note: we defer execution as the "page" and "filter" events are called before new rows are swapped in
+    // this allows our code to run after the all the new rows are inserted
+    _bulkCheckboxAdjust : function() {
       var self = this;
-      // when changing between pages we set the header bulk checkbox state based on whether all rows are selected or not
-      // note: we defer execution as the "page" event is called before new rows are swapped in
-      // this allows our code to run after the all the new rows are inserted
-      this.dataTable.on("page", function() {
-        _.defer(function() {
-          var allChecked = _.all(self._visibleRowsOnCurrentPage(), function(row) {
+      _.defer(function() {
+        var allChecked, visibleRows = self._visibleRowsOnCurrentPage();
+        if (visibleRows.length) {
+          allChecked = _.all(self._visibleRowsOnCurrentPage(), function(row) {
             return row.bulkState() == true;
           });
-          self.bulkCheckbox.prop("checked", allChecked);
-        });
+        } else {
+          // keep the checkbox unchecked when there are no visible rows
+          allChecked = false;
+        }
+        self.bulkCheckbox.prop("checked", allChecked);
       });
     },
 
+    _initPaginationHandling : function() {
+      this.dataTable.on("page", this._bulkCheckboxAdjust);
+    },
+
     _initBulkHandling : function() {
-      var bulkCheckbox = this.$el.find("th :checkbox");
-      if (bulkCheckbox.length) {
-        this.bulkCheckbox = bulkCheckbox;
-        this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
-        this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
-        this.dataTable.on("filter", function() {
-          bulkCheckbox.prop("checked", false);
-        });
-      }
+      var bulkCheckbox = this.$el.find("th.bulk :checkbox");
+      if (!bulkCheckbox.length) return
+      this.bulkCheckbox = bulkCheckbox;
+      this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
+      this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
+      this.dataTable.on("filter", this._bulkCheckboxAdjust);
+      this.on("change:stats", function() {
+        console.log("STATS", this.selected.count);
+      }, this);
     },
 
     _getDataTableConfig : function() {
@@ -706,7 +690,6 @@ _.extend(Plugin.factory, {
         bPaginate : this.paginate,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        fnDrawCallback : this._onDraw,
         aoColumns      : this._getColumnConfig(),
         aaSorting :  [ [ 0, 'asc' ] ]
       };
@@ -805,21 +788,6 @@ _.extend(Plugin.factory, {
       // ensure that when a single row checkbox is un-checked, we un-check the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row, checked);
-    },
-
-    _onDraw : function() {
-      if (!this.dataTable) return;
-      // figure out which rows are visible
-      var visible = {}, row, cid;
-      _.each(this.getVisibleRows(), function(r) {
-        visible[r.cid] = r;
-      });
-      // unselect the ones that are no longer visible
-      for (cid in this.selected.rows) {
-        if (!visible[cid]) {
-          this._setRowSelectedState(this.selected.rows[cid], false);
-        }
-      }
       this.trigger("change:stats");
     },
 
@@ -900,17 +868,21 @@ _.extend(Plugin.factory, {
 
 
 
-TODO 
+TODO
+  General:
   - counting selected items and tests
-  - clear selectAllComplete data on fnDrawCallback or fnInfoCallback
-  - getVisibleRows is returning other pages in case of local pagination, all ones that have been created - we may not need this method any more, see next note about drawcallback
-  - need to fix drawcallback to deal with unselecting stuff
+  - unselecting based on filtering, usage of getVisibleRows
   - handle clicks on previous in pagination that have no more previos. same with next
   - fix usage of uncheck vs un-check
-  - When should we unselect the "all selected" ones?
-    - as soon as anything is changed
   - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
-  - for search change, should we just run same code as pagination change? as above line
+
+  ServerSide
+    - allComplete implementation, storing server params, clearing them out. clear selectAllComplete data on fnDrawCallback or fnInfoCallback
+    - counting selected items and dealing with completeall
+    - figure out how to force a reload of data when new params come in. 
+    - expose method to set additional params
+
+
 
 
 
@@ -928,6 +900,10 @@ Done:
                     also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
                     X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
   Should we even bother with the selectallcomplete on a local paginated page??? - Nope, we nuked it
+  for search change, should we just run same code as pagination change? - yep done
+  don't apply the checkbox if there are no results
+
+
 
 
 
@@ -946,6 +922,7 @@ Done:
 
   var ServerSideDataTable = Table.extend({
 
+    // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
     _visibleRowsCurrentPageArgs : { filter : "applied" },
 
     constructor : function() {
@@ -1029,7 +1006,7 @@ Done:
     },
 
     // overriden to just clear the header bulk checkbox between page transitions
-    // since rows are re-rendered with every interaction with the server
+    // since rows are re-rendered on every interaction with the server
     _initPaginationHandling : function() {
       var self = this;
       this.dataTable.on("page", function() {
