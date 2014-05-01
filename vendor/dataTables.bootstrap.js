@@ -140,6 +140,10 @@ else {
         var oLang = oSettings.oLanguage.oPaginate;
         var fnClickHandler = function ( e ) {
           e.preventDefault();
+          // prevent clicks on disabled links
+          if ($(e.target).closest("li").is(".disabled")) {
+            return;
+          }
           if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
             fnDraw( oSettings );
           }

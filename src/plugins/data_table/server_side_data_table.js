@@ -11,13 +11,29 @@ var ServerSideDataTable = (function() {
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData");
+      _.bindAll(this, "_fetchServerData", "_addServerParams");
+      this.serverParams({});
     },
 
     selectAllComplete : function() {
       if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
       if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
       alert("Storing search variables");
+    },
+
+    // get / set additional params that should be passed as part of the ajax request
+    serverParams : function(params) {
+      if (arguments.length === 1) {
+        this._serverParams = params;
+        this.reload();
+      } else {
+        return _.clone(this._serverParams);
+      }
+    },
+
+    // reload data from the server
+    reload : function() {
+      this.dataTable && this.dataTable.fnDraw();
     },
 
     _onAdd : function() {
@@ -39,6 +55,13 @@ var ServerSideDataTable = (function() {
       this.cache.reset();
       // actually add new data
       options.addData(cidMap(collection));
+    },
+
+    // dataTables callback to allow addition of params to the ajax request
+    _addServerParams : function(aoData) {
+      for (var key in this._serverParams) {
+        aoData.push({ name : key, value : this._serverParams[key] });
+      }
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -75,7 +98,8 @@ var ServerSideDataTable = (function() {
         bProcessing : true,
         bServerSide : true,
         sAjaxSource : this.collection.url,
-        fnServerData : this._fetchServerData
+        fnServerData : this._fetchServerData,
+        fnServerParams : this._addServerParams
       });
     },
 
@@ -89,9 +113,12 @@ var ServerSideDataTable = (function() {
     // since rows are re-rendered on every interaction with the server
     _initPaginationHandling : function() {
       var self = this;
-      this.dataTable.on("page", function() {
-        self.bulkCheckbox.prop("checked", false);
-      });
+
+      if (this.bulkCheckbox) {
+        this.dataTable.on("page", function() {
+          self.bulkCheckbox.prop("checked", false);
+        });
+      }
     }
 
   });

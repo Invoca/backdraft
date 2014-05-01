@@ -483,7 +483,7 @@ _.extend(Plugin.factory, {
       if (arguments.length === 1) {
         // setter
         this.checkbox.prop("checked", state);
-        this.$el.toggleClass("selected", state);        
+        this.$el.toggleClass("backdraft-selected", state);        
       } else {
         // getter
         return this.checkbox.prop("checked");
@@ -537,8 +537,35 @@ _.extend(Plugin.factory, {
   var SelectionHelper = Backdraft.Utils.Class.extend({
 
     initialize : function() {
-      // change to track models
-      // render with bulk set correctly
+      this._count = 0;
+      this._rowsByCid = {};
+    },
+
+    count : function() {
+      return this._count;
+    },
+
+    models : function() {
+      return _.map(this._rowsByCid, function(row) {
+        return row.model;
+      });
+    },
+
+    process : function(row, state) {
+      var existing = this._rowsByCid[row.cid];
+      if (state) {
+        if (!existing) {
+          // add new entry
+          this._rowsByCid[row.cid] = row;
+          this._count += 1;
+        }
+      } else {
+        if (existing) {
+          // purge existing entry
+          delete this._rowsByCid[row.cid];
+          this._count = Math.max(0, this._count -1);
+        }
+      }
     }
 
   });
@@ -560,7 +587,7 @@ _.extend(Plugin.factory, {
       this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
       this._applyDefaults();
-      this._resetSelected();
+      this.selectionHelper = new SelectionHelper();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
         "click .dataTable tbody tr" : "_onRowClick"
@@ -584,9 +611,7 @@ _.extend(Plugin.factory, {
     },
 
     selectedModels : function() {
-      return _.map(this.selected.rows, function(row) {
-        return row.model;
-      })
+      return this.selectionHelper.models();
     },
 
     render : function() {
@@ -613,13 +638,6 @@ _.extend(Plugin.factory, {
       });
     },
 
-    _resetSelected : function() {
-      this.selected = {
-        rows : {},
-        count : 0
-      };
-    },
-
     // returns row objects that have not been filtered out and are on the current page
     _visibleRowsOnCurrentPage : function() {
       return this.dataTable.$("tr", this._visibleRowsCurrentPageArgs).map(function(index, node) {
@@ -628,19 +646,7 @@ _.extend(Plugin.factory, {
     },
 
     _setRowSelectedState : function(row, state) {
-      var existing = this.selected.rows[row.cid];
-      if (state) {
-        if (!existing) {
-          // add new entry
-          this.selected.rows[row.cid] = row;
-          this.selected.count += 1;
-        }
-      } else {
-        if (existing) {
-          delete this.selected.rows[row.cid];
-          this.selected.count = Math.max(0, this.selected.count -1);
-        }
-      }
+      this.selectionHelper.process(row, state);
       row.bulkState(state);
     },
 
@@ -680,7 +686,7 @@ _.extend(Plugin.factory, {
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
       this.on("change:stats", function() {
-        console.log("STATS", this.selected.count);
+        console.log("STATS", this.selectionHelper.count());
       }, this);
     },
 
@@ -785,7 +791,7 @@ _.extend(Plugin.factory, {
 
     _onBulkRowClick : function(event) {
       var checkbox = $(event.target), row = checkbox.closest("tr").data("row"), checked = checkbox.prop("checked");
-      // ensure that when a single row checkbox is un-checked, we un-check the header bulk checkbox
+      // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row, checked);
       this.trigger("change:stats");
@@ -871,16 +877,11 @@ _.extend(Plugin.factory, {
 TODO
   General:
   - counting selected items and tests
-  - unselecting based on filtering, usage of getVisibleRows
-  - handle clicks on previous in pagination that have no more previos. same with next
-  - fix usage of uncheck vs un-check
   - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
 
   ServerSide
     - allComplete implementation, storing server params, clearing them out. clear selectAllComplete data on fnDrawCallback or fnInfoCallback
     - counting selected items and dealing with completeall
-    - figure out how to force a reload of data when new params come in. 
-    - expose method to set additional params
 
 
 
@@ -902,6 +903,16 @@ Done:
   Should we even bother with the selectallcomplete on a local paginated page??? - Nope, we nuked it
   for search change, should we just run same code as pagination change? - yep done
   don't apply the checkbox if there are no results
+  unselecting based on filtering, usage of getVisibleRows
+  - fix usage of uncheck vs un-check
+  - handle clicks on previous in pagination that have no more previos. same with next
+  How to force reload of data on ajax? - reload method
+  - figure out how to force a reload of data when new params come in. 
+  - expose method to set additional params
+
+
+
+
 
 
 
@@ -931,13 +942,29 @@ Done:
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData");
+      _.bindAll(this, "_fetchServerData", "_addServerParams");
+      this.serverParams({});
     },
 
     selectAllComplete : function() {
       if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
       if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
       alert("Storing search variables");
+    },
+
+    // get / set additional params that should be passed as part of the ajax request
+    serverParams : function(params) {
+      if (arguments.length === 1) {
+        this._serverParams = params;
+        this.reload();
+      } else {
+        return _.clone(this._serverParams);
+      }
+    },
+
+    // reload data from the server
+    reload : function() {
+      this.dataTable && this.dataTable.fnDraw();
     },
 
     _onAdd : function() {
@@ -959,6 +986,13 @@ Done:
       this.cache.reset();
       // actually add new data
       options.addData(cidMap(collection));
+    },
+
+    // dataTables callback to allow addition of params to the ajax request
+    _addServerParams : function(aoData) {
+      for (var key in this._serverParams) {
+        aoData.push({ name : key, value : this._serverParams[key] });
+      }
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -995,7 +1029,8 @@ Done:
         bProcessing : true,
         bServerSide : true,
         sAjaxSource : this.collection.url,
-        fnServerData : this._fetchServerData
+        fnServerData : this._fetchServerData,
+        fnServerParams : this._addServerParams
       });
     },
 
@@ -1009,9 +1044,12 @@ Done:
     // since rows are re-rendered on every interaction with the server
     _initPaginationHandling : function() {
       var self = this;
-      this.dataTable.on("page", function() {
-        self.bulkCheckbox.prop("checked", false);
-      });
+
+      if (this.bulkCheckbox) {
+        this.dataTable.on("page", function() {
+          self.bulkCheckbox.prop("checked", false);
+        });
+      }
     }
 
   });

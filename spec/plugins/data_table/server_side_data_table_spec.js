@@ -79,7 +79,7 @@ describe("DataTable Plugin", function() {
 
     });
 
-    describe("rendering", function() {
+    describe("fetching server data", function() {
 
       var mockResponse = {
         status : 200,
@@ -110,7 +110,7 @@ describe("DataTable Plugin", function() {
         jasmine.Ajax.uninstall();
       });
 
-      it("should fetch data from the server", function() {
+      it("should work with a url that is a string", function() {
         table = new app.Views.T({ collection : collection });
         table.render();
         jasmine.Ajax.requests.mostRecent().response(mockResponse);
@@ -118,7 +118,7 @@ describe("DataTable Plugin", function() {
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
 
-      it("should fetch data from the server when the url is a function", function() {
+      it("should work with a url that is a function", function() {
         var oldUrl = collection.url;
         collection.url = function() { return oldUrl };
 
@@ -129,13 +129,44 @@ describe("DataTable Plugin", function() {
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
 
-      it("should disable filtering", function() {
+      it("should allow for addition of server params", function() {
         table = new app.Views.T({ collection : collection });
+        table.serverParams({ monkey : "chicken" });
         table.render();
-        jasmine.Ajax.requests.mostRecent().response(mockResponse);
-        expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
       });
 
+      it("should reload the table when server params are set", function() {
+        table = new app.Views.T({ collection : collection });
+        table.render();
+
+        table.serverParams({ monkey : "chicken" });
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
+
+        table.serverParams({ monkey : "rabbit" });
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("monkey=chicken");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=rabbit");
+      });
+
+      it("should pass the current server params with each page change", function() {
+        table = new app.Views.T({ collection : collection });
+        table.serverParams({ monkey : "chicken" });
+        table.render();
+        table.changePage("next");
+
+        // an initial request and then another for the next page
+        expect(jasmine.Ajax.requests.count()).toEqual(2);
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
+      });
+
+      describe("rendering", function() {
+        it("should disable filtering", function() {
+          table = new app.Views.T({ collection : collection });
+          table.render();
+          jasmine.Ajax.requests.mostRecent().response(mockResponse);
+          expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
+        });
+      });
 
     });
 

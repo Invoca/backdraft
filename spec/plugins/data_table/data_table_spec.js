@@ -410,7 +410,7 @@ describe("DataTable Plugin", function() {
 
           table.selectAll(true)
 
-          // un-check a single row checkbox
+          // uncheck a single row checkbox
           table.$("td.bulk :checkbox:first").click();
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
         });
@@ -473,18 +473,18 @@ describe("DataTable Plugin", function() {
         });
 
 
-        it("should toggle the 'selected' class on the row when a row's checkbox is toggled", function() {
+        it("should toggle the 'backdraft-selected' class on the row when a row's checkbox is toggled", function() {
           table = new app.Views.T({ collection : collection });
           // need to append to body in order to do clicks on checkboxes
           $("body").append(table.render().$el);
 
-          expect(table.$(".selected").length).toEqual(0);
+          expect(table.$(".backdraft-selected").length).toEqual(0);
           table.selectAll(true);
-          expect(table.$(".selected").length).toEqual(data.length);
+          expect(table.$(".backdraft-selected").length).toEqual(data.length);
 
-          // un-check a single row checkbox
+          // uncheck a single row checkbox
           table.$("td.bulk :checkbox:first").click();
-          expect(table.$(".selected").length).toEqual(data.length - 1);
+          expect(table.$(".backdraft-selected").length).toEqual(data.length - 1);
         });
 
       });

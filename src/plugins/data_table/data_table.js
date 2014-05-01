@@ -5,8 +5,35 @@ var Table = (function() {
   var SelectionHelper = Backdraft.Utils.Class.extend({
 
     initialize : function() {
-      // change to track models
-      // render with bulk set correctly
+      this._count = 0;
+      this._rowsByCid = {};
+    },
+
+    count : function() {
+      return this._count;
+    },
+
+    models : function() {
+      return _.map(this._rowsByCid, function(row) {
+        return row.model;
+      });
+    },
+
+    process : function(row, state) {
+      var existing = this._rowsByCid[row.cid];
+      if (state) {
+        if (!existing) {
+          // add new entry
+          this._rowsByCid[row.cid] = row;
+          this._count += 1;
+        }
+      } else {
+        if (existing) {
+          // purge existing entry
+          delete this._rowsByCid[row.cid];
+          this._count = Math.max(0, this._count -1);
+        }
+      }
     }
 
   });
@@ -28,7 +55,7 @@ var Table = (function() {
       this.rowClass = this.getRowClass();
       this.columns = this.rowClass.prototype.columns;
       this._applyDefaults();
-      this._resetSelected();
+      this.selectionHelper = new SelectionHelper();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
         "click .dataTable tbody tr" : "_onRowClick"
@@ -52,9 +79,7 @@ var Table = (function() {
     },
 
     selectedModels : function() {
-      return _.map(this.selected.rows, function(row) {
-        return row.model;
-      })
+      return this.selectionHelper.models();
     },
 
     render : function() {
@@ -81,13 +106,6 @@ var Table = (function() {
       });
     },
 
-    _resetSelected : function() {
-      this.selected = {
-        rows : {},
-        count : 0
-      };
-    },
-
     // returns row objects that have not been filtered out and are on the current page
     _visibleRowsOnCurrentPage : function() {
       return this.dataTable.$("tr", this._visibleRowsCurrentPageArgs).map(function(index, node) {
@@ -96,19 +114,7 @@ var Table = (function() {
     },
 
     _setRowSelectedState : function(row, state) {
-      var existing = this.selected.rows[row.cid];
-      if (state) {
-        if (!existing) {
-          // add new entry
-          this.selected.rows[row.cid] = row;
-          this.selected.count += 1;
-        }
-      } else {
-        if (existing) {
-          delete this.selected.rows[row.cid];
-          this.selected.count = Math.max(0, this.selected.count -1);
-        }
-      }
+      this.selectionHelper.process(row, state);
       row.bulkState(state);
     },
 
@@ -148,7 +154,7 @@ var Table = (function() {
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
       this.on("change:stats", function() {
-        console.log("STATS", this.selected.count);
+        console.log("STATS", this.selectionHelper.count());
       }, this);
     },
 
@@ -253,7 +259,7 @@ var Table = (function() {
 
     _onBulkRowClick : function(event) {
       var checkbox = $(event.target), row = checkbox.closest("tr").data("row"), checked = checkbox.prop("checked");
-      // ensure that when a single row checkbox is un-checked, we un-check the header bulk checkbox
+      // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row, checked);
       this.trigger("change:stats");
@@ -339,16 +345,11 @@ var Table = (function() {
 TODO
   General:
   - counting selected items and tests
-  - unselecting based on filtering, usage of getVisibleRows
-  - handle clicks on previous in pagination that have no more previos. same with next
-  - fix usage of uncheck vs un-check
   - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
 
   ServerSide
     - allComplete implementation, storing server params, clearing them out. clear selectAllComplete data on fnDrawCallback or fnInfoCallback
     - counting selected items and dealing with completeall
-    - figure out how to force a reload of data when new params come in. 
-    - expose method to set additional params
 
 
 
@@ -370,6 +371,16 @@ Done:
   Should we even bother with the selectallcomplete on a local paginated page??? - Nope, we nuked it
   for search change, should we just run same code as pagination change? - yep done
   don't apply the checkbox if there are no results
+  unselecting based on filtering, usage of getVisibleRows
+  - fix usage of uncheck vs un-check
+  - handle clicks on previous in pagination that have no more previos. same with next
+  How to force reload of data on ajax? - reload method
+  - figure out how to force a reload of data when new params come in. 
+  - expose method to set additional params
+
+
+
+
 
 
 
