@@ -52,7 +52,8 @@ Backdraft.app("TableExample", function(app) {
 
   app.view.dataTable("BookTable", {
 
-    rowClassName : "BookRow"
+    rowClassName : "BookRow",
+    columnPicker: true
   });
 
 });
