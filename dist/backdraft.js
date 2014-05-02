@@ -622,37 +622,32 @@ _.extend(Plugin.factory, {
     },
 
     _getDataTableConfig : function() {
+      var columns = this._getColumnConfig();
+      if (this.columnPicker) {
+        columns.push(this._addColumnPicker(this.columns));
+      }
+
       return {
         bDeferRender : true,
         bPaginate : true,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
         fnDrawCallback : this._onDraw,
-        aoColumns      : this._getColumnConfig(),
+        aoColumns      : columns,
         aaSorting :  [ [ 0, 'asc' ] ]
       };
     },
 
     _getColumnConfig : function() {
-      var usePicker = false;
-      var column_config = _.compact(_.map(this.columns, function(config) {
+      return _.map(this.columns, function(config) {
         if (config.bulk) {
           return this._columnBulk(config);
         } else if (config.attr) {
           return this._columnAttr(config);
-        } else if (config.columnPicker) {
-          usePicker = true;
-          return null;
         } else {
           return this._columnBase(config);
         }
-      }, this));
-      
-      if (usePicker) {
-        column_config.push(this._addColumnPicker(this.columns));
-      }
-
-      return column_config;
+      }, this);
     },
 
     _columnBulk : function(config) {
@@ -735,7 +730,6 @@ _.extend(Plugin.factory, {
         bSortable: false,
         bSearchable: false,
         sTitle: dropdown,
-        sClass : "visible",
         mData: null,
         mRender : function() {
           return "";
@@ -766,11 +760,12 @@ _.extend(Plugin.factory, {
     },
 
     _onColumnPickerClick: function(evt) {
-      var column = evt.currentTarget.dataset.col_id;
-      // Check column visibility
-      column_visible = this.dataTable.fnSettings().aoColumns[column].bVisible;
+      var column = parseInt($(evt.currentTarget).data('col_id'), 10);
       
-      if (column_visible) {
+      // Check column visibility
+      columnVisible = this.dataTable.fnSettings().aoColumns[column].bVisible;
+
+      if (columnVisible) {
         // Hide the column
         this.dataTable.fnSetColumnVis(column, false);
         $(evt.currentTarget).removeClass('checked');
@@ -778,6 +773,7 @@ _.extend(Plugin.factory, {
         this.dataTable.fnSetColumnVis(column, true);
         $(evt.currentTarget).addClass('checked');
       }
+      return false;
     },
 
     _onDraw : function() {
