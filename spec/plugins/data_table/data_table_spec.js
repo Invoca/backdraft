@@ -387,9 +387,9 @@ describe("DataTable Plugin", function() {
           collection.reset(data);
         });
 
-        it("should not expose #selectAllComplete", function() {
+        it("should not expose #selectComplete", function() {
           table = new app.Views.T({ collection : collection });
-          expect(table.selectAllComplete).toBeUndefined();
+          expect(table.selectComplete).toBeUndefined();
         });
 
         it("should check/uncheck the header bulk checkbox when #selectAll is called", function() {

@@ -11,14 +11,25 @@ var ServerSideDataTable = (function() {
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_drawCallback");
       this.serverParams({});
+      this._selectCompleteParams = null;
     },
 
-    selectAllComplete : function() {
-      if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
-      if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
-      alert("Storing search variables");
+    selectComplete : function(val) {
+      // getter
+      if (arguments.length === 0) return this._selectCompleteParams;
+
+      // setter
+      if (val) {
+        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectComplete cannot be used when there are no additional paginated results");
+        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectComplete");
+        // store current server params
+        this._selectCompleteParams = this.serverParams();
+      } else {
+        // clear stored server params
+        this._selectCompleteParams = null;
+      }
     },
 
     // get / set additional params that should be passed as part of the ajax request
@@ -27,6 +38,7 @@ var ServerSideDataTable = (function() {
         this._serverParams = params;
         this.reload();
       } else {
+        // make a clone so that params aren't inadvertently modified externally
         return _.clone(this._serverParams);
       }
     },
@@ -47,7 +59,7 @@ var ServerSideDataTable = (function() {
     _onReset : function(collection, options) {
       if (!options.addData) throw new Error("An addData option is required to reset the collection");
       // clean up old data
-      // note: since we have enabled server-side processing, we don't need to call 
+      // note: since we have enabled server-side processing, we don't need to call
       // #fnClearTable here - it is a client-side only function
       this.cache.each(function(row) {
         row.close();
@@ -62,6 +74,13 @@ var ServerSideDataTable = (function() {
       for (var key in this._serverParams) {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
+    },
+
+    // dataTables callback after a draw event has occurred
+    _drawCallback : function() {
+      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
+      // to clear out any stored selectCompleteParams
+      this.selectComplete(false);
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -80,7 +99,7 @@ var ServerSideDataTable = (function() {
           if (_.isUndefined(json.sEcho)) return;
           if (json.sEcho * 1 < oSettings.iDraw) return;
 
-          self.collection.reset(json.aaData, { 
+          self.collection.reset(json.aaData, {
             addData : function(data) {
               // calling fnCallback is what will actually cause the data to be populated
               json.aaData = data;
@@ -91,15 +110,16 @@ var ServerSideDataTable = (function() {
       });
     },
 
-    _getDataTableConfig : function() {
-      var config = ServerSideDataTable.__super__._getDataTableConfig.apply(this, arguments);
+    _dataTableConfig : function() {
+      var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
       return _.extend(config, {
         bProcessing : true,
         bServerSide : true,
         sAjaxSource : this.collection.url,
         fnServerData : this._fetchServerData,
-        fnServerParams : this._addServerParams
+        fnServerParams : this._addServerParams,
+        fnDrawCallback : this._drawCallback
       });
     },
 
@@ -119,6 +139,14 @@ var ServerSideDataTable = (function() {
           self.bulkCheckbox.prop("checked", false);
         });
       }
+    },
+
+    _initBulkHandling : function() {
+      ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
+      // whenever selections change, clear out stored server params
+      this.on("change:selections", function() {
+        this.selectComplete(false);
+      }, this);
     }
 
   });

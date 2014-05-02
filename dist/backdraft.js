@@ -596,7 +596,6 @@ _.extend(Plugin.factory, {
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
       this.listenTo(this.collection, "reset", this._onReset);
-
     },
 
     // apply filtering
@@ -610,6 +609,11 @@ _.extend(Plugin.factory, {
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
+    // sort specific columns
+    sort : function() {
+      return this.dataTable.fnSort.apply(this.dataTable, arguments);
+    },
+
     selectedModels : function() {
       return this.selectionHelper.models();
     },
@@ -619,7 +623,7 @@ _.extend(Plugin.factory, {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:stats");
+      this.trigger("change:selections");
       return this;
     },
 
@@ -628,7 +632,7 @@ _.extend(Plugin.factory, {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row, state);
       }, this);
-      this.trigger("change:stats");
+      this.trigger("change:selections");
     },
 
     // private
@@ -651,8 +655,21 @@ _.extend(Plugin.factory, {
     },
 
     _dataTableCreate : function() {
-      this.dataTable = this.$("table").dataTable(this._getDataTableConfig());
+      this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
+    },
+
+    _allVisibleRowsSelected : function() {
+      var allSelected, visibleRows = this._visibleRowsOnCurrentPage();
+      if (visibleRows.length) {
+        allSelected = _.all(visibleRows, function(row) {
+          return row.bulkState() == true;
+        });
+      } else {
+        // have no selections does not count as having all selected
+        allSelected = false;
+      }
+      return allSelected;
     },
 
     // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
@@ -661,16 +678,7 @@ _.extend(Plugin.factory, {
     _bulkCheckboxAdjust : function() {
       var self = this;
       _.defer(function() {
-        var allChecked, visibleRows = self._visibleRowsOnCurrentPage();
-        if (visibleRows.length) {
-          allChecked = _.all(self._visibleRowsOnCurrentPage(), function(row) {
-            return row.bulkState() == true;
-          });
-        } else {
-          // keep the checkbox unchecked when there are no visible rows
-          allChecked = false;
-        }
-        self.bulkCheckbox.prop("checked", allChecked);
+        self.bulkCheckbox.prop("checked", self._allVisibleRowsSelected());
       });
     },
 
@@ -685,12 +693,9 @@ _.extend(Plugin.factory, {
       this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
-      this.on("change:stats", function() {
-        console.log("STATS", this.selectionHelper.count());
-      }, this);
     },
 
-    _getDataTableConfig : function() {
+    _dataTableConfig : function() {
       return {
         bDeferRender : false,
         bPaginate : this.paginate,
@@ -794,7 +799,7 @@ _.extend(Plugin.factory, {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row, checked);
-      this.trigger("change:stats");
+      this.trigger("change:selections");
     },
 
     _onRowCreated : function(node, data) {
@@ -812,8 +817,8 @@ _.extend(Plugin.factory, {
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:stats");
-    }, 
+      this.trigger("change:selections");
+    },
 
     _onRemove : function(model) {
       if (!this.dataTable) return;
@@ -822,8 +827,8 @@ _.extend(Plugin.factory, {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:stats");
-    }, 
+      this.trigger("change:selections");
+    },
 
     _onReset : function(collection) {
       if (!this.dataTable) return;
@@ -835,13 +840,13 @@ _.extend(Plugin.factory, {
       this.cache.reset();
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:stats");
+      this.trigger("change:selections");
     }
 
   }, {
 
     finalize : function(name, tableClass, views) {
-      // method for late resolution of row class, removes dependency 
+      // method for late resolution of row class, removes dependency
       // on needing access to the entire app
       tableClass.prototype.getRowClass = function() {
         return views[tableClass.prototype.rowClassName];
@@ -862,8 +867,8 @@ _.extend(Plugin.factory, {
   Pagination - local
     - select all (first time)  - should select only only what is visible on the screen - we don't want to select other pages.
     - select all (gmail style) - should only appear if there is more than 1 page of paginated data
-                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models. 
-                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34, 
+                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models.
+                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34,
                                  hit select all, we will select 10 visible ones. say you want all all. the 34 results will be selected
 
   ServerSide (pagination is implied)
@@ -876,12 +881,13 @@ _.extend(Plugin.factory, {
 
 TODO
   General:
+  - redo the interface for selectAll??
+  - names for get/set nount verb
   - counting selected items and tests
+  - selected test for serverside
   - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
 
   ServerSide
-    - allComplete implementation, storing server params, clearing them out. clear selectAllComplete data on fnDrawCallback or fnInfoCallback
-    - counting selected items and dealing with completeall
 
 
 
@@ -897,17 +903,17 @@ Questions:
 
 Done:
   basic - when something basic filtered, unselect, and get rid of header checkbox. ANY change to filter, should remove the all selected header checkbox
-  local paginated - nuke the complete select, 
+  local paginated - nuke the complete select,
                     also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
                     X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
-  Should we even bother with the selectallcomplete on a local paginated page??? - Nope, we nuked it
+  Should we even bother with the selectComplete on a local paginated page??? - Nope, we nuked it
   for search change, should we just run same code as pagination change? - yep done
   don't apply the checkbox if there are no results
   unselecting based on filtering, usage of getVisibleRows
   - fix usage of uncheck vs un-check
   - handle clicks on previous in pagination that have no more previos. same with next
   How to force reload of data on ajax? - reload method
-  - figure out how to force a reload of data when new params come in. 
+  - figure out how to force a reload of data when new params come in.
   - expose method to set additional params
 
 
@@ -942,14 +948,25 @@ Done:
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_drawCallback");
       this.serverParams({});
+      this._selectCompleteParams = null;
     },
 
-    selectAllComplete : function() {
-      if (!this.paginate) throw new Error("#selectAllComplete cannot be used when pagination is disabled");
-      if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllComplete cannot be used when there are no additional paginated results");
-      alert("Storing search variables");
+    selectComplete : function(val) {
+      // getter
+      if (arguments.length === 0) return this._selectCompleteParams;
+
+      // setter
+      if (val) {
+        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectComplete cannot be used when there are no additional paginated results");
+        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectComplete");
+        // store current server params
+        this._selectCompleteParams = this.serverParams();
+      } else {
+        // clear stored server params
+        this._selectCompleteParams = null;
+      }
     },
 
     // get / set additional params that should be passed as part of the ajax request
@@ -958,6 +975,7 @@ Done:
         this._serverParams = params;
         this.reload();
       } else {
+        // make a clone so that params aren't inadvertently modified externally
         return _.clone(this._serverParams);
       }
     },
@@ -978,7 +996,7 @@ Done:
     _onReset : function(collection, options) {
       if (!options.addData) throw new Error("An addData option is required to reset the collection");
       // clean up old data
-      // note: since we have enabled server-side processing, we don't need to call 
+      // note: since we have enabled server-side processing, we don't need to call
       // #fnClearTable here - it is a client-side only function
       this.cache.each(function(row) {
         row.close();
@@ -993,6 +1011,13 @@ Done:
       for (var key in this._serverParams) {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
+    },
+
+    // dataTables callback after a draw event has occurred
+    _drawCallback : function() {
+      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
+      // to clear out any stored selectCompleteParams
+      this.selectComplete(false);
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -1011,7 +1036,7 @@ Done:
           if (_.isUndefined(json.sEcho)) return;
           if (json.sEcho * 1 < oSettings.iDraw) return;
 
-          self.collection.reset(json.aaData, { 
+          self.collection.reset(json.aaData, {
             addData : function(data) {
               // calling fnCallback is what will actually cause the data to be populated
               json.aaData = data;
@@ -1022,15 +1047,16 @@ Done:
       });
     },
 
-    _getDataTableConfig : function() {
-      var config = ServerSideDataTable.__super__._getDataTableConfig.apply(this, arguments);
+    _dataTableConfig : function() {
+      var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
       return _.extend(config, {
         bProcessing : true,
         bServerSide : true,
         sAjaxSource : this.collection.url,
         fnServerData : this._fetchServerData,
-        fnServerParams : this._addServerParams
+        fnServerParams : this._addServerParams,
+        fnDrawCallback : this._drawCallback
       });
     },
 
@@ -1050,6 +1076,14 @@ Done:
           self.bulkCheckbox.prop("checked", false);
         });
       }
+    },
+
+    _initBulkHandling : function() {
+      ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
+      // whenever selections change, clear out stored server params
+      this.on("change:selections", function() {
+        this.selectComplete(false);
+      }, this);
     }
 
   });

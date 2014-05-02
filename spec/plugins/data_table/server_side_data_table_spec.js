@@ -5,6 +5,34 @@ describe("DataTable Plugin", function() {
     var app;
     var collection;
     var table;
+    var mockResponse;
+
+    function MockResponse() {
+      this.echo = 1;
+    }
+
+    MockResponse.prototype.get = function() {
+      return {
+        status : 200,
+        responseText : JSON.stringify({
+          sEcho: this.echo++,
+          iTotalRecords: 100,
+          iTotalDisplayRecords: 100,
+          aaData: [
+            { name: '1 - hey hey 1' },
+            { name: '2 - hey hey 2' },
+            { name: '3 - hey hey 3' },
+            { name: '4 - hey hey 4' },
+            { name: '5 - hey hey 5' },
+            { name: '6 - hey hey 6' },
+            { name: '7 - hey hey 7' },
+            { name: '8 - hey hey 8' },
+            { name: '9 - hey hey 9' },
+            { name: '10 - hey hey 10' }
+          ]
+        })
+      };
+    };
 
     beforeEach(function() {
       Backdraft.app.destroyAll();
@@ -18,6 +46,7 @@ describe("DataTable Plugin", function() {
       });
       app.view.dataTable.row("R", {
         columns : [
+          { bulk : true },
           { attr : "name", title : "Name" }
         ]
       });
@@ -26,8 +55,14 @@ describe("DataTable Plugin", function() {
         serverSide : true
       });
       collection = new app.Collections.Col();
+
+      jasmine.Ajax.install();
+      mockResponse = new MockResponse();
     });
 
+    afterEach(function() {
+      jasmine.Ajax.uninstall();
+    });
 
     describe("restrictions", function() {
 
@@ -79,41 +114,21 @@ describe("DataTable Plugin", function() {
 
     });
 
-    describe("fetching server data", function() {
-
-      var mockResponse = {
-        status : 200,
-        responseText : JSON.stringify({
-          sEcho: '1',
-          iTotalRecords: 100,
-          iTotalDisplayRecords: 100,
-          aaData: [
-            { name: '1 - hey hey 1' },
-            { name: '2 - hey hey 2' },
-            { name: '3 - hey hey 3' },
-            { name: '4 - hey hey 4' },
-            { name: '5 - hey hey 5' },
-            { name: '6 - hey hey 6' },
-            { name: '7 - hey hey 7' },
-            { name: '8 - hey hey 8' },
-            { name: '9 - hey hey 9' },
-            { name: '10 - hey hey 10' } 
-          ] 
-        })
-      };
-
-      beforeEach(function() {
-        jasmine.Ajax.install();
+    describe("rendering", function() {
+      it("should disable filtering", function() {
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+        expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
       });
+    });
 
-      afterEach(function() {
-        jasmine.Ajax.uninstall();
-      });
+    describe("urls", function() {
 
       it("should work with a url that is a string", function() {
         table = new app.Views.T({ collection : collection });
         table.render();
-        jasmine.Ajax.requests.mostRecent().response(mockResponse);
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
         expect(table.$("tbody tr").length).toEqual(10);
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
@@ -124,10 +139,14 @@ describe("DataTable Plugin", function() {
 
         table = new app.Views.T({ collection : collection });
         table.render();
-        jasmine.Ajax.requests.mostRecent().response(mockResponse);
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
         expect(table.$("tbody tr").length).toEqual(10);
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
+
+    });
+
+    describe("server params", function() {
 
       it("should allow for addition of server params", function() {
         table = new app.Views.T({ collection : collection });
@@ -159,14 +178,96 @@ describe("DataTable Plugin", function() {
         expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
       });
 
-      describe("rendering", function() {
-        it("should disable filtering", function() {
-          table = new app.Views.T({ collection : collection });
-          table.render();
-          jasmine.Ajax.requests.mostRecent().response(mockResponse);
-          expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
-        });
+    });
+
+    describe("#selectComplete", function() {
+
+      beforeEach(function() {
+        table = new app.Views.T({ collection : collection });
+        table.serverParams({ monkey : "chicken" });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
       });
+
+      it("should require that all visible rows are also currently selected", function() {
+        expect(function() {
+          table.selectComplete(true);
+        }).toThrowError("all rows must be selected before calling #selectComplete")
+
+        expect(function() {
+          table.selectAll(true);
+          table.selectComplete(true);
+        }).not.toThrow();
+      });
+
+      it("should store a copy of the server params", function() {
+        table.selectAll(true);
+        table.selectComplete(true);
+
+        expect(table.selectComplete()).toEqual({ monkey : "chicken" });
+      });
+
+      it("should allow clearing", function() {
+        table.selectAll(true);
+        table.selectComplete(true);
+
+        expect(table.selectComplete()).toEqual({ monkey : "chicken" });
+
+        table.selectComplete(false);
+        expect(table.selectComplete()).toEqual(null);
+      });
+
+      describe("automatically clear stored params", function() {
+
+        beforeEach(function() {
+          table.selectAll(true);
+          table.selectComplete(true);
+          expect(table.selectComplete()).toEqual({ monkey : "chicken" });
+        })
+
+        it("should clear on pagination", function() {
+          table.changePage("next");
+          jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+
+          expect(table.selectComplete()).toEqual(null);
+        });
+
+        it("should clear on sorting", function() {
+          table.sort([ [1,'asc'] ]);
+          jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+
+          expect(table.selectComplete()).toEqual(null);
+        });
+
+        it("should clear on page size change", function() {
+          table.$(".dataTables_length select").val(25).change();
+          jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+
+          expect(table.selectComplete()).toEqual(null);
+        });
+
+        it("should clear when all rows are deselected", function() {
+          table.selectAll(false);
+
+          expect(table.selectComplete()).toEqual(null);
+        });
+
+        it("should clear when a row becomes unchecked", function() {
+          // need to actually insert into the DOM to have #click work correctly
+          $("body").append(table.$el);
+          table.$("td.bulk :checkbox:first").click();
+          expect(table.selectComplete()).toEqual(null);
+        });
+
+        it("should clear when #serverParams is called", function() {
+          table.serverParams({});
+          jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+
+          expect(table.selectComplete()).toEqual(null);
+        });
+
+      });
+
 
     });
 

@@ -64,7 +64,6 @@ var Table = (function() {
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
       this.listenTo(this.collection, "reset", this._onReset);
-
     },
 
     // apply filtering
@@ -78,6 +77,11 @@ var Table = (function() {
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
+    // sort specific columns
+    sort : function() {
+      return this.dataTable.fnSort.apply(this.dataTable, arguments);
+    },
+
     selectedModels : function() {
       return this.selectionHelper.models();
     },
@@ -87,7 +91,7 @@ var Table = (function() {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:stats");
+      this.trigger("change:selections");
       return this;
     },
 
@@ -96,7 +100,7 @@ var Table = (function() {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row, state);
       }, this);
-      this.trigger("change:stats");
+      this.trigger("change:selections");
     },
 
     // private
@@ -119,8 +123,21 @@ var Table = (function() {
     },
 
     _dataTableCreate : function() {
-      this.dataTable = this.$("table").dataTable(this._getDataTableConfig());
+      this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
+    },
+
+    _allVisibleRowsSelected : function() {
+      var allSelected, visibleRows = this._visibleRowsOnCurrentPage();
+      if (visibleRows.length) {
+        allSelected = _.all(visibleRows, function(row) {
+          return row.bulkState() == true;
+        });
+      } else {
+        // have no selections does not count as having all selected
+        allSelected = false;
+      }
+      return allSelected;
     },
 
     // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
@@ -129,16 +146,7 @@ var Table = (function() {
     _bulkCheckboxAdjust : function() {
       var self = this;
       _.defer(function() {
-        var allChecked, visibleRows = self._visibleRowsOnCurrentPage();
-        if (visibleRows.length) {
-          allChecked = _.all(self._visibleRowsOnCurrentPage(), function(row) {
-            return row.bulkState() == true;
-          });
-        } else {
-          // keep the checkbox unchecked when there are no visible rows
-          allChecked = false;
-        }
-        self.bulkCheckbox.prop("checked", allChecked);
+        self.bulkCheckbox.prop("checked", self._allVisibleRowsSelected());
       });
     },
 
@@ -153,12 +161,9 @@ var Table = (function() {
       this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
-      this.on("change:stats", function() {
-        console.log("STATS", this.selectionHelper.count());
-      }, this);
     },
 
-    _getDataTableConfig : function() {
+    _dataTableConfig : function() {
       return {
         bDeferRender : false,
         bPaginate : this.paginate,
@@ -262,7 +267,7 @@ var Table = (function() {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row, checked);
-      this.trigger("change:stats");
+      this.trigger("change:selections");
     },
 
     _onRowCreated : function(node, data) {
@@ -280,8 +285,8 @@ var Table = (function() {
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:stats");
-    }, 
+      this.trigger("change:selections");
+    },
 
     _onRemove : function(model) {
       if (!this.dataTable) return;
@@ -290,8 +295,8 @@ var Table = (function() {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:stats");
-    }, 
+      this.trigger("change:selections");
+    },
 
     _onReset : function(collection) {
       if (!this.dataTable) return;
@@ -303,13 +308,13 @@ var Table = (function() {
       this.cache.reset();
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:stats");
+      this.trigger("change:selections");
     }
 
   }, {
 
     finalize : function(name, tableClass, views) {
-      // method for late resolution of row class, removes dependency 
+      // method for late resolution of row class, removes dependency
       // on needing access to the entire app
       tableClass.prototype.getRowClass = function() {
         return views[tableClass.prototype.rowClassName];
@@ -330,8 +335,8 @@ var Table = (function() {
   Pagination - local
     - select all (first time)  - should select only only what is visible on the screen - we don't want to select other pages.
     - select all (gmail style) - should only appear if there is more than 1 page of paginated data
-                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models. 
-                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34, 
+                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models.
+                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34,
                                  hit select all, we will select 10 visible ones. say you want all all. the 34 results will be selected
 
   ServerSide (pagination is implied)
@@ -344,12 +349,13 @@ var Table = (function() {
 
 TODO
   General:
+  - redo the interface for selectAll??
+  - names for get/set nount verb
   - counting selected items and tests
+  - selected test for serverside
   - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
 
   ServerSide
-    - allComplete implementation, storing server params, clearing them out. clear selectAllComplete data on fnDrawCallback or fnInfoCallback
-    - counting selected items and dealing with completeall
 
 
 
@@ -365,17 +371,17 @@ Questions:
 
 Done:
   basic - when something basic filtered, unselect, and get rid of header checkbox. ANY change to filter, should remove the all selected header checkbox
-  local paginated - nuke the complete select, 
+  local paginated - nuke the complete select,
                     also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
                     X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
-  Should we even bother with the selectallcomplete on a local paginated page??? - Nope, we nuked it
+  Should we even bother with the selectComplete on a local paginated page??? - Nope, we nuked it
   for search change, should we just run same code as pagination change? - yep done
   don't apply the checkbox if there are no results
   unselecting based on filtering, usage of getVisibleRows
   - fix usage of uncheck vs un-check
   - handle clicks on previous in pagination that have no more previos. same with next
   How to force reload of data on ajax? - reload method
-  - figure out how to force a reload of data when new params come in. 
+  - figure out how to force a reload of data when new params come in.
   - expose method to set additional params
 
 
