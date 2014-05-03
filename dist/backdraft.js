@@ -530,7 +530,7 @@ _.extend(Plugin.factory, {
   return Row;
 
 })();
-  var Table = (function() {
+  var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
 
@@ -538,7 +538,7 @@ _.extend(Plugin.factory, {
 
     initialize : function() {
       this._count = 0;
-      this._rowsByCid = {};
+      this._cidMap = {};
     },
 
     count : function() {
@@ -546,31 +546,33 @@ _.extend(Plugin.factory, {
     },
 
     models : function() {
-      return _.map(this._rowsByCid, function(row) {
-        return row.model;
-      });
+      return _.values(this._cidMap);
     },
 
-    process : function(row, state) {
-      var existing = this._rowsByCid[row.cid];
+    process : function(model, state) {
+      var existing = this._cidMap[model.cid];
       if (state) {
         if (!existing) {
           // add new entry
-          this._rowsByCid[row.cid] = row;
+          this._cidMap[model.cid] = model;
           this._count += 1;
         }
       } else {
         if (existing) {
           // purge existing entry
-          delete this._rowsByCid[row.cid];
+          delete this._cidMap[model.cid];
           this._count = Math.max(0, this._count -1);
         }
       }
+    },
+
+    has : function(model) {
+      return !!this._cidMap[model.cid];
     }
 
   });
 
-  var Table = Base.View.extend({
+  var LocalDataTable = Base.View.extend({
 
     template : '\
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
@@ -592,7 +594,7 @@ _.extend(Plugin.factory, {
       this.events = _.extend(this.events || {}, {
         "click .dataTable tbody tr" : "_onRowClick"
       });
-      Table.__super__.constructor.apply(this, arguments);
+      LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
       this.listenTo(this.collection, "reset", this._onReset);
@@ -627,12 +629,30 @@ _.extend(Plugin.factory, {
       return this;
     },
 
-    selectAll : function(state) {
+    selectAllVisible : function(state) {
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
-        this._setRowSelectedState(row, state);
+        this._setRowSelectedState(row.model, row, state);
       }, this);
       this.trigger("change:selections");
+    },
+
+    selectAllMatching : function() {
+      if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
+      _.each(this._allMatchingModels(), function(model) {
+        this._setRowSelectedState(model, this.cache.get(model), true);
+      }, this);
+    },
+
+    _allMatchingModels : function() {
+      // returns all models matching the current filter criteria, regardless of pagination
+      // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all 
+      // matching data since some of the rows may not have been rendered yet.
+      // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
+      // and return the associated models
+      return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
+        return this.collection.at(index);
+      }, this);
     },
 
     // private
@@ -649,9 +669,12 @@ _.extend(Plugin.factory, {
       });
     },
 
-    _setRowSelectedState : function(row, state) {
-      this.selectionHelper.process(row, state);
-      row.bulkState(state);
+    _setRowSelectedState : function(model, row, state) {
+      this.selectionHelper.process(model, state);
+      // the row may not exist yet as we utilize deferred rendering
+      // we will still track the model as selected, but will set the correct
+      // bulk state once the row gets created
+      row && row.bulkState(state);
     },
 
     _dataTableCreate : function() {
@@ -663,7 +686,7 @@ _.extend(Plugin.factory, {
       var allSelected, visibleRows = this._visibleRowsOnCurrentPage();
       if (visibleRows.length) {
         allSelected = _.all(visibleRows, function(row) {
-          return row.bulkState() == true;
+          return row.bulkState() === true;
         });
       } else {
         // have no selections does not count as having all selected
@@ -697,7 +720,7 @@ _.extend(Plugin.factory, {
 
     _dataTableConfig : function() {
       return {
-        bDeferRender : false,
+        bDeferRender : true,
         bPaginate : this.paginate,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
@@ -790,7 +813,7 @@ _.extend(Plugin.factory, {
     _onBulkHeaderClick : function(event) {
       var state = this.bulkCheckbox.prop("checked");
       if (!$(event.target).is(this.bulkCheckbox)) state = !state;
-      this.selectAll(state);
+      this.selectAllVisible(state);
       return true;
     },
 
@@ -798,7 +821,7 @@ _.extend(Plugin.factory, {
       var checkbox = $(event.target), row = checkbox.closest("tr").data("row"), checked = checkbox.prop("checked");
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
-      this._setRowSelectedState(row, checked);
+      this._setRowSelectedState(row.model, row, checked);
       this.trigger("change:selections");
     },
 
@@ -808,6 +831,9 @@ _.extend(Plugin.factory, {
       this.cache.set(model, row);
       // TODO: visibilityHint
       this.child("child" + row.cid, row).render();
+      // due to deferred rendering, the model associated with the row may have already been 
+      // selected, but not rendered yet.
+      this.selectionHelper.has(model) && row.bulkState(true);
     },
 
     _onRowClick : function(event) {
@@ -855,7 +881,7 @@ _.extend(Plugin.factory, {
 
   });
 
-  return Table;
+  return LocalDataTable;
 
 })();
 
@@ -881,13 +907,14 @@ _.extend(Plugin.factory, {
 
 TODO
   General:
-  - redo the interface for selectAll??
+  - redo the interface for selectAllVisible??
   - names for get/set nount verb
   - counting selected items and tests
   - selected test for serverside
   - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
 
   ServerSide
+    trigger change in selection event when selectAllMatching(true) is done
 
 
 
@@ -906,7 +933,7 @@ Done:
   local paginated - nuke the complete select,
                     also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
                     X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
-  Should we even bother with the selectComplete on a local paginated page??? - Nope, we nuked it
+  Should we even bother with the selectAllMatching on a local paginated page??? - Nope, we nuked it
   for search change, should we just run same code as pagination change? - yep done
   don't apply the checkbox if there are no results
   unselecting based on filtering, usage of getVisibleRows
@@ -917,13 +944,44 @@ Done:
   - expose method to set additional params
 
 
+InsightForm
+
+  - Create CampaignSelector
+      
+      // this handles updates, but what about initial state, maybe the first time we can force a rebroadcast of values, which would call serverParams and render into place?
+      - when model changes from filtercontrols, call .serverParams() on table
+
+      childviews
+        - Alexis' FilterControls
+
+        - ServerSide DataTable
+            exposes toJSON
+              var selectAllMatchingParams = this.selectAllMatching();
+              if (selectAllMatchingParams) {
+                return { complete : selectAllMatchingParams };
+              } else {
+                return { items : this.selectedModels() }
+              }
+      - exposes #isValid
+      - exposes #toJSON()
+          return table.toJSON();
 
 
 
 
 
+  - CampaignSelector is added to the InsightForm
 
 
+  
+
+  Adding support for select all complete ids on local paginated now.
+    This works fine for not deferrend rendered, but what if we want to selectAllVisible complete
+
+
+
+
+  - selectAllVisible is not selecting the checkbox in header
 
 
 
@@ -937,7 +995,7 @@ Done:
 
   var ServerSideDataTable = (function() {
 
-  var ServerSideDataTable = Table.extend({
+  var ServerSideDataTable = LocalDataTable.extend({
 
     // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
     _visibleRowsCurrentPageArgs : { filter : "applied" },
@@ -950,22 +1008,22 @@ Done:
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
       _.bindAll(this, "_fetchServerData", "_addServerParams", "_drawCallback");
       this.serverParams({});
-      this._selectCompleteParams = null;
+      this.selectAllMatching(false);
     },
 
-    selectComplete : function(val) {
+    selectAllMatching : function(val) {
       // getter
-      if (arguments.length === 0) return this._selectCompleteParams;
+      if (arguments.length === 0) return this._selectAllMatchingParams;
 
       // setter
       if (val) {
-        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectComplete cannot be used when there are no additional paginated results");
-        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectComplete");
+        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
+        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
         // store current server params
-        this._selectCompleteParams = this.serverParams();
+        this._selectAllMatchingParams = this.serverParams();
       } else {
         // clear stored server params
-        this._selectCompleteParams = null;
+        this._selectAllMatchingParams = null;
       }
     },
 
@@ -1016,8 +1074,8 @@ Done:
     // dataTables callback after a draw event has occurred
     _drawCallback : function() {
       // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectCompleteParams
-      this.selectComplete(false);
+      // to clear out any stored selectAllMatchingParams
+      this.selectAllMatching(false);
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -1070,7 +1128,6 @@ Done:
     // since rows are re-rendered on every interaction with the server
     _initPaginationHandling : function() {
       var self = this;
-
       if (this.bulkCheckbox) {
         this.dataTable.on("page", function() {
           self.bulkCheckbox.prop("checked", false);
@@ -1082,7 +1139,7 @@ Done:
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
       // whenever selections change, clear out stored server params
       this.on("change:selections", function() {
-        this.selectComplete(false);
+        this.selectAllMatching(false);
       }, this);
     }
 
@@ -1095,7 +1152,7 @@ Done:
   plugin.initializer(function(app) {
 
     app.view.dataTable = function(name, properties) {
-      var klass = properties.serverSide ? ServerSideDataTable : Table;
+      var klass = properties.serverSide ? ServerSideDataTable : LocalDataTable;
       app.Views[name] = klass.extend(properties);
       klass.finalize(name, app.Views[name], app.Views);
     };

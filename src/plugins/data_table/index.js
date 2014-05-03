@@ -13,7 +13,7 @@ Backdraft.plugin("DataTable", function(plugin) {
   plugin.initializer(function(app) {
 
     app.view.dataTable = function(name, properties) {
-      var klass = properties.serverSide ? ServerSideDataTable : Table;
+      var klass = properties.serverSide ? ServerSideDataTable : LocalDataTable;
       app.Views[name] = klass.extend(properties);
       klass.finalize(name, app.Views[name], app.Views);
     };

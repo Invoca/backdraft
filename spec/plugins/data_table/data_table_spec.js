@@ -291,16 +291,25 @@ describe("DataTable Plugin", function() {
           table.render();
 
           expect(table.selectedModels().length).toEqual(0);
-          table.selectAll(true)
+          table.selectAllVisible(true)
           expect(table.selectedModels().length).toEqual(data.length);
 
           collection.add({ name : "monkey "});
           collection.add({ name : "monkey and more "});
 
           table.filter("monkey");
-          table.selectAll(true);
+          table.selectAllVisible(true);
           expect(table.selectedModels().length).toEqual(data.length + 2);
         });
+
+        it("should not allow selectAllMatching to be called", function() {
+          table = new app.Views.T({ collection : collection });
+          table.render();
+
+          expect(function() {
+            table.selectAllMatching();
+          }).toThrowError("#selectAllMatching can only be used with paginated tables");
+        })
 
       });
 
@@ -324,7 +333,7 @@ describe("DataTable Plugin", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
           expect(table.selectedModels().length).toEqual(0);
-          table.selectAll(true);
+          table.selectAllVisible(true);
 
           var selectedModels = _.map(table.selectedModels(), function(m) {
             return m.toJSON();
@@ -340,7 +349,7 @@ describe("DataTable Plugin", function() {
         it("should uncheck the header bulk checkbox when a page transitions and the next page doesn't have all rows already selected", function(done) {
           table = new app.Views.T({ collection : collection });
           table.render();
-          table.selectAll(true);
+          table.selectAllVisible(true);
 
           // we need to test this using an async strategy because the checkbox is toggled async as well
           table.dataTable.on("page", function() {
@@ -356,9 +365,9 @@ describe("DataTable Plugin", function() {
         it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
-          table.selectAll(true);
+          table.selectAllVisible(true);
           table.changePage("next");
-          table.selectAll(true);
+          table.selectAllVisible(true);
 
           // we need to test this using an async strategy because the checkbox is toggled async as well
           table.dataTable.on("page", function() {
@@ -387,19 +396,14 @@ describe("DataTable Plugin", function() {
           collection.reset(data);
         });
 
-        it("should not expose #selectComplete", function() {
-          table = new app.Views.T({ collection : collection });
-          expect(table.selectComplete).toBeUndefined();
-        });
-
-        it("should check/uncheck the header bulk checkbox when #selectAll is called", function() {
+        it("should check/uncheck the header bulk checkbox when #selectAllVisible is called", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
 
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-          table.selectAll(true);
+          table.selectAllVisible(true);
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
-          table.selectAll(false);
+          table.selectAllVisible(false);
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
         });
         
@@ -408,7 +412,7 @@ describe("DataTable Plugin", function() {
           // need to append to body in order to do clicks on checkboxes
           $("body").append(table.render().$el);
 
-          table.selectAll(true)
+          table.selectAllVisible(true)
 
           // uncheck a single row checkbox
           table.$("td.bulk :checkbox:first").click();
@@ -419,7 +423,7 @@ describe("DataTable Plugin", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
           table.filter("89");
-          table.selectAll(true);
+          table.selectAllVisible(true);
 
           expect(table.selectedModels().length).toEqual(1);
 
@@ -439,7 +443,7 @@ describe("DataTable Plugin", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
           table.filter("9");
-          table.selectAll(true);
+          table.selectAllVisible(true);
 
           // there are 19 rows with the number "9" in them
           expect(table.selectedModels().length).toEqual(19);
@@ -472,14 +476,13 @@ describe("DataTable Plugin", function() {
           table.filter("not gonna find me");
         });
 
-
         it("should toggle the 'backdraft-selected' class on the row when a row's checkbox is toggled", function() {
           table = new app.Views.T({ collection : collection });
           // need to append to body in order to do clicks on checkboxes
           $("body").append(table.render().$el);
 
           expect(table.$(".backdraft-selected").length).toEqual(0);
-          table.selectAll(true);
+          table.selectAllVisible(true);
           expect(table.$(".backdraft-selected").length).toEqual(data.length);
 
           // uncheck a single row checkbox

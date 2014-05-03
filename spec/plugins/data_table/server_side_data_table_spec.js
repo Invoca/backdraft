@@ -180,7 +180,7 @@ describe("DataTable Plugin", function() {
 
     });
 
-    describe("#selectComplete", function() {
+    describe("#selectAllMatching", function() {
 
       beforeEach(function() {
         table = new app.Views.T({ collection : collection });
@@ -191,79 +191,79 @@ describe("DataTable Plugin", function() {
 
       it("should require that all visible rows are also currently selected", function() {
         expect(function() {
-          table.selectComplete(true);
-        }).toThrowError("all rows must be selected before calling #selectComplete")
+          table.selectAllMatching(true);
+        }).toThrowError("all rows must be selected before calling #selectAllMatching")
 
         expect(function() {
-          table.selectAll(true);
-          table.selectComplete(true);
+          table.selectAllVisible(true);
+          table.selectAllMatching(true);
         }).not.toThrow();
       });
 
       it("should store a copy of the server params", function() {
-        table.selectAll(true);
-        table.selectComplete(true);
+        table.selectAllVisible(true);
+        table.selectAllMatching(true);
 
-        expect(table.selectComplete()).toEqual({ monkey : "chicken" });
+        expect(table.selectAllMatching()).toEqual({ monkey : "chicken" });
       });
 
       it("should allow clearing", function() {
-        table.selectAll(true);
-        table.selectComplete(true);
+        table.selectAllVisible(true);
+        table.selectAllMatching(true);
 
-        expect(table.selectComplete()).toEqual({ monkey : "chicken" });
+        expect(table.selectAllMatching()).toEqual({ monkey : "chicken" });
 
-        table.selectComplete(false);
-        expect(table.selectComplete()).toEqual(null);
+        table.selectAllMatching(false);
+        expect(table.selectAllMatching()).toEqual(null);
       });
 
       describe("automatically clear stored params", function() {
 
         beforeEach(function() {
-          table.selectAll(true);
-          table.selectComplete(true);
-          expect(table.selectComplete()).toEqual({ monkey : "chicken" });
+          table.selectAllVisible(true);
+          table.selectAllMatching(true);
+          expect(table.selectAllMatching()).toEqual({ monkey : "chicken" });
         })
 
         it("should clear on pagination", function() {
           table.changePage("next");
           jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
-          expect(table.selectComplete()).toEqual(null);
+          expect(table.selectAllMatching()).toEqual(null);
         });
 
         it("should clear on sorting", function() {
           table.sort([ [1,'asc'] ]);
           jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
-          expect(table.selectComplete()).toEqual(null);
+          expect(table.selectAllMatching()).toEqual(null);
         });
 
         it("should clear on page size change", function() {
           table.$(".dataTables_length select").val(25).change();
           jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
-          expect(table.selectComplete()).toEqual(null);
+          expect(table.selectAllMatching()).toEqual(null);
         });
 
         it("should clear when all rows are deselected", function() {
-          table.selectAll(false);
+          table.selectAllVisible(false);
 
-          expect(table.selectComplete()).toEqual(null);
+          expect(table.selectAllMatching()).toEqual(null);
         });
 
         it("should clear when a row becomes unchecked", function() {
           // need to actually insert into the DOM to have #click work correctly
           $("body").append(table.$el);
           table.$("td.bulk :checkbox:first").click();
-          expect(table.selectComplete()).toEqual(null);
+          expect(table.selectAllMatching()).toEqual(null);
         });
 
         it("should clear when #serverParams is called", function() {
           table.serverParams({});
           jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
-          expect(table.selectComplete()).toEqual(null);
+          expect(table.selectAllMatching()).toEqual(null);
         });
 
       });

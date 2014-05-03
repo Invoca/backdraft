@@ -1,6 +1,6 @@
 var ServerSideDataTable = (function() {
 
-  var ServerSideDataTable = Table.extend({
+  var ServerSideDataTable = LocalDataTable.extend({
 
     // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
     _visibleRowsCurrentPageArgs : { filter : "applied" },
@@ -13,22 +13,22 @@ var ServerSideDataTable = (function() {
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
       _.bindAll(this, "_fetchServerData", "_addServerParams", "_drawCallback");
       this.serverParams({});
-      this._selectCompleteParams = null;
+      this.selectAllMatching(false);
     },
 
-    selectComplete : function(val) {
+    selectAllMatching : function(val) {
       // getter
-      if (arguments.length === 0) return this._selectCompleteParams;
+      if (arguments.length === 0) return this._selectAllMatchingParams;
 
       // setter
       if (val) {
-        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectComplete cannot be used when there are no additional paginated results");
-        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectComplete");
+        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
+        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
         // store current server params
-        this._selectCompleteParams = this.serverParams();
+        this._selectAllMatchingParams = this.serverParams();
       } else {
         // clear stored server params
-        this._selectCompleteParams = null;
+        this._selectAllMatchingParams = null;
       }
     },
 
@@ -79,8 +79,8 @@ var ServerSideDataTable = (function() {
     // dataTables callback after a draw event has occurred
     _drawCallback : function() {
       // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectCompleteParams
-      this.selectComplete(false);
+      // to clear out any stored selectAllMatchingParams
+      this.selectAllMatching(false);
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -133,7 +133,6 @@ var ServerSideDataTable = (function() {
     // since rows are re-rendered on every interaction with the server
     _initPaginationHandling : function() {
       var self = this;
-
       if (this.bulkCheckbox) {
         this.dataTable.on("page", function() {
           self.bulkCheckbox.prop("checked", false);
@@ -145,7 +144,7 @@ var ServerSideDataTable = (function() {
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
       // whenever selections change, clear out stored server params
       this.on("change:selections", function() {
-        this.selectComplete(false);
+        this.selectAllMatching(false);
       }, this);
     }
 
