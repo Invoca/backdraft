@@ -181,7 +181,7 @@ var LocalDataTable = (function() {
       var bulkCheckbox = this.$el.find("th.bulk :checkbox");
       if (!bulkCheckbox.length) return
       this.bulkCheckbox = bulkCheckbox;
-      this.bulkCheckbox.closest("th").click(this._onBulkHeaderClick);
+      this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
     },
@@ -210,14 +210,21 @@ var LocalDataTable = (function() {
     },
 
     _columnBulk : function(config) {
+      var self = this;
       return {
-        bSortable: false,
+        bSortable: true,
         bSearchable: false,
         sTitle: "<input type='checkbox' />",
         sClass : "bulk",
-        mData: null,
-        mRender : function() {
-          return "";
+        mData: function(source, type, val) {
+          return self.collection.get(source);
+        },
+        mRender : function(data, type, full) {
+          if (type === "sort" || type === "type") {
+            return self.selectionHelper.has(data) ? 1 : -1;
+          } else {
+            return "";            
+          }
         }
       };
     },
@@ -277,12 +284,11 @@ var LocalDataTable = (function() {
     },
 
     // events
-
     _onBulkHeaderClick : function(event) {
       var state = this.bulkCheckbox.prop("checked");
-      if (!$(event.target).is(this.bulkCheckbox)) state = !state;
       this.selectAllVisible(state);
-      return true;
+      // don't let dataTables sort this column on the click of checkbox
+      event.stopPropagation();
     },
 
     _onBulkRowClick : function(event) {
