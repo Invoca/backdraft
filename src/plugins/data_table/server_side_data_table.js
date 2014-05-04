@@ -23,7 +23,7 @@ var ServerSideDataTable = (function() {
       // setter
       if (val) {
         if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
-        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
+        if (!this._areAllVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
         // store current server params
         this._selectAllMatchingParams = this.serverParams();
       } else {
@@ -143,7 +143,7 @@ var ServerSideDataTable = (function() {
     _initBulkHandling : function() {
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
       // whenever selections change, clear out stored server params
-      this.on("change:selections", function() {
+      this.on("change:selected", function() {
         this.selectAllMatching(false);
       }, this);
     }

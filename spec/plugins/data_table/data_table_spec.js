@@ -149,8 +149,8 @@ describe("DataTable Plugin", function() {
           it("should render a view for every single model in the collection", function() {
             var rows = table.$("tbody tr");
             expect(rows.length).toEqual(2);
-            expect(rows.eq(0).find("td").html()).toEqual("Bob");
-            expect(rows.eq(1).find("td").html()).toEqual("Joe");
+            expect(rows.eq(0).find("td").html()).toEqual("Joe");
+            expect(rows.eq(1).find("td").html()).toEqual("Bob");
           });
 
           it("should have children views for every model", function() {
@@ -266,7 +266,7 @@ describe("DataTable Plugin", function() {
       beforeEach(function() {
         data = [];
         for (var iter = 0; iter < 100; ++iter) {
-          data.push({ name : "hi " + iter });
+          data.push({ id : iter +1, name : "hi " + iter });
         }
       });
 
@@ -309,7 +309,14 @@ describe("DataTable Plugin", function() {
           expect(function() {
             table.selectAllMatching();
           }).toThrowError("#selectAllMatching can only be used with paginated tables");
-        })
+        });
+
+        it("should allow a list of pre-selected model ids to be provided and select the correct rows", function() {
+          var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45 ];
+          table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+          table.render();
+          expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
+        });
 
       });
 
@@ -376,6 +383,26 @@ describe("DataTable Plugin", function() {
               expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
             });
           });
+        });
+
+        describe("selectedIds", function() {
+
+          it("should allow a list of model ids to be provided and select the correct models", function() {
+            var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45 ];
+            table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+            table.render();
+            expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
+          });
+
+          it("should make the correct rows appear selected as some my not be rendered initially due to deferred rendering", function() {
+            var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45, 72, 97, 33, 5, 13 ];
+            table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+            table.render();
+            table.$(".dataTables_length select").val(100).change();
+            expect(table.$("td.bulk :checkbox:checked").length).toEqual(selectedIds.length);
+
+          });
+
         });
 
       });

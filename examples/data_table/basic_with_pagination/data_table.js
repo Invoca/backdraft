@@ -86,11 +86,11 @@ Backdraft.app("TableExample", function(app) {
 
       // fake data
       for (var iter = 0; iter < 100; ++iter) {
-        data.push({ name : iter + 1 + " - hey hey " + (iter + 1) });
+        data.push({ id : iter + 1, name : iter + 1 + " - hey hey " + (iter + 1) });
       }
 
       collection.add(data);
-      var table = new app.Views.BookTable({ collection : collection });
+      var table = new app.Views.BookTable({ collection : collection, selectedIds : [1, 99] });
       this.$el.html(table.render().$el);
       return this;
     }

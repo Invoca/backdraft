@@ -584,6 +584,8 @@ _.extend(Plugin.factory, {
     constructor : function(options) {
       X = this;
       this.options = options || {};
+      // copy over certain properties from options to the table itself
+      _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
@@ -625,7 +627,7 @@ _.extend(Plugin.factory, {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:selections");
+      this.trigger("change:selected");
       return this;
     },
 
@@ -634,7 +636,7 @@ _.extend(Plugin.factory, {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
       }, this);
-      this.trigger("change:selections");
+      this.trigger("change:selected");
     },
 
     selectAllMatching : function() {
@@ -658,7 +660,8 @@ _.extend(Plugin.factory, {
     // private
     _applyDefaults : function() {
       _.defaults(this, {
-        paginate : true
+        paginate : true,
+        selectedIds : []
       });
     },
 
@@ -671,18 +674,17 @@ _.extend(Plugin.factory, {
 
     _setRowSelectedState : function(model, row, state) {
       this.selectionHelper.process(model, state);
-      // the row may not exist yet as we utilize deferred rendering
-      // we will still track the model as selected, but will set the correct
-      // bulk state once the row gets created
+      // the row may not exist yet as we utilize deferred rendering. we track the model as 
+      // selected and make the ui reflect this when the row is finally created
       row && row.bulkState(state);
     },
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
-      if (this.collection.length) this.dataTable.fnAddData(cidMap(this.collection));
+      if (this.collection.length) this._onReset(this.collection);
     },
 
-    _allVisibleRowsSelected : function() {
+    _areAllVisibleRowsSelected : function() {
       var allSelected, visibleRows = this._visibleRowsOnCurrentPage();
       if (visibleRows.length) {
         allSelected = _.all(visibleRows, function(row) {
@@ -701,7 +703,7 @@ _.extend(Plugin.factory, {
     _bulkCheckboxAdjust : function() {
       var self = this;
       _.defer(function() {
-        self.bulkCheckbox.prop("checked", self._allVisibleRowsSelected());
+        self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
       });
     },
 
@@ -725,7 +727,7 @@ _.extend(Plugin.factory, {
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
         aoColumns      : this._getColumnConfig(),
-        aaSorting :  [ [ 0, 'asc' ] ]
+        aaSorting :  [ [ 0, this.paginate ? "desc" : "asc" ] ]
       };
     },
 
@@ -828,7 +830,7 @@ _.extend(Plugin.factory, {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row.model, row, checked);
-      this.trigger("change:selections");
+      this.trigger("change:selected");
     },
 
     _onRowCreated : function(node, data) {
@@ -837,8 +839,7 @@ _.extend(Plugin.factory, {
       this.cache.set(model, row);
       // TODO: visibilityHint
       this.child("child" + row.cid, row).render();
-      // due to deferred rendering, the model associated with the row may have already been 
-      // selected, but not rendered yet.
+      // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
       this.selectionHelper.has(model) && row.bulkState(true);
     },
 
@@ -849,7 +850,7 @@ _.extend(Plugin.factory, {
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:selections");
+      this.trigger("change:selected");
     },
 
     _onRemove : function(model) {
@@ -859,7 +860,7 @@ _.extend(Plugin.factory, {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:selections");
+      this.trigger("change:selected");
     },
 
     _onReset : function(collection) {
@@ -870,9 +871,15 @@ _.extend(Plugin.factory, {
         row.close();
       });
       this.cache.reset();
+      // populate with preselected items
+      this.selectionHelper = new SelectionHelper();
+      _.each(this.selectedIds, function(id) {
+        this._setRowSelectedState(this.collection.get(id), null, true);
+      }, this);
+
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:selections");
+      this.trigger("change:selected");
     }
 
   }, {
@@ -913,14 +920,21 @@ _.extend(Plugin.factory, {
 
 TODO
   General:
-  - redo the interface for selectAllVisible??
   - names for get/set nount verb
   - counting selected items and tests
   - selected test for serverside
-  - do we needa do anything with the bulk select checkbox when the pagination size is changed - same thing as when transition to next page?? check current page all selected
+  - selectAllVisible is not selecting the checkbox in header
+  - allow preselected ids
+  - add default sorting to make selected appear first
+  - bulk clearing of allallall selection, like nuke the selected helper data
+  - get servside support selectedIds, make sure we are clearing the selection helper correctly since we override some methods
+
+
 
   ServerSide
-    trigger change in selection event when selectAllMatching(true) is done
+
+
+
 
 
 
@@ -948,6 +962,12 @@ Done:
   How to force reload of data on ajax? - reload method
   - figure out how to force a reload of data when new params come in.
   - expose method to set additional params
+  - provide option of selected ids
+  - in the reset handler
+      loop through all ids in array of selected, and add models to the selectionHelper
+  trigger change in selection event when selectAllMatching(true) is done
+
+
 
 
 InsightForm
@@ -981,13 +1001,9 @@ InsightForm
 
   
 
-  Adding support for select all complete ids on local paginated now.
-    This works fine for not deferrend rendered, but what if we want to selectAllVisible complete
 
 
 
-
-  - selectAllVisible is not selecting the checkbox in header
 
 
 
@@ -1024,7 +1040,7 @@ InsightForm
       // setter
       if (val) {
         if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
-        if (!this._allVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
+        if (!this._areAllVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
         // store current server params
         this._selectAllMatchingParams = this.serverParams();
       } else {
@@ -1144,7 +1160,7 @@ InsightForm
     _initBulkHandling : function() {
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
       // whenever selections change, clear out stored server params
-      this.on("change:selections", function() {
+      this.on("change:selected", function() {
         this.selectAllMatching(false);
       }, this);
     }
