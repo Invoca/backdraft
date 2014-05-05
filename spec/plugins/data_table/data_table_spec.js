@@ -19,8 +19,8 @@ describe("DataTable Plugin", function() {
 
   describe("factories", function() {
 
-    it("should expoose #dataTable and #dataTable.row", function() {
-      app.view.dataTable.row("abc", {});
+    it("should expose #dataTable and #dataTable.row", function() {
+      app.view.dataTable.row("abc", { columns : [] });
       app.view.dataTable("def", {
         rowClassName : "abc"
       });
@@ -117,6 +117,58 @@ describe("DataTable Plugin", function() {
 
     });
 
+  });
+
+  describe("columns", function(){
+    it("can only be provided as an array or a function that returns an array", function(){
+      var passingArray = function() {
+        app.view.dataTable.row("ArrayCol", {
+          columns : [
+            { bulk : "true" }
+          ]
+        });
+        app.view.dataTable("TableCol", {
+          rowClassName : "ArrayCol"
+        });
+
+        table = new app.Views.TableCol({ collection : collection });
+        table.render();
+      };
+
+      var passingFn = function() {
+        app.view.dataTable.row("ArrayCol", {
+          columns : function() {
+            return [
+              { bulk : "true" }
+            ];
+          }
+        });
+        app.view.dataTable("TableCol", {
+          rowClassName : "ArrayCol"
+        });
+
+        table = new app.Views.TableCol({ collection : collection });
+        table.render();
+      };
+
+      var failing = function() {
+        app.view.dataTable.row("ArrayCol", {
+          columns : function() {
+            return { bulk : "true" };
+          }
+        });
+        app.view.dataTable("TableCol", {
+          rowClassName : "ArrayCol"
+        });
+
+        table = new app.Views.TableCol({ collection : collection });
+        table.render();
+      };
+
+      expect(passingArray).not.toThrow();
+      expect(passingFn).not.toThrow();
+      expect(failing).toThrow();
+    });
   });
 
   describe("Local data store", function() {
@@ -285,7 +337,7 @@ describe("DataTable Plugin", function() {
           });
           collection.reset(data);
         });
-        
+
         it("should not unselect models that are filtered out", function() {
           table = new app.Views.T({ collection : collection });
           table.render();
@@ -433,7 +485,7 @@ describe("DataTable Plugin", function() {
           table.selectAllVisible(false);
           expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
         });
-        
+
         it("should uncheck the header bulk checkbox when a row's checkbox is unchecked", function() {
           table = new app.Views.T({ collection : collection });
           // need to append to body in order to do clicks on checkboxes

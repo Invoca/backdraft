@@ -57,7 +57,8 @@ var LocalDataTable = (function() {
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
-      this.columns = this.rowClass.prototype.columns;
+      this.columns = _.result(this.rowClass.prototype, 'columns');
+      if (!_.isArray(this.columns)) throw new Error('Columns should be a valid array');
       this._applyDefaults();
       this.selectionHelper = new SelectionHelper();
       // inject our own events in addition to the users
