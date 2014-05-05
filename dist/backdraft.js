@@ -534,7 +534,7 @@ _.extend(Plugin.factory, {
 
     constructor : function(options) {
       this.options = options || {};
-      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick", "_onColumnPickerClick");
+      _.bindAll(this, "_onDraw", "_onRowCreated", "_onBulkHeaderClick");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = _.result(this.rowClass.prototype, 'columns');
@@ -545,8 +545,7 @@ _.extend(Plugin.factory, {
       this._resetSelected();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
-        "click .dataTable tbody tr" : "_onRowClick",
-        "click a.column-picker" : "_onColumnPickerClick"
+        "click .dataTable tbody tr" : "_onRowClick"
       });
       Table.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
@@ -622,18 +621,13 @@ _.extend(Plugin.factory, {
     },
 
     _getDataTableConfig : function() {
-      var columns = this._getColumnConfig();
-      if (this.columnPicker) {
-        columns.push(this._addColumnPicker(this.columns));
-      }
-
       return {
         bDeferRender : true,
         bPaginate : true,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
         fnDrawCallback : this._onDraw,
-        aoColumns      : columns,
+        aoColumns      : this._getColumnConfig(),
         aaSorting :  [ [ 0, 'asc' ] ]
       };
     },
@@ -717,39 +711,6 @@ _.extend(Plugin.factory, {
       };
     },
 
-    _addColumnPicker: function(columns) {
-      var dropdown = '' +
-        '<div class="dropdown" id="column_picker">' +
-          '<a role="button" data-toggle="dropdown" data-target="#" class="dropdown-toggle">X</a>' +
-          '<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">' +
-            this._addColumnsToPicker(columns).join('') +
-          '</ul>' +
-        '</div>';
-
-      return {
-        bSortable: false,
-        bSearchable: false,
-        sTitle: dropdown,
-        mData: null,
-        mRender : function() {
-          return "";
-        }
-      };
-    },
-
-    _addColumnsToPicker: function(columns) {
-      return _.compact(_.map(columns, function(column, idx){
-        if (column.bulk || column.columnPicker) {
-          return null;
-        }
-        return '<li role="presentation">' +
-          '<a class="column-picker" role="menuitem" tabindex="-1" href="#" data-col_id="' + idx + '">' +
-            column.title +
-          '</a>' +
-        '</li>';
-      }));
-    },
-
     // events
 
     _onBulkHeaderClick : function() {
@@ -757,23 +718,6 @@ _.extend(Plugin.factory, {
       if (!$(event.target).is(this.bulkCheckbox)) state = !state;
       this.selectAll(state);
       return true;
-    },
-
-    _onColumnPickerClick: function(evt) {
-      var column = parseInt($(evt.currentTarget).data('col_id'), 10);
-      
-      // Check column visibility
-      columnVisible = this.dataTable.fnSettings().aoColumns[column].bVisible;
-
-      if (columnVisible) {
-        // Hide the column
-        this.dataTable.fnSetColumnVis(column, false);
-        $(evt.currentTarget).removeClass('checked');
-      } else {
-        this.dataTable.fnSetColumnVis(column, true);
-        $(evt.currentTarget).addClass('checked');
-      }
-      return false;
     },
 
     _onDraw : function() {

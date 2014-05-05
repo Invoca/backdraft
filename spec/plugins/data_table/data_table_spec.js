@@ -127,38 +127,6 @@ describe("DataTable Plugin", function() {
 
       });
 
-      describe("column picker is set", function(){
-        beforeEach(function(){
-          app.view.dataTable.row("R", {
-            columns: [
-              { bulk: true },
-              { attr: "name", title: "Name" }
-            ]
-          });
-          app.view.dataTable("T", {
-            rowClassName: "R",
-            columnPicker: true
-          });
-          collection.add({name: 'Test'});
-          table = new app.Views.T({ collection : collection });
-          table.render();
-        });
-
-        it("should add a column picker to the datatable", function(){
-          expect(table.$('#column_picker').length).toBeGreaterThan(0);
-        });
-
-        it("it should toggle a column visibility when clicked", function(){
-          expect(table.$('th.Name').length).toBeGreaterThan(0);
-          // Toggle column
-          table.$('.column-picker').click();
-          expect(table.$('th.Name').length).toBe(0);
-          // Toggle it back on
-          table.$('.column-picker').click();
-          expect(table.$('th.Name').length).toBeGreaterThan(0);
-        });
-      });
-
     });
 
     describe("renderers", function() {
@@ -209,7 +177,6 @@ describe("DataTable Plugin", function() {
           expect(table.$("tbody tr td:first :checkbox").length).toEqual(1);
         });
       });
-
 
       describe("columns", function(){
         it("can only be provided as an array or a function that returns an array", function(){
