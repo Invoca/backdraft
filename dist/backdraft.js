@@ -661,7 +661,8 @@ _.extend(Plugin.factory, {
     _applyDefaults : function() {
       _.defaults(this, {
         paginate : true,
-        selectedIds : []
+        selectedIds : [],
+        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>"
       });
     },
 
@@ -722,6 +723,7 @@ _.extend(Plugin.factory, {
 
     _dataTableConfig : function() {
       return {
+        sDom : this.layout,
         bDeferRender : true,
         bPaginate : this.paginate,
         bInfo : true,
@@ -920,16 +922,12 @@ _.extend(Plugin.factory, {
 
 TODO
   General:
+  - get multi column sorting working by default
   - names for get/set nount verb
   - counting selected items and tests
   - selected test for serverside
   - selectAllVisible is not selecting the checkbox in header
-  - allow preselected ids
-  - add default sorting to make selected appear first
-  - bulk clearing of allallall selection, like nuke the selected helper data
   - get servside support selectedIds, make sure we are clearing the selection helper correctly since we override some methods
-
-
 
   ServerSide
 
