@@ -22,6 +22,7 @@ Backdraft.app("TableExample", function(app) {
       // $("#example").dataTable();
       $("#example").hide()
       this.swap(view);
+      view.redrawTable();
     }
 
   });
@@ -53,7 +54,8 @@ Backdraft.app("TableExample", function(app) {
   app.view.dataTable("BookTable", {
 
     rowClassName : "BookRow",
-    columnPicker: true
+    columnPicker: true,
+    horizontalScroll: true
   });
 
 });
@@ -66,12 +68,36 @@ Backdraft.app("TableExample", function(app) {
       return [
         { bulk : true },
         { attr : "name", title : "Name" },
+        { title : "random" },
+        { title : "random" },
+        { title : "random" },
+        { title : "random" },
+        { title : "random" },
+        { title : "random" },
         { title : "random" }
       ]  
     },
 
     renderers : {
       "random" : function(node, config) {
+        node.text(Math.random());
+      },
+      "random2" : function(node, config) {
+        node.text(Math.random());
+      },
+      "random3" : function(node, config) {
+        node.text(Math.random());
+      },
+      "random4" : function(node, config) {
+        node.text(Math.random());
+      },
+      "random5" : function(node, config) {
+        node.text(Math.random());
+      },
+      "random6" : function(node, config) {
+        node.text(Math.random());
+      },
+      "random7" : function(node, config) {
         node.text(Math.random());
       }
     }
@@ -91,9 +117,15 @@ Backdraft.app("TableExample", function(app) {
         { name : "joe" },
         { name : "euge" }
       ]);
-      var table = new app.Views.BookTable({ collection : collection });
-      this.$el.html(table.render().$el);
+      this.table = new app.Views.BookTable({ collection : collection });
+
+      this.$el.html(this.table.render().$el);
+
       return this;
+    },
+
+    redrawTable: function() {
+      this.table.dataTable.fnDraw();
     }
 
   });

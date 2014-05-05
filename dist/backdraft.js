@@ -622,12 +622,13 @@ _.extend(Plugin.factory, {
     },
 
     _getDataTableConfig : function() {
+      // Enable/disable column picker
       var columns = this._getColumnConfig();
       if (this.columnPicker) {
         columns.push(this._addColumnPicker(this.columns));
       }
 
-      return {
+      var config = {
         bDeferRender : true,
         bPaginate : true,
         bInfo : true,
@@ -636,6 +637,13 @@ _.extend(Plugin.factory, {
         aoColumns      : columns,
         aaSorting :  [ [ 0, 'asc' ] ]
       };
+
+      // Enable/disable horizontal scroller
+      if (this.horizontalScroll) {
+        config.sScrollX = '100%';
+      }
+
+      return config;
     },
 
     _getColumnConfig : function() {
