@@ -148,7 +148,7 @@ describe("DataTable Plugin", function() {
           expect(table.$('#column_picker').length).toBeGreaterThan(0);
         });
 
-        it("it should toggle a column visibility when clicked", function(){
+        it("should toggle a column visibility when clicked", function(){
           expect(table.$('th.Name').length).toBeGreaterThan(0);
           // Toggle column
           table.$('.column-picker').click();
@@ -158,7 +158,32 @@ describe("DataTable Plugin", function() {
           expect(table.$('th.Name').length).toBeGreaterThan(0);
         });
       });
+    });
 
+    describe("horizonatl scroll is set", function(){
+      
+      function createTable(horizontalScroll) {
+        app.view.dataTable.row("R", {
+          columns: [
+            { bulk: true },
+            { attr: "name", title: "Name" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName: "R",
+          horizontalScroll: horizontalScroll
+        });
+        collection.add({name: 'Test'});
+        table = new app.Views.T({ collection : collection });
+        table.render();
+      }
+
+      it("should make the dataTable scrollable horizontally", function(){
+        createTable(false);
+        expect(table.$('.dataTables_scroll').length).toBe(0);
+        createTable(true);
+        expect(table.$('.dataTables_scroll').length).toBeGreaterThan(0);
+      });
     });
 
     describe("renderers", function() {
