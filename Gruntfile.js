@@ -35,7 +35,6 @@ module.exports = function(grunt) {
             "vendor/underscore-1.6.0.js",
             "vendor/backbone-1.1.2.js",
             "vendor/jquery.dataTables-1.9.4.js",
-            "vendor/dataTables.bootstrap.js",
             "vendor/mock-ajax.js"
           ],
           specs : [

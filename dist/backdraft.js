@@ -427,6 +427,127 @@ _.extend(Plugin.factory, {
     });
   }
 
+  /* Set the defaults for DataTables initialisation */
+$.extend( true, $.fn.dataTable.defaults, {
+  "sDom":
+    "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
+    "t"+
+    "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+  "oLanguage": {
+    "sLengthMenu": "_MENU_ records per page"
+  }
+} );
+
+
+/* Default class modification */
+$.extend( $.fn.dataTableExt.oStdClasses, {
+  "sWrapper": "dataTables_wrapper form-inline",
+  "sFilterInput": "form-control input-sm",
+  "sLengthSelect": "form-control input-sm"
+} );
+
+// Integration for 1.9-
+$.fn.dataTable.defaults.sPaginationType = 'bootstrap';
+
+/* API method to get paging information */
+$.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
+{
+  return {
+    "iStart":         oSettings._iDisplayStart,
+    "iEnd":           oSettings.fnDisplayEnd(),
+    "iLength":        oSettings._iDisplayLength,
+    "iTotal":         oSettings.fnRecordsTotal(),
+    "iFilteredTotal": oSettings.fnRecordsDisplay(),
+    "iPage":          oSettings._iDisplayLength === -1 ?
+      0 : Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
+    "iTotalPages":    oSettings._iDisplayLength === -1 ?
+      0 : Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
+  };
+};
+
+/* Bootstrap style pagination control */
+$.extend( $.fn.dataTableExt.oPagination, {
+  "bootstrap": {
+    "fnInit": function( oSettings, nPaging, fnDraw ) {
+      var oLang = oSettings.oLanguage.oPaginate;
+      var fnClickHandler = function ( e ) {
+        e.preventDefault();
+        // prevent clicks on disabled links
+        if ($(e.target).closest("li").is(".disabled")) {
+          return;
+        }
+        if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
+          fnDraw( oSettings );
+        }
+      };
+
+      $(nPaging).append(
+        '<ul class="pagination pagination-sm">'+
+          '<li class="prev disabled"><a href="#">&larr; </a></li>'+
+          '<li class="next disabled"><a href="#"> &rarr; </a></li>'+
+        '</ul>'
+      );
+      var els = $('a', nPaging);
+      $(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
+      $(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
+    },
+
+    "fnUpdate": function ( oSettings, fnDraw ) {
+      var iListLength = 5;
+      var oPaging = oSettings.oInstance.fnPagingInfo();
+      var an = oSettings.aanFeatures.p;
+      var i, ien, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
+
+      if ( oPaging.iTotalPages < iListLength) {
+        iStart = 1;
+        iEnd = oPaging.iTotalPages;
+      }
+      else if ( oPaging.iPage <= iHalf ) {
+        iStart = 1;
+        iEnd = iListLength;
+      } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
+        iStart = oPaging.iTotalPages - iListLength + 1;
+        iEnd = oPaging.iTotalPages;
+      } else {
+        iStart = oPaging.iPage - iHalf + 1;
+        iEnd = iStart + iListLength - 1;
+      }
+
+      for ( i=0, ien=an.length ; i<ien ; i++ ) {
+        // Remove the middle elements
+        $('li:gt(0)', an[i]).filter(':not(:last)').remove();
+
+        // Add the new list items and their event handlers
+        for ( j=iStart ; j<=iEnd ; j++ ) {
+          sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
+          $('<li '+sClass+'><a href="#">'+j+'</a></li>')
+            .insertBefore( $('li:last', an[i])[0] )
+            .bind('click', function (e) {
+              e.preventDefault();
+              // EUGE - patched to make sure the "page" event is fired when click on numbers
+              oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
+            } );
+        }
+
+        // Add / remove disabled classes from the static elements
+        if ( oPaging.iPage === 0 ) {
+          $('li:first', an[i]).addClass('disabled');
+        } else {
+          $('li:first', an[i]).removeClass('disabled');
+        }
+
+        if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
+          $('li:last', an[i]).addClass('disabled');
+        } else {
+          $('li:last', an[i]).removeClass('disabled');
+        }
+      }
+    }
+  }
+} );
+
+
+
   var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
@@ -583,11 +704,10 @@ _.extend(Plugin.factory, {
     _visibleRowsCurrentPageArgs : { filter : "applied", page : "current" },
 
     constructor : function(options) {
-      X = this;
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = _.result(this.rowClass.prototype, 'columns');
@@ -629,7 +749,7 @@ _.extend(Plugin.factory, {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
       return this;
     },
 
@@ -638,7 +758,11 @@ _.extend(Plugin.factory, {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
       }, this);
-      this.trigger("change:selected");
+      var info = { count : this.selectionHelper.count() };
+      if (state) {
+        info.selectAllVisible = true;
+      }
+      this.trigger("change:selected", info);
     },
 
     selectAllMatching : function() {
@@ -646,6 +770,7 @@ _.extend(Plugin.factory, {
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
       }, this);
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _allMatchingModels : function() {
@@ -659,12 +784,21 @@ _.extend(Plugin.factory, {
       }, this);
     },
 
+    matchingCount : function() {
+      return this.dataTable.fnSettings().aiDisplay.length;
+    },
+
     // private
     _applyDefaults : function() {
       _.defaults(this, {
         paginate : true,
+        paginateLengthMenu : [ 10, 25, 50, 100 ],
+        paginateLength : 10,
         selectedIds : [],
-        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>"
+        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+      });
+      _.defaults(this, {
+        sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
       });
     },
 
@@ -728,11 +862,18 @@ _.extend(Plugin.factory, {
         sDom : this.layout,
         bDeferRender : true,
         bPaginate : this.paginate,
+        aLengthMenu : this.paginateLengthMenu,
+        iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns      : this._getColumnConfig(),
-        aaSorting :  [ [ 0, this.paginate ? "desc" : "asc" ] ]
+        aoColumns : this._getColumnConfig(),
+        aaSorting : this.sorting,
+        fnDrawCallback : this._onDraw
       };
+    },
+
+    _onDraw : function() {
+      this.trigger("draw", arguments);
     },
 
     _getColumnConfig : function() {
@@ -834,7 +975,7 @@ _.extend(Plugin.factory, {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row.model, row, checked);
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _onRowCreated : function(node, data) {
@@ -854,7 +995,7 @@ _.extend(Plugin.factory, {
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _onRemove : function(model) {
@@ -864,7 +1005,7 @@ _.extend(Plugin.factory, {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _onReset : function(collection) {
@@ -883,7 +1024,7 @@ _.extend(Plugin.factory, {
 
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     }
 
   }, {
@@ -901,118 +1042,6 @@ _.extend(Plugin.factory, {
   return LocalDataTable;
 
 })();
-
-/*
-  No pagination
-    - select all - should select only what is visible on the screen, as some rows may have been filtered. all rows are rendered upfront since there is no pagination
-    - no gmail style
-
-  Pagination - local
-    - select all (first time)  - should select only only what is visible on the screen - we don't want to select other pages.
-    - select all (gmail style) - should only appear if there is more than 1 page of paginated data
-                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models.
-                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34,
-                                 hit select all, we will select 10 visible ones. say you want all all. the 34 results will be selected
-
-  ServerSide (pagination is implied)
-    - disable datatables filtering as it's default issues too many ajax
-    - select all (first time)  - should select whats in the collection, since its server side, everything in the collection is what we have.
-    - select all (gmail style) - should only appear if there is more than 1 page of paginated data
-                               - need to persist current filters and return those instead of selected ids.
-
-
-
-TODO
-  General:
-  - get multi column sorting working by default
-  - names for get/set nount verb
-  - counting selected items and tests
-  - selected test for serverside
-  - selectAllVisible is not selecting the checkbox in header
-  - get servside support selectedIds, make sure we are clearing the selection helper correctly since we override some methods
-
-  ServerSide
-
-
-
-
-
-
-
-
-Questions:
-
-
-
-
-
-
-
-Done:
-  basic - when something basic filtered, unselect, and get rid of header checkbox. ANY change to filter, should remove the all selected header checkbox
-  local paginated - nuke the complete select,
-                    also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
-                    X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
-  Should we even bother with the selectAllMatching on a local paginated page??? - Nope, we nuked it
-  for search change, should we just run same code as pagination change? - yep done
-  don't apply the checkbox if there are no results
-  unselecting based on filtering, usage of getVisibleRows
-  - fix usage of uncheck vs un-check
-  - handle clicks on previous in pagination that have no more previos. same with next
-  How to force reload of data on ajax? - reload method
-  - figure out how to force a reload of data when new params come in.
-  - expose method to set additional params
-  - provide option of selected ids
-  - in the reset handler
-      loop through all ids in array of selected, and add models to the selectionHelper
-  trigger change in selection event when selectAllMatching(true) is done
-
-
-
-
-InsightForm
-
-  - Create CampaignSelector
-      
-      // this handles updates, but what about initial state, maybe the first time we can force a rebroadcast of values, which would call serverParams and render into place?
-      - when model changes from filtercontrols, call .serverParams() on table
-
-      childviews
-        - Alexis' FilterControls
-
-        - ServerSide DataTable
-            exposes toJSON
-              var selectAllMatchingParams = this.selectAllMatching();
-              if (selectAllMatchingParams) {
-                return { complete : selectAllMatchingParams };
-              } else {
-                return { items : this.selectedModels() }
-              }
-      - exposes #isValid
-      - exposes #toJSON()
-          return table.toJSON();
-
-
-
-
-
-  - CampaignSelector is added to the InsightForm
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
 
   var ServerSideDataTable = (function() {

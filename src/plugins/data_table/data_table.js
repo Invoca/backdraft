@@ -50,11 +50,10 @@ var LocalDataTable = (function() {
     _visibleRowsCurrentPageArgs : { filter : "applied", page : "current" },
 
     constructor : function(options) {
-      X = this;
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw");
       this.cache = new Base.Cache();
       this.rowClass = this.getRowClass();
       this.columns = _.result(this.rowClass.prototype, 'columns');
@@ -96,7 +95,7 @@ var LocalDataTable = (function() {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
       return this;
     },
 
@@ -105,7 +104,11 @@ var LocalDataTable = (function() {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
       }, this);
-      this.trigger("change:selected");
+      var info = { count : this.selectionHelper.count() };
+      if (state) {
+        info.selectAllVisible = true;
+      }
+      this.trigger("change:selected", info);
     },
 
     selectAllMatching : function() {
@@ -113,6 +116,7 @@ var LocalDataTable = (function() {
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
       }, this);
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _allMatchingModels : function() {
@@ -126,12 +130,21 @@ var LocalDataTable = (function() {
       }, this);
     },
 
+    matchingCount : function() {
+      return this.dataTable.fnSettings().aiDisplay.length;
+    },
+
     // private
     _applyDefaults : function() {
       _.defaults(this, {
         paginate : true,
+        paginateLengthMenu : [ 10, 25, 50, 100 ],
+        paginateLength : 10,
         selectedIds : [],
-        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>"
+        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+      });
+      _.defaults(this, {
+        sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
       });
     },
 
@@ -195,11 +208,18 @@ var LocalDataTable = (function() {
         sDom : this.layout,
         bDeferRender : true,
         bPaginate : this.paginate,
+        aLengthMenu : this.paginateLengthMenu,
+        iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns      : this._getColumnConfig(),
-        aaSorting :  [ [ 0, this.paginate ? "desc" : "asc" ] ]
+        aoColumns : this._getColumnConfig(),
+        aaSorting : this.sorting,
+        fnDrawCallback : this._onDraw
       };
+    },
+
+    _onDraw : function() {
+      this.trigger("draw", arguments);
     },
 
     _getColumnConfig : function() {
@@ -301,7 +321,7 @@ var LocalDataTable = (function() {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row.model, row, checked);
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _onRowCreated : function(node, data) {
@@ -321,7 +341,7 @@ var LocalDataTable = (function() {
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _onRemove : function(model) {
@@ -331,7 +351,7 @@ var LocalDataTable = (function() {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     },
 
     _onReset : function(collection) {
@@ -350,7 +370,7 @@ var LocalDataTable = (function() {
 
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:selected");
+      this.trigger("change:selected", { count : this.selectionHelper.count() });
     }
 
   }, {
@@ -368,116 +388,4 @@ var LocalDataTable = (function() {
   return LocalDataTable;
 
 })();
-
-/*
-  No pagination
-    - select all - should select only what is visible on the screen, as some rows may have been filtered. all rows are rendered upfront since there is no pagination
-    - no gmail style
-
-  Pagination - local
-    - select all (first time)  - should select only only what is visible on the screen - we don't want to select other pages.
-    - select all (gmail style) - should only appear if there is more than 1 page of paginated data
-                               - should select all models on all filter applied paginated pages, even if some have not been rendered. not sure how to find these models.
-                                 it may be easier to disable deferred rendering and use the visibleRow method we have. so lets say you filter 100 results to 34,
-                                 hit select all, we will select 10 visible ones. say you want all all. the 34 results will be selected
-
-  ServerSide (pagination is implied)
-    - disable datatables filtering as it's default issues too many ajax
-    - select all (first time)  - should select whats in the collection, since its server side, everything in the collection is what we have.
-    - select all (gmail style) - should only appear if there is more than 1 page of paginated data
-                               - need to persist current filters and return those instead of selected ids.
-
-
-
-TODO
-  General:
-  - get multi column sorting working by default
-  - names for get/set nount verb
-  - counting selected items and tests
-  - selected test for serverside
-  - selectAllVisible is not selecting the checkbox in header
-  - get servside support selectedIds, make sure we are clearing the selection helper correctly since we override some methods
-
-  ServerSide
-
-
-
-
-
-
-
-
-Questions:
-
-
-
-
-
-
-
-Done:
-  basic - when something basic filtered, unselect, and get rid of header checkbox. ANY change to filter, should remove the all selected header checkbox
-  local paginated - nuke the complete select,
-                    also when navigating from page to page, if all of the rows are checked apply header checkmark, but by default clear it out when transitioning
-                    X.dataTable.on("page", function() { setTimeout(function() { console.log(X._visibleRowsOnCurrentPage()); }, 1); });
-  Should we even bother with the selectAllMatching on a local paginated page??? - Nope, we nuked it
-  for search change, should we just run same code as pagination change? - yep done
-  don't apply the checkbox if there are no results
-  unselecting based on filtering, usage of getVisibleRows
-  - fix usage of uncheck vs un-check
-  - handle clicks on previous in pagination that have no more previos. same with next
-  How to force reload of data on ajax? - reload method
-  - figure out how to force a reload of data when new params come in.
-  - expose method to set additional params
-  - provide option of selected ids
-  - in the reset handler
-      loop through all ids in array of selected, and add models to the selectionHelper
-  trigger change in selection event when selectAllMatching(true) is done
-
-
-
-
-InsightForm
-
-  - Create CampaignSelector
-      
-      // this handles updates, but what about initial state, maybe the first time we can force a rebroadcast of values, which would call serverParams and render into place?
-      - when model changes from filtercontrols, call .serverParams() on table
-
-      childviews
-        - Alexis' FilterControls
-
-        - ServerSide DataTable
-            exposes toJSON
-              var selectAllMatchingParams = this.selectAllMatching();
-              if (selectAllMatchingParams) {
-                return { complete : selectAllMatchingParams };
-              } else {
-                return { items : this.selectedModels() }
-              }
-      - exposes #isValid
-      - exposes #toJSON()
-          return table.toJSON();
-
-
-
-
-
-  - CampaignSelector is added to the InsightForm
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-*/
 
