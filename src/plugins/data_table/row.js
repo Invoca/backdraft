@@ -1,7 +1,7 @@
 var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
-  var cssClass = /[^a-zA-Z_\-]/g;
+  var cssClass = /[^a-zA-Z_0-9\-]/g;
 
   function invokeRenderer(row, node, config) {
     var renderer;
