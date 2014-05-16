@@ -524,7 +524,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
             .insertBefore( $('li:last', an[i])[0] )
             .bind('click', function (e) {
               e.preventDefault();
-              // EUGE - patched to make sure the "page" event is fired when click on numbers
+              // EUGE - patched to make sure the "page" event is fired when numbers are clicked
               oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
             } );
         }
@@ -1019,7 +1019,9 @@ $.extend( $.fn.dataTableExt.oPagination, {
       // populate with preselected items
       this.selectionHelper = new SelectionHelper();
       _.each(this.selectedIds, function(id) {
-        this._setRowSelectedState(this.collection.get(id), null, true);
+        // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
+        var selectedModel = this.collection.get(id);
+        selectedModel && this._setRowSelectedState(selectedModel, null, true);
       }, this);
 
       // add new data

@@ -95,7 +95,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
             .insertBefore( $('li:last', an[i])[0] )
             .bind('click', function (e) {
               e.preventDefault();
-              // EUGE - patched to make sure the "page" event is fired when click on numbers
+              // EUGE - patched to make sure the "page" event is fired when numbers are clicked
               oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
             } );
         }

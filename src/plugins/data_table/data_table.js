@@ -365,7 +365,9 @@ var LocalDataTable = (function() {
       // populate with preselected items
       this.selectionHelper = new SelectionHelper();
       _.each(this.selectedIds, function(id) {
-        this._setRowSelectedState(this.collection.get(id), null, true);
+        // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
+        var selectedModel = this.collection.get(id);
+        selectedModel && this._setRowSelectedState(selectedModel, null, true);
       }, this);
 
       // add new data

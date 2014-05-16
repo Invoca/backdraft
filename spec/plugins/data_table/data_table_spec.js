@@ -370,6 +370,15 @@ describe("DataTable Plugin", function() {
           expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
         });
 
+        it("should not throw exceptions when provided pre-selected model ids that don't exist", function() {
+          var selectedIds = [ 1, 2, 3, -1 ];
+          expect(function() {
+            table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+            table.render();
+          }).not.toThrow();
+
+          expect(table.selectedModels().length).toEqual(3);
+        });
       });
 
       describe("with pagination", function() {
