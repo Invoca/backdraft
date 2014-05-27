@@ -1,7 +1,7 @@
 var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
-  var cssClass = /[^a-zA-Z_\-]/g;
+  var cssClass = /[^a-zA-Z_0-9\-]/g;
 
   function invokeRenderer(row, node, config) {
     var renderer;
@@ -48,9 +48,18 @@ var Row = (function() {
       invokeRenderer(this, node, config);
     },
 
-    setBulkState : function(state) {
-      this.checkbox.prop("checked", state);
-      this.$el.toggleClass("selected", state);
+    bulkState : function(state) {
+      // TODO: throw error when no checkbox
+      if (!this.checkbox) return;
+
+      if (arguments.length === 1) {
+        // setter
+        this.checkbox.prop("checked", state);
+        this.$el.toggleClass("backdraft-selected", state);        
+      } else {
+        // getter
+        return this.checkbox.prop("checked");
+      }
     },
 
     getCells : function() {
