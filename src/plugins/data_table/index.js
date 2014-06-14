@@ -13,15 +13,30 @@ Backdraft.plugin("DataTable", function(plugin) {
 
   plugin.initializer(function(app) {
 
-    app.view.dataTable = function(name, properties) {
-      var klass = properties.serverSide ? ServerSideDataTable : LocalDataTable;
-      app.Views[name] = klass.extend(properties);
-      klass.finalize(name, app.Views[name], app.Views);
+    app.view.dataTable = function(name, baseClassName, properties) {
+      var baseClass;
+      if (arguments.length === 2) {
+        properties = baseClassName;
+        baseClass = properties.serverSide ? ServerSideDataTable : LocalDataTable;
+      } else {
+        baseClass = app.Views[baseClassName];
+      }
+
+      app.Views[name] = baseClass.extend(properties);
+      baseClass.finalize(name, app.Views[name], app.Views);
     };
 
-    app.view.dataTable.row = function(name, properties) {
-      app.Views[name] = Row.extend(properties);
-      Row.finalize(name, app.Views[name], app.Views);
+    app.view.dataTable.row = function(name, baseClassName, properties) {
+      var baseClass;
+      if (arguments.length === 2) {
+        properties = baseClassName;
+        baseClass = Row;
+      } else {
+        baseClass = app.Views[baseClassName];
+      }
+
+      app.Views[name] = baseClass.extend(properties);
+      baseClass.finalize(name, app.Views[name], app.Views);
     }
   });
 

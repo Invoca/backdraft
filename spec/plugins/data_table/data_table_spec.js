@@ -30,6 +30,40 @@ describe("DataTable Plugin", function() {
 
   });
 
+  it("should allow rows to be subclassed", function() {
+    app.view.dataTable.row("abc", {
+      baseMethod : function() {
+        return "i am base";
+      }
+    });
+
+    app.view.dataTable.row("new_abc", "abc", {
+      baseMethod : function() {
+        return "i am the new base";
+      }
+    });
+
+    expect(app.Views.new_abc.prototype.baseMethod()).toEqual("i am the new base");
+  });
+
+  it("should allow tables to be subclassed", function() {
+    app.view.dataTable.row("abc", { columns : [] });
+    app.view.dataTable("def", {
+      rowClassName : "abc",
+      baseMethod : function() {
+        return "i am base";
+      }
+    });
+    app.view.dataTable("new_def", "def", {
+      baseMethod : function() {
+        return "i am the new base";
+      }
+    });
+
+    expect(app.Views.new_def.prototype.baseMethod()).toEqual("i am the new base");
+  });
+
+
   describe("renderers", function() {
 
     var table;
