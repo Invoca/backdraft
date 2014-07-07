@@ -5,7 +5,8 @@ $.extend( true, $.fn.dataTable.defaults, {
     "t"+
     "<'row'<'col-xs-6'i><'col-xs-6'p>>",
   "oLanguage": {
-    "sLengthMenu": "_MENU_ records per page"
+    "sLengthMenu": "_MENU_ records per page",
+    "sInfoFiltered" : "<br/>(filtered from _MAX_ total)"
   }
 } );
 
@@ -116,5 +117,3 @@ $.extend( $.fn.dataTableExt.oPagination, {
     }
   }
 } );
-
-
