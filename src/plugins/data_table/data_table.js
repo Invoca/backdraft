@@ -185,6 +185,7 @@ var LocalDataTable = (function() {
     // this allows our code to run after the all the new rows are inserted
     _bulkCheckboxAdjust : function() {
       var self = this;
+      if (!self.bulkCheckbox) return;
       _.defer(function() {
         self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
       });
