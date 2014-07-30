@@ -644,7 +644,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       if (arguments.length === 1) {
         // setter
         this.checkbox.prop("checked", state);
-        this.$el.toggleClass("backdraft-selected", state);        
+        this.$el.toggleClass("backdraft-selected", state);
       } else {
         // getter
         return this.checkbox.prop("checked");
