@@ -1204,7 +1204,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       return _.extend(config, {
         bProcessing : true,
         bServerSide : true,
-        sAjaxSource : this.collection.url,
+        sAjaxSource : _.result(this.collection, "url"),
         fnServerData : this._fetchServerData,
         fnServerParams : this._addServerParams,
         fnDrawCallback : this._drawCallback

@@ -129,6 +129,7 @@ describe("DataTable Plugin", function() {
         table = new app.Views.T({ collection : collection });
         table.render();
         jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/somewhere?");
         expect(table.$("tbody tr").length).toEqual(10);
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
@@ -140,6 +141,7 @@ describe("DataTable Plugin", function() {
         table = new app.Views.T({ collection : collection });
         table.render();
         jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/somewhere?");
         expect(table.$("tbody tr").length).toEqual(10);
         expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
       });
