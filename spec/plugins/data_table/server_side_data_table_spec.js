@@ -47,7 +47,9 @@ describe("DataTable Plugin", function() {
       app.view.dataTable.row("R", {
         columns : [
           { bulk : true },
-          { attr : "name", title : "Name" }
+          { attr : "name", title : "Name" },
+          { attr : "date", title : "Date" },
+          { title : "Non attr column"}
         ]
       });
       app.view.dataTable("T", {
@@ -149,6 +151,13 @@ describe("DataTable Plugin", function() {
     });
 
     describe("server params", function() {
+
+      it("should automatically include column attributes", function() {
+        var expectedAttrParams = $.param({ column_attrs : ["", "name", "date", ""] });
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);
+      });
 
       it("should allow for addition of server params", function() {
         table = new app.Views.T({ collection : collection });
@@ -269,7 +278,6 @@ describe("DataTable Plugin", function() {
         });
 
       });
-
 
     });
 

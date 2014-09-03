@@ -1162,6 +1162,10 @@ $.extend( $.fn.dataTableExt.oPagination, {
       for (var key in this._serverParams) {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
+      // add column attribute mappings as a parameter
+      _.each(this.columns, function(col) {
+        aoData.push({ name: "column_attrs[]", value: col.attr });
+      });
     },
 
     // dataTables callback after a draw event has occurred
