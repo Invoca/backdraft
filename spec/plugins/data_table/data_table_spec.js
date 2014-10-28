@@ -112,11 +112,9 @@ describe("DataTable Plugin", function() {
         expect(table.$("tbody tr td:first :checkbox").length).toEqual(1);
       });
 
-
     });
 
     describe("user defined", function() {
-
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
@@ -141,7 +139,7 @@ describe("DataTable Plugin", function() {
         table.render();
       });
 
-      it("should insert a checkbox", function() {
+      it("invoke them correctly", function() {
         collection.add({ age_value : 30 });
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
@@ -151,6 +149,45 @@ describe("DataTable Plugin", function() {
 
     });
 
+    describe("subclassed", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("abc", {
+          renderers: {
+            "Monkey": function(node, config) {
+              return "Monkey";
+            },
+            "Chicken": function(node, config) {
+              return "Chicken";
+            }
+          }
+        });
+      });
+
+      it("should inherit renderers when a subclass does not provide a renderers property", function() {
+        app.view.dataTable.row("new_abc", "abc", {
+        });
+
+        expect(app.Views.new_abc.prototype.renderers["Monkey"]()).toEqual("Monkey");
+        expect(app.Views.new_abc.prototype.renderers["Chicken"]()).toEqual("Chicken");
+      });
+
+      it("should inherit renderers when a subclass does provide a renderers property", function() {
+        app.view.dataTable.row("new_abc", "abc", {
+          renderers: {
+            "Zebra": function(node, config) {
+              return "Zebra";
+            },
+            "Monkey": function(node, config) {
+              return "OVERRIDE Monkey";
+            }
+          }
+        });
+
+        expect(app.Views.new_abc.prototype.renderers["Zebra"]()).toEqual("Zebra");
+        expect(app.Views.new_abc.prototype.renderers["Monkey"]()).toEqual("OVERRIDE Monkey");
+        expect(app.Views.new_abc.prototype.renderers["Chicken"]()).toEqual("Chicken");
+      });
+    });
   });
 
   describe("columns", function(){

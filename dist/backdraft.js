@@ -653,22 +653,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     getCells : function() {
       return this.$el.find("td");
-    }
-
-  }, {
-
-    finalize : function(name, rowClass) {
-      // renderers are optional for a class
-      var renderers = rowClass.prototype.renderers || {};
-      // allow overriding of default renderers
-      rowClass.prototype.renderers = _.extend({}, this.renderers, renderers)
-    },
-
-    // create a valid CSS class name based on input
-    getCSSClass : function(input) {
-      return input.replace(cssClass, function() {
-        return "-";
-      });
     },
 
     renderers : {
@@ -684,6 +668,18 @@ $.extend( $.fn.dataTableExt.oPagination, {
         cell.html(this.checkbox);
       }
 
+    }
+
+  }, {
+
+    finalize : function(name, rowClass) {
+    },
+
+    // create a valid CSS class name based on input
+    getCSSClass : function(input) {
+      return input.replace(cssClass, function() {
+        return "-";
+      });
     }
 
   });
@@ -1262,13 +1258,15 @@ $.extend( $.fn.dataTableExt.oPagination, {
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
-      var baseClass;
+      var baseClass = Row, renderers;
       if (arguments.length === 2) {
         properties = baseClassName;
-        baseClass = Row;
       } else {
         baseClass = app.Views[baseClassName];
       }
+
+      // special handling for inheritance of renderers
+      properties.renderers = _.extend({}, baseClass.prototype.renderers, properties.renderers || {});
 
       app.Views[name] = baseClass.extend(properties);
       baseClass.finalize(name, app.Views[name], app.Views);
@@ -1276,6 +1274,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   });
 
 });
+
   Backdraft.plugin("Listing", function(plugin) {
 
   var List = (function() {

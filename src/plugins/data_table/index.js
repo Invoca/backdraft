@@ -27,13 +27,15 @@ Backdraft.plugin("DataTable", function(plugin) {
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
-      var baseClass;
+      var baseClass = Row, renderers;
       if (arguments.length === 2) {
         properties = baseClassName;
-        baseClass = Row;
       } else {
         baseClass = app.Views[baseClassName];
       }
+
+      // special handling for inheritance of renderers
+      properties.renderers = _.extend({}, baseClass.prototype.renderers, properties.renderers || {});
 
       app.Views[name] = baseClass.extend(properties);
       baseClass.finalize(name, app.Views[name], app.Views);

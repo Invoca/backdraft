@@ -64,22 +64,6 @@ var Row = (function() {
 
     getCells : function() {
       return this.$el.find("td");
-    }
-
-  }, {
-
-    finalize : function(name, rowClass) {
-      // renderers are optional for a class
-      var renderers = rowClass.prototype.renderers || {};
-      // allow overriding of default renderers
-      rowClass.prototype.renderers = _.extend({}, this.renderers, renderers)
-    },
-
-    // create a valid CSS class name based on input
-    getCSSClass : function(input) {
-      return input.replace(cssClass, function() {
-        return "-";
-      });
     },
 
     renderers : {
@@ -95,6 +79,18 @@ var Row = (function() {
         cell.html(this.checkbox);
       }
 
+    }
+
+  }, {
+
+    finalize : function(name, rowClass) {
+    },
+
+    // create a valid CSS class name based on input
+    getCSSClass : function(input) {
+      return input.replace(cssClass, function() {
+        return "-";
+      });
     }
 
   });
