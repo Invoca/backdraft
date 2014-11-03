@@ -3,6 +3,7 @@ describe("DataTable Plugin", function() {
   var app;
   var baseExports;
   var collection;
+  var table;
 
   beforeEach(function() {
     Backdraft.app.destroyAll();
@@ -63,10 +64,22 @@ describe("DataTable Plugin", function() {
     expect(app.Views.new_def.prototype.baseMethod()).toEqual("i am the new base");
   });
 
+  it("should allow rowClass to be provided as an argument instad of rowClassName", function() {
+    app.view.dataTable.row("abc", {
+      columns : [
+        { bulk : "true" },
+        { attr : "name", title : "I came from a rowClass argument" }
+      ]
+    });
+    app.view.dataTable("def", { });
+    table = new app.Views.def({ collection: collection, rowClass: app.Views.abc });
+
+    expect(table.columns.length).toEqual(2);
+    expect(table.columns[0].bulk).toEqual("true");
+    expect(table.columns[1].title).toEqual("I came from a rowClass argument");
+  });
 
   describe("renderers", function() {
-
-    var table;
 
     describe("attr based", function() {
 
@@ -247,8 +260,6 @@ describe("DataTable Plugin", function() {
     describe("rendering", function() {
 
       describe("collection changes", function() {
-
-        var table;
 
         beforeEach(function() {
           app.view.dataTable.row("R", {

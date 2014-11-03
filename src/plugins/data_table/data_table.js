@@ -55,7 +55,7 @@ var LocalDataTable = (function() {
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw");
       this.cache = new Base.Cache();
-      this.rowClass = this.getRowClass();
+      this.rowClass = this.options.rowClass || this._resolveRowClass();
       this.columns = _.result(this.rowClass.prototype, 'columns');
       if (!_.isArray(this.columns)) throw new Error('Columns should be a valid array');
       this._applyDefaults();
@@ -379,12 +379,13 @@ var LocalDataTable = (function() {
   }, {
 
     finalize : function(name, tableClass, views) {
-      // method for late resolution of row class, removes dependency
-      // on needing access to the entire app
-      tableClass.prototype.getRowClass = function() {
+      if (!tableClass.prototype.rowClassName) return;
+      // method for late resolution of row class, removes dependency on needing access to the entire app
+      tableClass.prototype._resolveRowClass = function() {
         return views[tableClass.prototype.rowClassName];
-      }
+      };
     }
+
 
   });
 
