@@ -123,6 +123,18 @@ describe("DataTable Plugin", function() {
         jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
         expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
       });
+
+      it("should allow a processing text to be provided", function() {
+        app.view.dataTable("TableWithProcessing", {
+          rowClassName : "R",
+          serverSide : true,
+          processingText: "HELLO I am processing stuff"
+        });
+
+        table = new app.Views.TableWithProcessing({ collection : collection });
+        table.render();
+        expect(table.$(".dataTables_processing").text()).toEqual("HELLO I am processing stuff");
+      });
     });
 
     describe("urls", function() {
