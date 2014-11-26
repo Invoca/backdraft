@@ -1210,7 +1210,8 @@ $.extend( $.fn.dataTableExt.oPagination, {
         fnServerParams : this._addServerParams,
         fnDrawCallback : this._drawCallback,
         oLanguage: {
-          sProcessing: this.processingText
+          sProcessing: this.processingText,
+          sEmptyTable: this.emptyText
         }
       });
     },

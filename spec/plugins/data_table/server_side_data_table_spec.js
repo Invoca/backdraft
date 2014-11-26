@@ -34,6 +34,18 @@ describe("DataTable Plugin", function() {
       };
     };
 
+    MockResponse.prototype.getEmpty = function() {
+      return {
+        status : 200,
+        responseText : JSON.stringify({
+          sEcho: this.echo++,
+          iTotalRecords: 0,
+          iTotalDisplayRecords: 0,
+          aaData: []
+        })
+      };
+    };
+
     beforeEach(function() {
       Backdraft.app.destroyAll();
       app = Backdraft.app("myapp", {
@@ -134,6 +146,19 @@ describe("DataTable Plugin", function() {
         table = new app.Views.TableWithProcessing({ collection : collection });
         table.render();
         expect(table.$(".dataTables_processing").text()).toEqual("HELLO I am processing stuff");
+      });
+
+      it("should allow a empty text to be provided", function() {
+        app.view.dataTable("TableWithEmptyText", {
+          rowClassName : "R",
+          serverSide : true,
+          emptyText: "Sad, there is nothing here!"
+        });
+
+        table = new app.Views.TableWithEmptyText({ collection : collection });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.getEmpty());
+        expect(table.$(".dataTables_empty").text()).toEqual("Sad, there is nothing here!");
       });
     });
 
