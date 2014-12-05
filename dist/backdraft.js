@@ -748,6 +748,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       this.columns = _.result(this.rowClass.prototype, 'columns');
       if (!_.isArray(this.columns)) throw new Error('Columns should be a valid array');
       this._applyDefaults();
+      this._processSortingConfig();
       this.selectionHelper = new SelectionHelper();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
@@ -810,7 +811,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     _allMatchingModels : function() {
       // returns all models matching the current filter criteria, regardless of pagination
-      // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all 
+      // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
       // matching data since some of the rows may not have been rendered yet.
       // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
       // and return the associated models
@@ -846,7 +847,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     _setRowSelectedState : function(model, row, state) {
       this.selectionHelper.process(model, state);
-      // the row may not exist yet as we utilize deferred rendering. we track the model as 
+      // the row may not exist yet as we utilize deferred rendering. we track the model as
       // selected and make the ui reflect this when the row is finally created
       row && row.bulkState(state);
     },
@@ -912,6 +913,18 @@ $.extend( $.fn.dataTableExt.oPagination, {
       this.trigger("draw", arguments);
     },
 
+    _processSortingConfig: function() {
+      var columnIndex, direction, columnTitleIndices = _.pluck(this.columns, "title");
+      this.sorting =  _.map(this.sorting, function(sortConfig) {
+        columnIndex = sortConfig[0];
+        direction = sortConfig[1];
+
+        // column index can be provided as the column title, convert to index
+        if (_.isString(columnIndex)) columnIndex = _.indexOf(columnTitleIndices, columnIndex);
+        return [ columnIndex, direction ];
+      });
+    },
+
     _getColumnConfig : function() {
       return _.map(this.columns, function(config) {
         if (config.bulk) {
@@ -938,7 +951,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
           if (type === "sort" || type === "type") {
             return self.selectionHelper.has(data) ? 1 : -1;
           } else {
-            return "";            
+            return "";
           }
         }
       };
@@ -1075,13 +1088,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
       };
     }
 
-
   });
 
   return LocalDataTable;
 
 })();
-
 
   var ServerSideDataTable = (function() {
 

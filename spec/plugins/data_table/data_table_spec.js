@@ -666,7 +666,69 @@ describe("DataTable Plugin", function() {
 
   });
 
+  describe("sorting", function() {
+    function cellsByIndex(table, index) {
+      return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+        return $(this).text();
+      }).get();
+    }
+
+    beforeEach(function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" },
+          { attr : "age",  title : "Age" },
+          { attr : "zip",  title : "Zip" }
+        ]
+      });
+
+      collection.reset([
+        { name: "Zebra", age: 1,  zip: 90000 },
+        { name: "Bob",   age: 10, zip: 10000 },
+        { name: "Joe",   age: 8,  zip: 33333 }
+      ]);
+    });
+
+    it("should allow sorting to be provided using column index", function() {
+      app.view.dataTable("ByIndex2", {
+        rowClassName : "R",
+        // zip ascending
+        sorting: [ [ 2, "asc" ] ]
+      });
+
+      table = new app.Views.ByIndex2({ collection : collection }).render();
+      expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
+
+      app.view.dataTable("ByIndex1", {
+        rowClassName : "R",
+        // age descending
+        sorting: [ [ 1, "desc" ] ]
+      });
+
+      table = new app.Views.ByIndex1({ collection : collection }).render();
+      expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+    });
+
+    it("should allow sorting to be provided using column name", function() {
+      app.view.dataTable("ByZip", {
+        rowClassName : "R",
+        // zip ascending
+        sorting: [ [ "Zip", "asc" ] ]
+      });
+
+      table = new app.Views.ByZip({ collection : collection }).render();
+      expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
+
+      app.view.dataTable("ByAge", {
+        rowClassName : "R",
+        // age descending
+        sorting: [ [ "Age", "desc" ] ]
+      });
+
+      table = new app.Views.ByAge({ collection : collection }).render();
+      expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+    });
+
+  });
+
 });
-
-
-
