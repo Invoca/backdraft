@@ -19,6 +19,17 @@ describe("Base Plugin", function() {
       expect(spy.afterSwap).toHaveBeenCalledWith(router);
     });
 
+    it("should throw and error if $el is not found", function() {
+      var exports = Backdraft.plugin("Base");
+      expect(function() {
+        new exports.Router({ $el : $(".not-going-to-find-me") });
+      }).toThrowError("$el can't be found");
+
+      expect(function() {
+        new exports.Router();
+      }).toThrowError("$el can't be found")
+    });
+
     describe("Named Routes", function() {
 
       var app;
@@ -35,7 +46,7 @@ describe("Base Plugin", function() {
           }
         });
 
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
 
         expect(router.nameHelper.index).toEqual(jasmine.any(Function));
       });
@@ -47,7 +58,7 @@ describe("Base Plugin", function() {
             "" : [ "index", "legacyIndex" ]
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.legacyIndex).toEqual(jasmine.any(Function));
       });
 
@@ -57,7 +68,7 @@ describe("Base Plugin", function() {
             "files/:name.:ext" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.show({ name : "image", ext : "png" })).toEqual("files/image.png")
       });
 
@@ -67,7 +78,7 @@ describe("Base Plugin", function() {
             "files/*rest" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.show(null, "dir1/dir2/image.png")).toEqual("files/dir1/dir2/image.png")
       });
 
@@ -77,7 +88,7 @@ describe("Base Plugin", function() {
             "files/*rest" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.show()).toEqual("files/")
       });
 
@@ -87,7 +98,7 @@ describe("Base Plugin", function() {
             "docs/:section(/:subsection)" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.show({ section : "faq" })).toEqual("docs/faq");
       });
 
@@ -97,7 +108,7 @@ describe("Base Plugin", function() {
             "docs/:section(/:subsection)" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.show({ section : "faq", subsection : "installing" })).toEqual("docs/faq/installing");
       });
 
@@ -107,7 +118,7 @@ describe("Base Plugin", function() {
             "files/:name.:ext" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(function() {
           router.nameHelper.show({ name : "image" });
         }).toThrow();
@@ -126,7 +137,7 @@ describe("Base Plugin", function() {
             "files/:id" : "show"
           }
         });
-        var router = new app.Routers.abc();
+        var router = new app.Routers.abc({ $el: $("<div>") });
         expect(router.nameHelper.show({ id: 10 })).toEqual("files/10");
         expect(router.nameHelper.show({ id: 11 })).toEqual("files/11");
 

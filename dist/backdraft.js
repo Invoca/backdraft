@@ -310,7 +310,8 @@ _.extend(Plugin.factory, {
 
     constructor : function(options) {
       options || (options = {});
-      if (options.$el) this.$el = options.$el;
+      if (!options.$el || options.$el.length !== 1) throw new Error("$el can't be found");
+      this.$el = options.$el;
       this.nameHelper = {};
       Router.__super__.constructor.apply(this, arguments);
     },

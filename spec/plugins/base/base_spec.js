@@ -45,7 +45,7 @@ describe("Base Plugin", function() {
 
     it("should expose #router", function() {
       app.router("abc", {});
-      expect(new app.Routers.abc).toEqual(jasmine.any(exports.Router));
+      expect(new app.Routers.abc({ $el: $("<div>") })).toEqual(jasmine.any(exports.Router));
     });
 
   });
@@ -59,7 +59,7 @@ describe("Base Plugin", function() {
     });
 
     it("should expose a Router", function() {
-      expect(new exports.Router()).toEqual(jasmine.any(Backbone.Router))
+      expect(new exports.Router({ $el: $("<div>") })).toEqual(jasmine.any(Backbone.Router))
     });
 
     it("should expose a View", function() {
