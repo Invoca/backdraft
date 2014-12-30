@@ -67,7 +67,7 @@ table.dataTable thead > tr > th {
   padding-right: 18px;
 }
 
-table.dataTable th:active {
+table.dataTable th:active, table.dataTable th:focus {
   outline: none;
 }
 

@@ -941,7 +941,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     _columnBulk : function(config) {
       var self = this;
       return {
-        bSortable: true,
+        bSortable: config.sort,
         bSearchable: false,
         sTitle: "<input type='checkbox' />",
         sClass : "bulk",
