@@ -595,7 +595,9 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
   function invokeRenderer(row, node, config) {
     var renderer;
-    if (config.bulk) {
+    if (config.renderer) {
+      renderer = config.renderer;
+    } else if (config.bulk) {
       renderer = row.renderers.bulk;
     } else if (config.title) {
       renderer = row.renderers[config.title];
@@ -627,15 +629,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
         node = cells.filter(selectorForCell(config));
         if (node.length) invokeRenderer(this, node, config);
       }, this);
-    },
-
-    renderWithHint : function(hint) {
-      // TODO
-    },
-
-    renderColumn : function(config) {
-      var node = this.$el.find(selectorForCell(config));
-      invokeRenderer(this, node, config);
     },
 
     bulkState : function(state) {

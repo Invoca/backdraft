@@ -127,7 +127,7 @@ describe("DataTable Plugin", function() {
 
     });
 
-    describe("user defined", function() {
+    describe("user defined by title matching", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
@@ -159,7 +159,43 @@ describe("DataTable Plugin", function() {
         expect(cells.eq(1).hasClass("age")).toEqual(true);
         expect(cells.eq(1).text()).toEqual("30");
       });
+    });
 
+    describe("user defined by config renderer property", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            {
+              title : "Name",
+              renderer: function(node, config) {
+                node.html('<a href="#">I AM LINK</a>');
+              }
+            },
+            {
+              title : "Age",
+              attr : "age_value",
+              renderer: function(node, config) {
+                node.addClass("age").text(this.model.get(config.attr));
+              }
+            }
+          ]
+        });
+
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+      });
+
+      it("invoke them correctly", function() {
+        collection.add({ age_value : 30 });
+        var cells = table.$("tbody td");
+        expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
+        expect(cells.eq(1).hasClass("age")).toEqual(true);
+        expect(cells.eq(1).text()).toEqual("30");
+      });
     });
 
     describe("subclassed", function() {
@@ -732,3 +768,6 @@ describe("DataTable Plugin", function() {
   });
 
 });
+
+
+
