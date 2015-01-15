@@ -56,10 +56,9 @@ var LocalDataTable = (function() {
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw");
       this.cache = new Base.Cache();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
-      this.columns = _.result(this.rowClass.prototype, 'columns');
-      if (!_.isArray(this.columns)) throw new Error('Columns should be a valid array');
       this._applyDefaults();
-      this._processSortingConfig();
+      this._initColumns();
+      this._initSorting();
       this.selectionHelper = new SelectionHelper();
       // inject our own events in addition to the users
       this.events = _.extend(this.events || {}, {
@@ -133,6 +132,36 @@ var LocalDataTable = (function() {
 
     matchingCount : function() {
       return this.dataTable.fnSettings().aiDisplay.length;
+    },
+
+    columnVisibility: function(title, state) {
+      var index = this._columnTitleIndexMap[title];
+      if (arguments.length === 1) {
+        // getter
+        return this.dataTable.fnSettings().aoColumns[index].bVisible;
+      } else {
+        // setter
+        // last argument of false signifies not to redraw the table
+        this.dataTable.fnSetColumnVis(index, state, false);        
+      }
+    },
+
+    _initColumns: function() {
+      this.columns = _.result(this.rowClass.prototype, "columns");
+      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
+
+      this._columnTitleIndexMap = {};
+      this._columnConfig = _.map(this.columns, function(config, index) {
+        if (config.title) this._columnTitleIndexMap[config.title] = index;
+
+        if (config.bulk) {
+          return this._columnBulk(config);
+        } else if (config.attr) {
+          return this._columnAttr(config);
+        } else {
+          return this._columnBase(config);
+        }
+      }, this);
     },
 
     // private
@@ -214,7 +243,7 @@ var LocalDataTable = (function() {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._getColumnConfig(),
+        aoColumns : this._columnConfig,
         aaSorting : this.sorting,
         fnDrawCallback : this._onDraw
       };
@@ -224,27 +253,15 @@ var LocalDataTable = (function() {
       this.trigger("draw", arguments);
     },
 
-    _processSortingConfig: function() {
-      var columnIndex, direction, columnTitleIndices = _.pluck(this.columns, "title");
+    _initSorting: function() {
+      var columnIndex, direction;
       this.sorting =  _.map(this.sorting, function(sortConfig) {
         columnIndex = sortConfig[0];
         direction = sortConfig[1];
 
         // column index can be provided as the column title, convert to index
-        if (_.isString(columnIndex)) columnIndex = _.indexOf(columnTitleIndices, columnIndex);
+        if (_.isString(columnIndex)) columnIndex = this._columnTitleIndexMap[columnIndex];
         return [ columnIndex, direction ];
-      });
-    },
-
-    _getColumnConfig : function() {
-      return _.map(this.columns, function(config) {
-        if (config.bulk) {
-          return this._columnBulk(config);
-        } else if (config.attr) {
-          return this._columnAttr(config);
-        } else {
-          return this._columnBase(config);
-        }
       }, this);
     },
 
