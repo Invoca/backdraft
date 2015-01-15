@@ -40,6 +40,31 @@ var LocalDataTable = (function() {
 
   });
 
+  var ColumnHelper = Backdraft.Utils.Class.extend({
+    initialize: function() {
+      this._titles = new Backbone.Model();
+      this._visibilities = new Backbone.Model();
+    },
+
+    getVisibility: function(title) {
+      return this.dataTable.fnSettings().aoColumns[this._titles.get(title)].bVisible;
+    },
+
+    setVisibility: function(title, visibility) {
+      // last argument of false signifies not to redraw the table
+      this.dataTable.fnSetColumnVis(this._titles.get(title), visibility, false);
+    },
+
+    index: function(title, value) {
+      if (arguments.length === 1) {
+        return this._titles.get(title);
+      } else {
+        this._titles.set(title, value);
+      }
+    }
+
+  });
+
   var LocalDataTable = Base.View.extend({
 
     template : '\
@@ -135,24 +160,22 @@ var LocalDataTable = (function() {
     },
 
     columnVisibility: function(title, state) {
-      var index = this._columnTitleIndexMap[title];
       if (arguments.length === 1) {
         // getter
-        return this.dataTable.fnSettings().aoColumns[index].bVisible;
+        return this._columnHelper.getVisibility(title);
       } else {
         // setter
-        // last argument of false signifies not to redraw the table
-        this.dataTable.fnSetColumnVis(index, state, false);        
+        this._columnHelper.setVisibility(title, state);
       }
     },
 
     _initColumns: function() {
       this.columns = _.result(this.rowClass.prototype, "columns");
+      this._columnHelper = new ColumnHelper();
       if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
 
-      this._columnTitleIndexMap = {};
       this._columnConfig = _.map(this.columns, function(config, index) {
-        if (config.title) this._columnTitleIndexMap[config.title] = index;
+        if (config.title) this._columnHelper.index(config.title, index);
 
         if (config.bulk) {
           return this._columnBulk(config);
@@ -194,7 +217,9 @@ var LocalDataTable = (function() {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this._columnHelper.dataTable = this.dataTable;
       if (this.collection.length) this._onReset(this.collection);
+
     },
 
     _areAllVisibleRowsSelected : function() {
@@ -260,7 +285,7 @@ var LocalDataTable = (function() {
         direction = sortConfig[1];
 
         // column index can be provided as the column title, convert to index
-        if (_.isString(columnIndex)) columnIndex = this._columnTitleIndexMap[columnIndex];
+        if (_.isString(columnIndex)) columnIndex = this._columnHelper.index(columnIndex);
         return [ columnIndex, direction ];
       }, this);
     },
