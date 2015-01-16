@@ -2,69 +2,6 @@ var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
 
-  var SelectionHelper = Backdraft.Utils.Class.extend({
-
-    initialize : function() {
-      this._count = 0;
-      this._cidMap = {};
-    },
-
-    count : function() {
-      return this._count;
-    },
-
-    models : function() {
-      return _.values(this._cidMap);
-    },
-
-    process : function(model, state) {
-      var existing = this._cidMap[model.cid];
-      if (state) {
-        if (!existing) {
-          // add new entry
-          this._cidMap[model.cid] = model;
-          this._count += 1;
-        }
-      } else {
-        if (existing) {
-          // purge existing entry
-          delete this._cidMap[model.cid];
-          this._count = Math.max(0, this._count -1);
-        }
-      }
-    },
-
-    has : function(model) {
-      return !!this._cidMap[model.cid];
-    }
-
-  });
-
-  var ColumnHelper = Backdraft.Utils.Class.extend({
-    initialize: function() {
-      this._titles = new Backbone.Model();
-      this._visibilities = new Backbone.Model();
-    },
-
-    getVisibility: function(title) {
-      return this.dataTable.fnSettings().aoColumns[this._titles.get(title)].bVisible;
-    },
-
-    setVisibility: function(title, visibility) {
-      // last argument of false signifies not to redraw the table
-      this.dataTable.fnSetColumnVis(this._titles.get(title), visibility, false);
-    },
-
-    index: function(title, value) {
-      if (arguments.length === 1) {
-        return this._titles.get(title);
-      } else {
-        this._titles.set(title, value);
-      }
-    }
-
-  });
-
   var LocalDataTable = Base.View.extend({
 
     template : '\
@@ -78,17 +15,12 @@ var LocalDataTable = (function() {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
       this.cache = new Base.Cache();
+      this._selectionHelper = new SelectionHelper();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
-      this._applyDefaults();
       this._initColumns();
-      this._initSorting();
-      this.selectionHelper = new SelectionHelper();
-      // inject our own events in addition to the users
-      this.events = _.extend(this.events || {}, {
-        "click .dataTable tbody tr" : "_onRowClick"
-      });
+      this._applyDefaults();
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -112,7 +44,7 @@ var LocalDataTable = (function() {
     },
 
     selectedModels : function() {
-      return this.selectionHelper.models();
+      return this._selectionHelper.models();
     },
 
     render : function() {
@@ -120,7 +52,7 @@ var LocalDataTable = (function() {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:selected", { count : this.selectionHelper.count() });
+      this.trigger("change:selected", { count : this._selectionHelper.count() });
       return this;
     },
 
@@ -129,7 +61,7 @@ var LocalDataTable = (function() {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
       }, this);
-      var info = { count : this.selectionHelper.count() };
+      var info = { count : this._selectionHelper.count() };
       if (state) {
         info.selectAllVisible = true;
       }
@@ -141,7 +73,13 @@ var LocalDataTable = (function() {
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
       }, this);
-      this.trigger("change:selected", { count : this.selectionHelper.count() });
+      this.trigger("change:selected", { count : this._selectionHelper.count() });
+    },
+
+    _initColumns: function() {
+      this.columns = _.result(this.rowClass.prototype, "columns");
+      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
+      this._columnHelper = new ColumnHelper(this);
     },
 
     _allMatchingModels : function() {
@@ -162,32 +100,13 @@ var LocalDataTable = (function() {
     columnVisibility: function(title, state) {
       if (arguments.length === 1) {
         // getter
-        return this._columnHelper.getVisibility(title);
+        return this._columnHelper.visibility.get(title);
       } else {
         // setter
-        this._columnHelper.setVisibility(title, state);
+        this._columnHelper.visibility.set(title, state);
       }
     },
 
-    _initColumns: function() {
-      this.columns = _.result(this.rowClass.prototype, "columns");
-      this._columnHelper = new ColumnHelper();
-      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
-
-      this._columnConfig = _.map(this.columns, function(config, index) {
-        if (config.title) this._columnHelper.index(config.title, index);
-
-        if (config.bulk) {
-          return this._columnBulk(config);
-        } else if (config.attr) {
-          return this._columnAttr(config);
-        } else {
-          return this._columnBase(config);
-        }
-      }, this);
-    },
-
-    // private
     _applyDefaults : function() {
       _.defaults(this, {
         paginate : true,
@@ -209,7 +128,7 @@ var LocalDataTable = (function() {
     },
 
     _setRowSelectedState : function(model, row, state) {
-      this.selectionHelper.process(model, state);
+      this._selectionHelper.process(model, state);
       // the row may not exist yet as we utilize deferred rendering. we track the model as
       // selected and make the ui reflect this when the row is finally created
       row && row.bulkState(state);
@@ -217,9 +136,9 @@ var LocalDataTable = (function() {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
-      this._columnHelper.dataTable = this.dataTable;
+      this._columnHelper.on("change:visibility", this._onColumnVisibilityChange);
+      this._columnHelper.applyVisibilityPreferences()
       if (this.collection.length) this._onReset(this.collection);
-
     },
 
     _areAllVisibleRowsSelected : function() {
@@ -268,103 +187,22 @@ var LocalDataTable = (function() {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnConfig,
-        aaSorting : this.sorting,
+        aoColumns : this._columnHelper.configGenerator.columns(),
+        aaSorting : this._columnHelper.configGenerator.sorting(),
         fnDrawCallback : this._onDraw
       };
     },
+
+    // events
 
     _onDraw : function() {
       this.trigger("draw", arguments);
     },
 
-    _initSorting: function() {
-      var columnIndex, direction;
-      this.sorting =  _.map(this.sorting, function(sortConfig) {
-        columnIndex = sortConfig[0];
-        direction = sortConfig[1];
-
-        // column index can be provided as the column title, convert to index
-        if (_.isString(columnIndex)) columnIndex = this._columnHelper.index(columnIndex);
-        return [ columnIndex, direction ];
-      }, this);
+    _onColumnVisibilityChange: function(summary) {
+      this.dataTable.find(".dataTables_empty").attr("colspan", summary.visible.length);
     },
 
-    _columnBulk : function(config) {
-      var self = this;
-      return {
-        bSortable: config.sort,
-        bSearchable: false,
-        sTitle: "<input type='checkbox' />",
-        sClass : "bulk",
-        mData: function(source, type, val) {
-          return self.collection.get(source);
-        },
-        mRender : function(data, type, full) {
-          if (type === "sort" || type === "type") {
-            return self.selectionHelper.has(data) ? 1 : -1;
-          } else {
-            return "";
-          }
-        }
-      };
-    },
-
-    _columnAttr : function(config) {
-      var self = this;
-      return {
-        bSortable: config.sort,
-        bSearchable: config.search,
-        sTitle: config.title,
-        sClass : Row.getCSSClass(config.title),
-        mData: function(source, type, val) {
-          return self.collection.get(source).get(config.attr);
-        },
-        mRender : function(data, type, full) {
-          // note data is based on the result of mData
-          if (type === "display") {
-            // nothing to display so that the view can provide its own UI
-            return "";
-          } else {
-            return data;
-          }
-        }
-      };
-    },
-
-    _columnBase : function(config) {
-      var self = this, searchable = !_.isUndefined(config.searchBy), sortable = !_.isUndefined(config.sortBy);
-      var ignore = function() {
-        return "";
-      };
-      return {
-        bSortable: sortable,
-        bSearchable: searchable,
-        sTitle: config.title,
-        sClass : Row.getCSSClass(config.title),
-        mData: function(source, type, val) {
-          return self.collection.get(source);
-        },
-        mRender : function(data, type, full) {
-          // note data is based on the result of mData
-          if (type === "sort") {
-            return (config.sortBy || ignore)(data);
-          } else if (type === "type") {
-            return (config.sortBy || ignore)(data);
-          } else if (type === "display") {
-            // renderers will fill content
-            return ignore();
-          } else if (type === "filter") {
-            return (config.searchBy || ignore)(data);
-          } else {
-            // note dataTables can call in with undefined type
-            return ignore();
-          }
-        }
-      };
-    },
-
-    // events
     _onBulkHeaderClick : function(event) {
       var state = this.bulkCheckbox.prop("checked");
       this.selectAllVisible(state);
@@ -377,7 +215,7 @@ var LocalDataTable = (function() {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row.model, row, checked);
-      this.trigger("change:selected", { count : this.selectionHelper.count() });
+      this.trigger("change:selected", { count : this._selectionHelper.count() });
     },
 
     _onRowCreated : function(node, data) {
@@ -387,17 +225,13 @@ var LocalDataTable = (function() {
       // TODO: visibilityHint
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
-      this.selectionHelper.has(model) && row.bulkState(true);
-    },
-
-    _onRowClick : function(event) {
-
+      this._selectionHelper.has(model) && row.bulkState(true);
     },
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:selected", { count : this.selectionHelper.count() });
+      this.trigger("change:selected", { count : this._selectionHelper.count() });
     },
 
     _onRemove : function(model) {
@@ -407,7 +241,7 @@ var LocalDataTable = (function() {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:selected", { count : this.selectionHelper.count() });
+      this.trigger("change:selected", { count : this._selectionHelper.count() });
     },
 
     _onReset : function(collection) {
@@ -419,7 +253,7 @@ var LocalDataTable = (function() {
       });
       this.cache.reset();
       // populate with preselected items
-      this.selectionHelper = new SelectionHelper();
+      this._selectionHelper = new SelectionHelper();
       _.each(this.selectedIds, function(id) {
         // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
         var selectedModel = this.collection.get(id);
@@ -428,7 +262,7 @@ var LocalDataTable = (function() {
 
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:selected", { count : this.selectionHelper.count() });
+      this.trigger("change:selected", { count : this._selectionHelper.count() });
     }
 
   }, {
