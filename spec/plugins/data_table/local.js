@@ -320,6 +320,21 @@ describe("DataTable Plugin", function() {
         expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
       });
 
+      it("should trigger an event when #selectAllVisible is called", function() {
+        var changeSelectSpy = jasmine.createSpy();
+        table = new app.Views.T({ collection : collection });
+        table.render();
+
+        table.on("change:selected", changeSelectSpy);
+
+        table.selectAllVisible(true);
+        table.selectAllVisible(false);
+
+        expect(changeSelectSpy).toHaveBeenCalled();
+        expect(changeSelectSpy.calls.allArgs()[0][0]).toEqual({ count: data.length, selectAllVisible: true });
+        expect(changeSelectSpy.calls.allArgs()[1][0]).toEqual({ count: 0, selectAllVisible: false });
+      });
+
       it("should uncheck the header bulk checkbox when a row's checkbox is unchecked", function() {
         table = new app.Views.T({ collection : collection });
         // need to append to body in order to do clicks on checkboxes

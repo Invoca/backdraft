@@ -63,16 +63,14 @@ describe("DataTable Plugin", function() {
     it("should allow rowClass to be provided as an argument instad of rowClassName", function() {
       app.view.dataTable.row("abc", {
         columns : [
-          { bulk : "true" },
           { attr : "name", title : "I came from a rowClass argument" }
         ]
       });
       app.view.dataTable("def", { });
       table = new app.Views.def({ collection: collection, rowClass: app.Views.abc });
 
-      expect(table.columns.length).toEqual(2);
-      expect(table.columns[0].bulk).toEqual("true");
-      expect(table.columns[1].title).toEqual("I came from a rowClass argument");
+      expect(table.columns.length).toEqual(1);
+      expect(table.columns[0].title).toEqual("I came from a rowClass argument");
     });
   });
 

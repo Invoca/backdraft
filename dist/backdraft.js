@@ -929,7 +929,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       this._dataTableCreate();
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
-      this.trigger("change:selected", { count : this._selectionHelper.count() });
+      this._triggerChangeSelection();
       return this;
     },
 
@@ -938,11 +938,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
       }, this);
-      var info = { count : this._selectionHelper.count() };
-      if (state) {
-        info.selectAllVisible = true;
-      }
-      this.trigger("change:selected", info);
+      this._triggerChangeSelection({ selectAllVisible: state });
     },
 
     selectAllMatching : function() {
@@ -950,7 +946,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
       }, this);
-      this.trigger("change:selected", { count : this._selectionHelper.count() });
+      this._triggerChangeSelection();
     },
 
     _initColumns: function() {
@@ -1070,6 +1066,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
       };
     },
 
+    _triggerChangeSelection: function(extraData) {
+      var data = _.extend(extraData || {}, { count : this._selectionHelper.count() });
+      this.trigger("change:selected", data);
+    },
+
     // events
 
     _onDraw : function() {
@@ -1092,7 +1093,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row.model, row, checked);
-      this.trigger("change:selected", { count : this._selectionHelper.count() });
+      this._triggerChangeSelection();
     },
 
     _onRowCreated : function(node, data) {
@@ -1108,7 +1109,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     _onAdd : function(model) {
       if (!this.dataTable) return;
       this.dataTable.fnAddData({ cid : model.cid })
-      this.trigger("change:selected", { count : this._selectionHelper.count() });
+      this._triggerChangeSelection();
     },
 
     _onRemove : function(model) {
@@ -1118,13 +1119,12 @@ $.extend( $.fn.dataTableExt.oPagination, {
         cache.unset(model);
         row.close();
       });
-      this.trigger("change:selected", { count : this._selectionHelper.count() });
+      this._triggerChangeSelection();
     },
 
     _onReset : function(collection) {
       if (!this.dataTable) return;
-      // clean up old data
-      this.dataTable.fnClearTable(false);
+      this.dataTable.fnClearTable();
       this.cache.each(function(row) {
         row.close();
       });
@@ -1139,7 +1139,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
-      this.trigger("change:selected", { count : this._selectionHelper.count() });
+      this._triggerChangeSelection();
     }
 
   }, {
