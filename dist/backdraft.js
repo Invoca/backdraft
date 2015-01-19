@@ -885,9 +885,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
-    // non-paginated tables will return all rows, ignoring the page param
-    _visibleRowsCurrentPageArgs : { filter : "applied", page : "current" },
-
     constructor : function(options) {
       this.options = options || {};
       // copy over certain properties from options to the table itself
@@ -995,7 +992,9 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     // returns row objects that have not been filtered out and are on the current page
     _visibleRowsOnCurrentPage : function() {
-      return this.dataTable.$("tr", this._visibleRowsCurrentPageArgs).map(function(index, node) {
+      // non-paginated tables will return all rows, ignoring the page param
+      var visibleRowsCurrentPageArgs = { filter : "applied", page : "current" };
+      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
         return $(node).data("row");
       });
     },
@@ -1100,7 +1099,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
       var model = this.collection.get(data);
       var row = new this.rowClass({ el : node, model : model });
       this.cache.set(model, row);
-      // TODO: visibilityHint
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
       this._selectionHelper.has(model) && row.bulkState(true);
