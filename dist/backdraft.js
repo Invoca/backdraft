@@ -946,6 +946,22 @@ $.extend( $.fn.dataTableExt.oPagination, {
       this._triggerChangeSelection();
     },
 
+    matchingCount : function() {
+      return this.dataTable.fnSettings().aiDisplay.length;
+    },
+
+    columnVisibility: function(title, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._columnHelper.visibility.get(title);
+      } else {
+        // setter
+        this._columnHelper.visibility.set(title, state);
+      }
+    },
+
+    // Private APIs
+
     _initColumns: function() {
       this.columns = _.result(this.rowClass.prototype, "columns");
       if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
@@ -961,20 +977,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
       return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
         return this.collection.at(index);
       }, this);
-    },
-
-    matchingCount : function() {
-      return this.dataTable.fnSettings().aiDisplay.length;
-    },
-
-    columnVisibility: function(title, state) {
-      if (arguments.length === 1) {
-        // getter
-        return this._columnHelper.visibility.get(title);
-      } else {
-        // setter
-        this._columnHelper.visibility.set(title, state);
-      }
     },
 
     _applyDefaults : function() {
