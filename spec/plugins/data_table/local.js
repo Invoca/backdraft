@@ -1,6 +1,5 @@
 describe("DataTable Plugin", function() {
   var app;
-  var baseExports;
   var collection;
   var table;
 
@@ -14,7 +13,6 @@ describe("DataTable Plugin", function() {
       model : app.Models.M
     });
     collection = new app.Collections.Col();
-    baseExports = Backdraft.plugin("Base");
   });
 
   describe("local data store rendering", function() {
