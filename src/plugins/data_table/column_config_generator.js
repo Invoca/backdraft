@@ -39,8 +39,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       },
       mRender : function(data, type, full) {
         if (type === "sort" || type === "type") {
-          // todo do we want to allow this?
-          return self.table._selectionHelper.has(data) ? 1 : -1;
+          return self.table.selectionHelper.has(data) ? 1 : -1;
         } else {
           return "";
         }

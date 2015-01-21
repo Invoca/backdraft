@@ -14,7 +14,7 @@ var LocalDataTable = (function() {
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
       this.cache = new Base.Cache();
-      this._selectionHelper = new SelectionHelper();
+      this.selectionHelper = new SelectionHelper();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
       this._initColumns();
       this._applyDefaults();
@@ -41,7 +41,7 @@ var LocalDataTable = (function() {
     },
 
     selectedModels : function() {
-      return this._selectionHelper.models();
+      return this.selectionHelper.models();
     },
 
     render : function() {
@@ -125,7 +125,7 @@ var LocalDataTable = (function() {
     },
 
     _setRowSelectedState : function(model, row, state) {
-      this._selectionHelper.process(model, state);
+      this.selectionHelper.process(model, state);
       // the row may not exist yet as we utilize deferred rendering. we track the model as
       // selected and make the ui reflect this when the row is finally created
       row && row.bulkState(state);
@@ -191,7 +191,7 @@ var LocalDataTable = (function() {
     },
 
     _triggerChangeSelection: function(extraData) {
-      var data = _.extend(extraData || {}, { count : this._selectionHelper.count() });
+      var data = _.extend(extraData || {}, { count : this.selectionHelper.count() });
       this.trigger("change:selected", data);
     },
 
@@ -226,7 +226,7 @@ var LocalDataTable = (function() {
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
-      this._selectionHelper.has(model) && row.bulkState(true);
+      this.selectionHelper.has(model) && row.bulkState(true);
     },
 
     _onAdd : function(model) {
@@ -253,7 +253,7 @@ var LocalDataTable = (function() {
       });
       this.cache.reset();
       // populate with preselected items
-      this._selectionHelper = new SelectionHelper();
+      this.selectionHelper = new SelectionHelper();
       _.each(this.selectedIds, function(id) {
         // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
         var selectedModel = this.collection.get(id);
