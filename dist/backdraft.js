@@ -1222,7 +1222,13 @@ $.extend( $.fn.dataTableExt.oPagination, {
     },
 
     _dataTableCreate : function() {
-      ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
+      try {
+        ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
+      }
+      catch(ex) {
+        throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
+      }
+
       // hide inefficient filter
       this.$(".dataTables_filter").css("visibility", "hidden");
     },
@@ -1251,6 +1257,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   return ServerSideDataTable;
 
 })();
+
 
   plugin.initializer(function(app) {
 
