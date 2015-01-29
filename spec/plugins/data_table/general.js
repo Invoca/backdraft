@@ -381,6 +381,24 @@ describe("DataTable Plugin", function() {
         expect(getColspanLength()).toEqual(4);
       });
     });
+
+    it("should allow columns to be reorderable", function() {
+      var reorderableSpy = jasmine.createSpy("reorderableSpy");
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        reorderableColumns: true,
+        _enableReorderableColumns: reorderableSpy
+      });
+
+      new app.Views.def({ collection : collection }).render();
+      expect(reorderableSpy).toHaveBeenCalled();
+    });
   });
 
   describe("sorting", function() {

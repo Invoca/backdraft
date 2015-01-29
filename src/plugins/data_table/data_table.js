@@ -91,6 +91,10 @@ var LocalDataTable = (function() {
       this._columnHelper = new ColumnHelper(this);
     },
 
+    _enableReorderableColumns: function() {
+      new $.fn.dataTable.ColReorder(this.dataTable);
+    },
+
     _allMatchingModels : function() {
       // returns all models matching the current filter criteria, regardless of pagination
       // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
@@ -109,6 +113,7 @@ var LocalDataTable = (function() {
         paginateLength : 10,
         selectedIds : [],
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+        reorderableColumns: false
       });
       _.defaults(this, {
         sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
@@ -133,6 +138,7 @@ var LocalDataTable = (function() {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this.reorderableColumns && this._enableReorderableColumns();
       this._columnHelper.on("change:visibility", this._onColumnVisibilityChange);
       this._columnHelper.applyVisibilityPreferences()
       if (this.collection.length) this._onReset(this.collection);
