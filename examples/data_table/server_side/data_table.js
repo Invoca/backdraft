@@ -40,7 +40,7 @@ Backdraft.app("TableExample", function(app) {
 
     model : app.Models.Book,
 
-    url : "/server_side_data"
+    url : "http://localhost:3000/platform/backdraft_demo_data.json"
     
   });
 
@@ -54,6 +54,8 @@ Backdraft.app("TableExample", function(app) {
 
     rowClassName : "BookRow",
 
+    layout : "<'table-wrapper-with-footer'>t<'row'<'col-xs-6'>r>",
+    
     serverSide : true
 
   });
