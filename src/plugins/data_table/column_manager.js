@@ -1,4 +1,4 @@
-var ColumnHelper = Backdraft.Utils.Class.extend({
+var ColumnManager = Backdraft.Utils.Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
     this.table = table;

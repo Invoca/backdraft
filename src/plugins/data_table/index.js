@@ -8,8 +8,8 @@ Backdraft.plugin("DataTable", function(plugin) {
 
   {%= inline("src/plugins/data_table/bootstrap.js") %}
   {%= inline("src/plugins/data_table/column_config_generator.js") %}
-  {%= inline("src/plugins/data_table/column_helper.js") %}
-  {%= inline("src/plugins/data_table/selection_helper.js") %}
+  {%= inline("src/plugins/data_table/column_manager.js") %}
+  {%= inline("src/plugins/data_table/selection_manager.js") %}
   {%= inline("src/plugins/data_table/row.js") %}
   {%= inline("src/plugins/data_table/data_table.js") %}
   {%= inline("src/plugins/data_table/server_side_data_table.js") %}

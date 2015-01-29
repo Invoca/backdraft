@@ -1,4 +1,4 @@
-var SelectionHelper = Backdraft.Utils.Class.extend({
+var SelectionManager = Backdraft.Utils.Class.extend({
 
   initialize : function() {
     this._count = 0;
