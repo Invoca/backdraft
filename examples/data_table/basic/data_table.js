@@ -52,7 +52,9 @@ Backdraft.app("TableExample", function(app) {
 
     rowClassName : "BookRow",
 
-    paginate : false
+    paginate : false,
+
+    reorderableColumns: true
 
   });
 
