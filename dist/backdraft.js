@@ -629,7 +629,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       },
       mRender : function(data, type, full) {
         if (type === "sort" || type === "type") {
-          return self.table.selectionHelper.has(data) ? 1 : -1;
+          return self.table.selectionManager.has(data) ? 1 : -1;
         } else {
           return "";
         }
@@ -692,7 +692,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     };
   }
 });
-  var ColumnHelper = Backdraft.Utils.Class.extend({
+  var ColumnManager = Backdraft.Utils.Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
     this.table = table;
@@ -744,7 +744,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 });
 
-  var SelectionHelper = Backdraft.Utils.Class.extend({
+  var SelectionManager = Backdraft.Utils.Class.extend({
 
   initialize : function() {
     this._count = 0;
@@ -2257,7 +2257,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
       this.cache = new Base.Cache();
-      this.selectionHelper = new SelectionHelper();
+      this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
       this._initColumns();
       this._applyDefaults();
@@ -2284,7 +2284,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectedModels : function() {
-      return this.selectionHelper.models();
+      return this.selectionManager.models();
     },
 
     render : function() {
@@ -2319,10 +2319,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     columnVisibility: function(title, state) {
       if (arguments.length === 1) {
         // getter
-        return this._columnHelper.visibility.get(title);
+        return this._columnManager.visibility.get(title);
       } else {
         // setter
-        this._columnHelper.visibility.set(title, state);
+        this._columnManager.visibility.set(title, state);
       }
     },
 
@@ -2331,7 +2331,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     _initColumns: function() {
       this.columns = _.result(this.rowClass.prototype, "columns");
       if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
-      this._columnHelper = new ColumnHelper(this);
+      this._columnManager = new ColumnManager(this);
     },
 
     _enableReorderableColumns: function() {
@@ -2373,7 +2373,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     _setRowSelectedState : function(model, row, state) {
-      this.selectionHelper.process(model, state);
+      this.selectionManager.process(model, state);
       // the row may not exist yet as we utilize deferred rendering. we track the model as
       // selected and make the ui reflect this when the row is finally created
       row && row.bulkState(state);
@@ -2382,8 +2382,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       this.reorderableColumns && this._enableReorderableColumns();
-      this._columnHelper.on("change:visibility", this._onColumnVisibilityChange);
-      this._columnHelper.applyVisibilityPreferences()
+      this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
+      this._columnManager.applyVisibilityPreferences()
       if (this.collection.length) this._onReset(this.collection);
     },
 
@@ -2433,14 +2433,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnHelper.configGenerator.columns(),
-        aaSorting : this._columnHelper.configGenerator.sorting(),
+        aoColumns : this._columnManager.configGenerator.columns(),
+        aaSorting : this._columnManager.configGenerator.sorting(),
         fnDrawCallback : this._onDraw
       };
     },
 
     _triggerChangeSelection: function(extraData) {
-      var data = _.extend(extraData || {}, { count : this.selectionHelper.count() });
+      var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
     },
 
@@ -2475,7 +2475,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
-      this.selectionHelper.has(model) && row.bulkState(true);
+      this.selectionManager.has(model) && row.bulkState(true);
     },
 
     _onAdd : function(model) {
@@ -2502,7 +2502,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       });
       this.cache.reset();
       // populate with preselected items
-      this.selectionHelper = new SelectionHelper();
+      this.selectionManager = new SelectionManager();
       _.each(this.selectedIds, function(id) {
         // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
         var selectedModel = this.collection.get(id);
