@@ -1,8 +1,7 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
-  initialize: function(table) {
+  initialize: function(table, userConfig) {
     this.table = table;
-    this._userConfig = _.clone(_.result(table.rowClass.prototype, "columns"));
-    if (!_.isArray(this._userConfig)) throw new Error("Invalid column configuration provided");
+    this._userConfig = userConfig;
     this.columnIndexByTitle = this._computeColumnIndexByTitle();
   },
 

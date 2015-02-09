@@ -2,11 +2,10 @@ var ColumnManager = Backdraft.Utils.Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
     this.table = table;
-    this._configGenerator = new ColumnConfigGenerator(table);
+    this._userColumnConfig = _.clone(_.result(table.rowClass.prototype, "columns"));
+    if (!_.isArray(this._userColumnConfig)) throw new Error("Invalid column configuration provided");
+    this._configGenerator = new ColumnConfigGenerator(table, this._userColumnConfig);
     this.columnConfig = this._configGenerator.columns();
-
-    // TODO-EUGE - make this easier to get at
-    this.userColumnConfig = this._configGenerator._userConfig;
     this.sortingConfig = this._configGenerator.sorting();
     this.visibility = new Backbone.Model();
     this._initEvents();
@@ -20,6 +19,10 @@ var ColumnManager = Backdraft.Utils.Class.extend({
       prefs[title] = true;
     });
     this.visibility.set(prefs);
+  },
+
+  columnAttrs: function() {
+    return _.pluck(this._userColumnConfig, "attr");
   },
 
   _initEvents: function() {
