@@ -595,13 +595,18 @@ $.extend( $.fn.dataTableExt.oPagination, {
   },
 
   columns: function() {
-    var configGen;
+    var columnType, columnTypes = this.table.columnTypes();
+    // based on available column types, generate definitions for each provided column
     return _.map(this.table.columns, function(config, index) {
-      if (config.bulk)      configGen = this._columnBulk;
-      else if (config.attr) configGen = this._columnAttr;
-      else                  configGen = this._columnBase;
+      columnType = _.find(columnTypes, function(type) {
+        return type.callbacks.matcher(config);
+      });
 
-      return configGen.call(this, config);
+      if (!columnType) {
+        throw new Error("could not find matching column type: " + JSON.stringify(config));
+      }
+      
+      return columnType.callbacks.definition(this.table, config);
     }, this);
   },
 
@@ -615,81 +620,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
       if (_.isString(columnIndex)) columnIndex = this._columnIndexByTitle.get(columnIndex);
       return [ columnIndex, direction ];
     }, this);
-  },
-
-  _columnBulk: function(config) {
-    var self = this;
-    return {
-      bSortable: config.sort,
-      bSearchable: false,
-      sTitle: "<input type='checkbox' />",
-      sClass : "bulk",
-      mData: function(source, type, val) {
-        return self.table.collection.get(source);
-      },
-      mRender : function(data, type, full) {
-        if (type === "sort" || type === "type") {
-          return self.table.selectionManager.has(data) ? 1 : -1;
-        } else {
-          return "";
-        }
-      }
-    };
-  },
-
-  _columnAttr: function(config) {
-    var self = this;
-    return {
-      bSortable: config.sort,
-      bSearchable: config.search,
-      sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
-      mData: function(source, type, val) {
-        return self.table.collection.get(source).get(config.attr);
-      },
-      mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "display") {
-          // nothing to display so that the view can provide its own UI
-          return "";
-        } else {
-          return data;
-        }
-      }
-    };
-  },
-
-  _columnBase: function(config) {
-    var self = this, searchable = !_.isUndefined(config.searchBy), sortable = !_.isUndefined(config.sortBy);
-    var ignore = function() {
-      return "";
-    };
-
-    return {
-      bSortable: sortable,
-      bSearchable: searchable,
-      sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
-      mData: function(source, type, val) {
-        return self.table.collection.get(source);
-      },
-      mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "sort") {
-          return (config.sortBy || ignore)(data);
-        } else if (type === "type") {
-          return (config.sortBy || ignore)(data);
-        } else if (type === "display") {
-          // renderers will fill content
-          return ignore();
-        } else if (type === "filter") {
-          return (config.searchBy || ignore)(data);
-        } else {
-          // note dataTables can call in with undefined type
-          return ignore();
-        }
-      }
-    };
   }
 });
   var ColumnManager = Backdraft.Utils.Class.extend({
@@ -781,6 +711,24 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 
 });
+  var ColumnType =  Backdraft.Utils.Class.extend({
+  initialize: function() {
+    this.callbacks = {};
+  },
+
+  matcher: function(cb) {
+    this.callbacks.matcher = cb;
+  },
+
+  definition: function(cb) {
+    this.callbacks.definition = cb;
+  },
+
+  renderer: function(cb) {
+    this.callbacks.renderer = cb;
+  }
+});
+
   /*! ColReorder 1.1.3-dev
  * ©2010-2014 SpryMedia Ltd - datatables.net/license
  */
@@ -2516,11 +2464,17 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
   }, {
 
-    finalize : function(name, tableClass, views) {
-      if (!tableClass.prototype.rowClassName) return;
-      // method for late resolution of row class, removes dependency on needing access to the entire app
-      tableClass.prototype._resolveRowClass = function() {
-        return views[tableClass.prototype.rowClassName];
+    finalize : function(name, tableClass, views, pluginConfig) {
+      if (tableClass.prototype.rowClassName) {
+        // method for late resolution of row class, removes dependency on needing access to the entire app
+        tableClass.prototype._resolveRowClass = function() {
+          return views[tableClass.prototype.rowClassName];
+        };
+      }
+
+      // return all registered column types
+      tableClass.prototype.columnTypes = function() {
+        return pluginConfig.columnTypes;
       };
     }
 
@@ -2713,7 +2667,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
 
       app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views);
+      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config);
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
@@ -2729,10 +2683,124 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
       app.Views[name] = baseClass.extend(properties);
       baseClass.finalize(name, app.Views[name], app.Views);
-    }
+    };
+
+    // storage for app wide configuration of the plugin
+    app.view.dataTable.config = {
+      columnTypes: []
+    };
+
+    app.view.dataTable.columnType = function(cb) {
+      var columnType = new ColumnType();
+      cb(columnType);
+      app.view.dataTable.config.columnTypes.push(columnType);
+    };
+
+    // add standard column types
+    app.view.dataTable.columnType(function(columnType) {
+  columnType.matcher(function(config) {
+    return config.bulk === true;
+  });
+
+  columnType.definition(function(dataTable, config) {
+    return {
+      bSortable: config.sort,
+      bSearchable: false,
+      sTitle: "<input type='checkbox' />",
+      sClass : "bulk",
+      mData: function(source, type, val) {
+        return dataTable.collection.get(source);
+      },
+      mRender : function(data, type, full) {
+        if (type === "sort" || type === "type") {
+          return dataTable.selectionManager.has(data) ? 1 : -1;
+        } else {
+          return "";
+        }
+      }
+    };
+  });
+
+  columnType.renderer(function(cell, config) {
+    if (this.checkbox) return;
+    this.checkbox = $("<input>").attr("type", "checkbox");
+    cell.html(this.checkbox);
+  });
+});
+    app.view.dataTable.columnType(function(columnType) {
+  columnType.matcher(function(config) {
+    return !!config.attr;
+  });
+
+  columnType.definition(function(dataTable, config) {
+    return {
+      bSortable: config.sort,
+      bSearchable: config.search,
+      sTitle: config.title,
+      sClass : Row.getCSSClass(config.title),
+      mData: function(source, type, val) {
+        return dataTable.collection.get(source).get(config.attr);
+      },
+      mRender : function(data, type, full) {
+        // note data is based on the result of mData
+        if (type === "display") {
+          // nothing to display so that the view can provide its own UI
+          return "";
+        } else {
+          return data;
+        }
+      }
+    };
+  });
+
+  // columnType.renderer(function(cell, config) {
+  // });
+});
+    app.view.dataTable.columnType(function(columnType) {
+  columnType.matcher(function(config) {
+    return !!config.title
+  });
+
+  columnType.definition(function(dataTable, config) {
+    var searchable = !_.isUndefined(config.searchBy), sortable = !_.isUndefined(config.sortBy);
+    var ignore = function() {
+      return "";
+    };
+
+    return {
+      bSortable: sortable,
+      bSearchable: searchable,
+      sTitle: config.title,
+      sClass : Row.getCSSClass(config.title),
+      mData: function(source, type, val) {
+        return dataTable.collection.get(source);
+      },
+      mRender : function(data, type, full) {
+        // note data is based on the result of mData
+        if (type === "sort") {
+          return (config.sortBy || ignore)(data);
+        } else if (type === "type") {
+          return (config.sortBy || ignore)(data);
+        } else if (type === "display") {
+          // renderers will fill content
+          return ignore();
+        } else if (type === "filter") {
+          return (config.searchBy || ignore)(data);
+        } else {
+          // note dataTables can call in with undefined type
+          return ignore();
+        }
+      }
+    };
+  });
+
+  // columnType.renderer(function(cell, config) {
+  // });
+});
   });
 
 });
+
 
   Backdraft.plugin("Listing", function(plugin) {
 

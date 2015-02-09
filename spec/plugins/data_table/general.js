@@ -100,7 +100,7 @@ describe("DataTable Plugin", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
-            { bulk : "true" }
+            { bulk : true }
           ]
         });
         app.view.dataTable("T", {
@@ -234,7 +234,7 @@ describe("DataTable Plugin", function() {
       var passingArray = function() {
         app.view.dataTable.row("ArrayCol", {
           columns : [
-            { bulk : "true" }
+            { bulk : true }
           ]
         });
         app.view.dataTable("TableCol", {
@@ -249,7 +249,7 @@ describe("DataTable Plugin", function() {
         app.view.dataTable.row("ArrayCol", {
           columns : function() {
             return [
-              { bulk : "true" }
+              { bulk : true }
             ];
           }
         });
@@ -264,7 +264,7 @@ describe("DataTable Plugin", function() {
       var failing = function() {
         app.view.dataTable.row("ArrayCol", {
           columns : function() {
-            return { bulk : "true" };
+            return { bulk : true };
           }
         });
         app.view.dataTable("TableCol", {

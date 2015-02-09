@@ -10,6 +10,7 @@ Backdraft.plugin("DataTable", function(plugin) {
   {%= inline("src/plugins/data_table/column_config_generator.js") %}
   {%= inline("src/plugins/data_table/column_manager.js") %}
   {%= inline("src/plugins/data_table/selection_manager.js") %}
+  {%= inline("src/plugins/data_table/column_type.js") %}
   {%= inline("src/plugins/data_table/dataTables.colReorder.js") %}
   {%= inline("src/plugins/data_table/row.js") %}
   {%= inline("src/plugins/data_table/data_table.js") %}
@@ -27,7 +28,7 @@ Backdraft.plugin("DataTable", function(plugin) {
       }
 
       app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views);
+      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config);
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
@@ -43,7 +44,24 @@ Backdraft.plugin("DataTable", function(plugin) {
 
       app.Views[name] = baseClass.extend(properties);
       baseClass.finalize(name, app.Views[name], app.Views);
-    }
+    };
+
+    // storage for app wide configuration of the plugin
+    app.view.dataTable.config = {
+      columnTypes: []
+    };
+
+    app.view.dataTable.columnType = function(cb) {
+      var columnType = new ColumnType();
+      cb(columnType);
+      app.view.dataTable.config.columnTypes.push(columnType);
+    };
+
+    // add standard column types
+    {%= inline("src/plugins/data_table/column_types/bulk.js") %}
+    {%= inline("src/plugins/data_table/column_types/attr.js") %}
+    {%= inline("src/plugins/data_table/column_types/base.js") %}
   });
 
 });
+

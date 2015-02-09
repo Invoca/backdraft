@@ -273,11 +273,17 @@ var LocalDataTable = (function() {
 
   }, {
 
-    finalize : function(name, tableClass, views) {
-      if (!tableClass.prototype.rowClassName) return;
-      // method for late resolution of row class, removes dependency on needing access to the entire app
-      tableClass.prototype._resolveRowClass = function() {
-        return views[tableClass.prototype.rowClassName];
+    finalize : function(name, tableClass, views, pluginConfig) {
+      if (tableClass.prototype.rowClassName) {
+        // method for late resolution of row class, removes dependency on needing access to the entire app
+        tableClass.prototype._resolveRowClass = function() {
+          return views[tableClass.prototype.rowClassName];
+        };
+      }
+
+      // return all registered column types
+      tableClass.prototype.columnTypes = function() {
+        return pluginConfig.columnTypes;
       };
     }
 
