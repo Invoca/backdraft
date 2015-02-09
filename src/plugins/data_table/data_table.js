@@ -86,8 +86,6 @@ var LocalDataTable = (function() {
     // Private APIs
 
     _initColumns: function() {
-      this.columns = _.result(this.rowClass.prototype, "columns");
-      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
       this._columnManager = new ColumnManager(this);
     },
 
@@ -190,8 +188,8 @@ var LocalDataTable = (function() {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.configGenerator.columns(),
-        aaSorting : this._columnManager.configGenerator.sorting(),
+        aoColumns : this._columnManager.columnConfig,
+        aaSorting : this._columnManager.sortingConfig,
         fnDrawCallback : this._onDraw
       };
     },

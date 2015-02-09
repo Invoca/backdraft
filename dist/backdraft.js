@@ -589,15 +589,17 @@ $.extend( $.fn.dataTableExt.oPagination, {
 } );
 
   var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
-  initialize: function(table, columnIndexByTitle) {
+  initialize: function(table) {
     this.table = table;
-    this._columnIndexByTitle = columnIndexByTitle;
+    this._userConfig = _.clone(_.result(table.rowClass.prototype, "columns"));
+    if (!_.isArray(this._userConfig)) throw new Error("Invalid column configuration provided");
+    this.columnIndexByTitle = this._computeColumnIndexByTitle();
   },
 
   columns: function() {
     var columnType, columnTypes = this.table.columnTypes();
     // based on available column types, generate definitions for each provided column
-    return _.map(this.table.columns, function(config, index) {
+    return _.map(this._userConfig, function(config, index) {
       columnType = _.find(columnTypes, function(type) {
         return type.callbacks.matcher(config);
       });
@@ -605,7 +607,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       if (!columnType) {
         throw new Error("could not find matching column type: " + JSON.stringify(config));
       }
-      
+
       return columnType.callbacks.definition(this.table, config);
     }, this);
   },
@@ -617,17 +619,29 @@ $.extend( $.fn.dataTableExt.oPagination, {
       direction = sortConfig[1];
 
       // column index can be provided as the column title, convert to index
-      if (_.isString(columnIndex)) columnIndex = this._columnIndexByTitle.get(columnIndex);
+      if (_.isString(columnIndex)) columnIndex = this.columnIndexByTitle.get(columnIndex);
       return [ columnIndex, direction ];
     }, this);
+  },
+
+  _computeColumnIndexByTitle: function() {
+    var model = new Backbone.Model();
+    _.each(this._userConfig, function(col, index) {
+      col.title && model.set(col.title, index);
+    }, this);
+    return model;
   }
 });
   var ColumnManager = Backdraft.Utils.Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
     this.table = table;
-    this._columnIndexByTitle = this._computeColumnIndexByTitle();
-    this.configGenerator = new ColumnConfigGenerator(table, this._columnIndexByTitle);
+    this._configGenerator = new ColumnConfigGenerator(table);
+    this.columnConfig = this._configGenerator.columns();
+
+    // TODO-EUGE - make this easier to get at
+    this.userColumnConfig = this._configGenerator._userConfig;
+    this.sortingConfig = this._configGenerator.sorting();
     this.visibility = new Backbone.Model();
     this._initEvents();
   },
@@ -636,7 +650,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     // for now we are assuming that all columns are initially visible, this will need to take into account
     // other things in the futures
     var prefs = {};
-    _.each(this._columnIndexByTitle.keys(), function(title) {
+    _.each(this._configGenerator.columnIndexByTitle.keys(), function(title) {
       prefs[title] = true;
     });
     this.visibility.set(prefs);
@@ -652,16 +666,8 @@ $.extend( $.fn.dataTableExt.oPagination, {
   _applyVisibilitiesToDataTable: function(titleStateMap) {
     _.each(titleStateMap, function(state, title) {
       // last argument of false signifies not to redraw the table
-      this.table.dataTable.fnSetColumnVis(this._columnIndexByTitle.get(title), state, false);
+      this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexByTitle.get(title), state, false);
     }, this);
-  },
-
-  _computeColumnIndexByTitle: function() {
-    var model = new Backbone.Model();
-    _.each(this.table.columns, function(col, index) {
-      col.title && model.set(col.title, index);
-    }, this);
-    return model;
   },
 
   _visibilitySummary: function() {
@@ -2277,8 +2283,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     // Private APIs
 
     _initColumns: function() {
-      this.columns = _.result(this.rowClass.prototype, "columns");
-      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
       this._columnManager = new ColumnManager(this);
     },
 
@@ -2381,8 +2385,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.configGenerator.columns(),
-        aaSorting : this._columnManager.configGenerator.sorting(),
+        aoColumns : this._columnManager.columnConfig,
+        aaSorting : this._columnManager.sortingConfig,
         fnDrawCallback : this._onDraw
       };
     },
@@ -2561,7 +2565,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
       // add column attribute mappings as a parameter
-      _.each(this.columns, function(col) {
+      _.each(this._columnManager.userColumnConfig, function(col) {
         aoData.push({ name: "column_attrs[]", value: col.attr });
       });
     },

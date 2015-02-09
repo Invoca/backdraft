@@ -4,6 +4,12 @@ describe("DataTable Plugin", function() {
   var collection;
   var table;
 
+  function getHeaders(table) {
+    return table.$("thead tr th").map(function() {
+      return $(this).text();
+    }).get();
+  }
+
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
@@ -67,10 +73,8 @@ describe("DataTable Plugin", function() {
         ]
       });
       app.view.dataTable("def", { });
-      table = new app.Views.def({ collection: collection, rowClass: app.Views.abc });
-
-      expect(table.columns.length).toEqual(1);
-      expect(table.columns[0].title).toEqual("I came from a rowClass argument");
+      table = new app.Views.def({ collection: collection, rowClass: app.Views.abc }).render();
+      expect(getHeaders(table)).toEqual(["I came from a rowClass argument"]);
     });
   });
 
@@ -298,15 +302,8 @@ describe("DataTable Plugin", function() {
         table.render();
       });
 
-      function getHeaders() {
-        return table.$("thead tr th").map(function() {
-          return $(this).text();
-        }).get();
-      }
-
       function getVisibilities() {
-        var titles = _.pluck(table.columns, "title");
-        return _.map(titles, function(title) {
+        return _.map(["Attr1", "Attr2", "Attr3", "Attr4"], function(title) {
           return table.columnVisibility(title);
         });
       }
@@ -317,24 +314,24 @@ describe("DataTable Plugin", function() {
 
       it("is able to modify visibility", function() {
         // initially all columns are visible
-        expect(getHeaders()).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
 
         // hide Attr2
         table.columnVisibility("Attr2", false);
-        expect(getHeaders()).toEqual(["Attr1", "Attr3", "Attr4"]);
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr3", "Attr4"]);
 
         // hide Attr3
         table.columnVisibility("Attr3", false);
-        expect(getHeaders()).toEqual(["Attr1", "Attr4"]);
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
 
         // show Attr1 even though its already visible
         table.columnVisibility("Attr1", true);
-        expect(getHeaders()).toEqual(["Attr1", "Attr4"]);
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
 
         // show Attr2 and Attr 3
         table.columnVisibility("Attr2", true);
         table.columnVisibility("Attr3", true);
-        expect(getHeaders()).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
       });
 
       it("returns the current visibility", function() {

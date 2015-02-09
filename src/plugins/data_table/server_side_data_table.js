@@ -75,7 +75,7 @@ var ServerSideDataTable = (function() {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
       // add column attribute mappings as a parameter
-      _.each(this.columns, function(col) {
+      _.each(this._columnManager.userColumnConfig, function(col) {
         aoData.push({ name: "column_attrs[]", value: col.attr });
       });
     },
