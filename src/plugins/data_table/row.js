@@ -26,16 +26,14 @@ var Row = (function() {
   }
 
   var Row = Base.View.extend({
-
-    constructor : function() {
-      Row.__super__.constructor.apply(this, arguments);
-      this.columns = _.result(this, 'columns');
+    initialize: function(options) {
+      this.columnsConfig = options.columnsConfig;
       this.$el.data("row", this);
     },
 
     render : function() {
       var cells = this.getCells(), node;
-      _.each(this.columns, function(config) {
+      _.each(this.columnsConfig, function(config) {
         node = cells.filter(selectorForCell(config));
         if (node.length) invokeRenderer(this, node, config);
       }, this);

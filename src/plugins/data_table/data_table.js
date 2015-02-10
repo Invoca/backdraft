@@ -226,7 +226,11 @@ var LocalDataTable = (function() {
 
     _onRowCreated : function(node, data) {
       var model = this.collection.get(data);
-      var row = new this.rowClass({ el : node, model : model });
+      var row = new this.rowClass({
+        el : node,
+        model : model,
+        columnsConfig: this._columnManager.rawColumnsConfig
+      });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.

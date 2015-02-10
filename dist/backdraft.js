@@ -599,18 +599,14 @@ $.extend( $.fn.dataTableExt.oPagination, {
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
     this.rawColumns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
-
     if (!_.isArray(this.rawColumns)) throw new Error("Invalid column configuration provided");
-
     var columnType, columnTypes = this.table.columnTypes();
-    
     // based on available column types, generate definitions for each provided column
     _.each(this.rawColumns, function(config, index) {
       columnType = _.find(columnTypes, function(type) {
         return type.callbacks.matcher(config);
       });
       if (!columnType) throw new Error("could not find matching column type: " + JSON.stringify(config));
-
       this.dataTableColumns.push(columnType.callbacks.definition(this.table, config));
     }, this);
   },
@@ -2135,16 +2131,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   }
 
   var Row = Base.View.extend({
-
-    constructor : function() {
-      Row.__super__.constructor.apply(this, arguments);
-      this.columns = _.result(this, 'columns');
+    initialize: function(options) {
+      this.columnsConfig = options.columnsConfig;
       this.$el.data("row", this);
     },
 
     render : function() {
       var cells = this.getCells(), node;
-      _.each(this.columns, function(config) {
+      _.each(this.columnsConfig, function(config) {
         node = cells.filter(selectorForCell(config));
         if (node.length) invokeRenderer(this, node, config);
       }, this);
@@ -2428,7 +2422,11 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     _onRowCreated : function(node, data) {
       var model = this.collection.get(data);
-      var row = new this.rowClass({ el : node, model : model });
+      var row = new this.rowClass({ 
+        el : node, 
+        model : model, 
+        columnsConfig: this._columnManager.rawColumnsConfig 
+      });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.

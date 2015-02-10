@@ -29,8 +29,8 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("def", {
         rowClassName : "abc"
       });
-      expect(new app.Views.abc()).toEqual(jasmine.any(baseExports.View));
-      expect(new app.Views.def({ collection : collection })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.abc({ columnsConfig: [] })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.def({ collection: collection })).toEqual(jasmine.any(baseExports.View));
     });
 
     it("should allow rows to be subclassed", function() {
