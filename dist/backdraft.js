@@ -637,9 +637,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
     this.table = table;
     this.visibility = new Backbone.Model();
     this._configGenerator = new ColumnConfigGenerator(table);
-    this.dataTableColumnsConfig = this._configGenerator.dataTableColumns;
-    this.dataTableSortingConfig = this._configGenerator.dataTableSorting;
-    this.columnsConfig = this._configGenerator.columns;
     this._initEvents();
   },
 
@@ -654,7 +651,19 @@ $.extend( $.fn.dataTableExt.oPagination, {
   },
 
   columnAttrs: function() {
-    return _.pluck(this.columnsConfig, "attr");
+    return _.pluck(this.columnsConfig(), "attr");
+  },
+
+  dataTableColumnsConfig: function() {
+    return this._configGenerator.dataTableColumns;
+  },
+
+  dataTableSortingConfig: function() {
+    return this._configGenerator.dataTableSorting;
+  },
+
+  columnsConfig: function() {
+    return this._configGenerator.columns;
   },
 
   _initEvents: function() {
@@ -2384,8 +2393,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.dataTableColumnsConfig,
-        aaSorting : this._columnManager.dataTableSortingConfig,
+        aoColumns : this._columnManager.dataTableColumnsConfig(),
+        aaSorting : this._columnManager.dataTableSortingConfig(),
         fnDrawCallback : this._onDraw
       };
     },
@@ -2425,7 +2434,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       var row = new this.rowClass({
         el : node,
         model : model,
-        columnsConfig: this._columnManager.columnsConfig
+        columnsConfig: this._columnManager.columnsConfig()
       });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();

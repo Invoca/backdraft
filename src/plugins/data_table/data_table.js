@@ -188,8 +188,8 @@ var LocalDataTable = (function() {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.dataTableColumnsConfig,
-        aaSorting : this._columnManager.dataTableSortingConfig,
+        aoColumns : this._columnManager.dataTableColumnsConfig(),
+        aaSorting : this._columnManager.dataTableSortingConfig(),
         fnDrawCallback : this._onDraw
       };
     },
@@ -229,7 +229,7 @@ var LocalDataTable = (function() {
       var row = new this.rowClass({
         el : node,
         model : model,
-        columnsConfig: this._columnManager.columnsConfig
+        columnsConfig: this._columnManager.columnsConfig()
       });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();

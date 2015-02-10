@@ -4,9 +4,6 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     this.table = table;
     this.visibility = new Backbone.Model();
     this._configGenerator = new ColumnConfigGenerator(table);
-    this.dataTableColumnsConfig = this._configGenerator.dataTableColumns;
-    this.dataTableSortingConfig = this._configGenerator.dataTableSorting;
-    this.columnsConfig = this._configGenerator.columns;
     this._initEvents();
   },
 
@@ -21,7 +18,19 @@ var ColumnManager = Backdraft.Utils.Class.extend({
   },
 
   columnAttrs: function() {
-    return _.pluck(this.columnsConfig, "attr");
+    return _.pluck(this.columnsConfig(), "attr");
+  },
+
+  dataTableColumnsConfig: function() {
+    return this._configGenerator.dataTableColumns;
+  },
+
+  dataTableSortingConfig: function() {
+    return this._configGenerator.dataTableSorting;
+  },
+
+  columnsConfig: function() {
+    return this._configGenerator.columns;
   },
 
   _initEvents: function() {
