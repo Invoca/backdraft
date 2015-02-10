@@ -2215,8 +2215,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
-      this._initColumns();
       this._applyDefaults();
+      this._initColumns();
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
