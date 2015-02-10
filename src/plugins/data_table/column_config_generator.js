@@ -8,11 +8,11 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
-    this.rawColumns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
-    if (!_.isArray(this.rawColumns)) throw new Error("Invalid column configuration provided");
+    this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
     var columnType, columnTypes = this.table.columnTypes();
     // based on available column types, generate definitions for each provided column
-    _.each(this.rawColumns, function(config, index) {
+    _.each(this.columns, function(config, index) {
       columnType = _.find(columnTypes, function(type) {
         return type.callbacks.matcher(config);
       });
@@ -35,7 +35,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
   _computeColumnIndexByTitle: function() {
     var model = new Backbone.Model();
-    _.each(this.rawColumns, function(col, index) {
+    _.each(this.columns, function(col, index) {
       col.title && model.set(col.title, index);
     }, this);
     return model;

@@ -229,7 +229,7 @@ var LocalDataTable = (function() {
       var row = new this.rowClass({
         el : node,
         model : model,
-        columnsConfig: this._columnManager.rawColumnsConfig
+        columnsConfig: this._columnManager.columnsConfig
       });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();

@@ -598,11 +598,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
-    this.rawColumns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
-    if (!_.isArray(this.rawColumns)) throw new Error("Invalid column configuration provided");
+    this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
     var columnType, columnTypes = this.table.columnTypes();
     // based on available column types, generate definitions for each provided column
-    _.each(this.rawColumns, function(config, index) {
+    _.each(this.columns, function(config, index) {
       columnType = _.find(columnTypes, function(type) {
         return type.callbacks.matcher(config);
       });
@@ -625,7 +625,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
   _computeColumnIndexByTitle: function() {
     var model = new Backbone.Model();
-    _.each(this.rawColumns, function(col, index) {
+    _.each(this.columns, function(col, index) {
       col.title && model.set(col.title, index);
     }, this);
     return model;
@@ -639,7 +639,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     this._configGenerator = new ColumnConfigGenerator(table);
     this.dataTableColumnsConfig = this._configGenerator.dataTableColumns;
     this.dataTableSortingConfig = this._configGenerator.dataTableSorting;
-    this.rawColumnsConfig       = this._configGenerator.rawColumns;
+    this.columnsConfig = this._configGenerator.columns;
     this._initEvents();
   },
 
@@ -654,7 +654,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   },
 
   columnAttrs: function() {
-    return _.pluck(this.rawColumnsConfig, "attr");
+    return _.pluck(this.columnsConfig, "attr");
   },
 
   _initEvents: function() {
@@ -2422,10 +2422,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     _onRowCreated : function(node, data) {
       var model = this.collection.get(data);
-      var row = new this.rowClass({ 
-        el : node, 
-        model : model, 
-        columnsConfig: this._columnManager.rawColumnsConfig 
+      var row = new this.rowClass({
+        el : node,
+        model : model,
+        columnsConfig: this._columnManager.columnsConfig
       });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();

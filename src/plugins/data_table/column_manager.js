@@ -6,7 +6,7 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     this._configGenerator = new ColumnConfigGenerator(table);
     this.dataTableColumnsConfig = this._configGenerator.dataTableColumns;
     this.dataTableSortingConfig = this._configGenerator.dataTableSorting;
-    this.rawColumnsConfig       = this._configGenerator.rawColumns;
+    this.columnsConfig = this._configGenerator.columns;
     this._initEvents();
   },
 
@@ -21,7 +21,7 @@ var ColumnManager = Backdraft.Utils.Class.extend({
   },
 
   columnAttrs: function() {
-    return _.pluck(this.rawColumnsConfig, "attr");
+    return _.pluck(this.columnsConfig, "attr");
   },
 
   _initEvents: function() {
