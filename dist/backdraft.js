@@ -600,14 +600,12 @@ $.extend( $.fn.dataTableExt.oPagination, {
     this.dataTableColumns = [];
     this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
     if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
-    var columnType, columnTypes = this.table.columnTypes();
-    // based on available column types, generate definitions for each provided column
-    _.each(this.columns, function(config, index) {
-      columnType = _.find(columnTypes, function(type) {
-        return type.callbacks.matcher(config);
-      });
-      if (!columnType) throw new Error("could not find matching column type: " + JSON.stringify(config));
-      this.dataTableColumns.push(columnType.callbacks.definition(this.table, config));
+    _.each(this._determineColumnTypes(), function(columnType, index) {
+      var columnConfig = this.columns[index];
+      var definition = columnType.callbacks.definition(this.table, columnConfig);
+      this.dataTableColumns.push(definition)
+      // use column type's default renderer if the config doesn't supply one
+      if (!columnConfig.renderer) columnConfig.renderer = columnType.callbacks.renderer;
     }, this);
   },
 
@@ -628,6 +626,22 @@ $.extend( $.fn.dataTableExt.oPagination, {
     _.each(this.columns, function(col, index) {
       col.title && this.columnIndexByTitle.set(col.title, index);
     }, this);
+  },
+
+  _determineColumnTypes: function() {
+    // match our table's columns to available column types
+    var columnType, availableColumnTypes = this.table.availableColumnTypes();
+    return _.map(this.columns, function(config, index) {
+      var columnType = _.find(availableColumnTypes, function(type) {
+        return type.callbacks.matcher(config);
+      });
+
+      if (!columnType) {
+        throw new Error("could not find matching column type: " + JSON.stringify(config));
+      } else {
+        return columnType;
+      }
+    });
   }
 });
   var ColumnManager = Backdraft.Utils.Class.extend({
@@ -2116,20 +2130,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   var Base = Backdraft.plugin("Base");
   var cssClass = /[^a-zA-Z_0-9\-]/g;
 
-  function invokeRenderer(row, node, config) {
-    var renderer;
-    if (config.renderer) {
-      renderer = config.renderer;
-    } else if (config.bulk) {
-      renderer = row.renderers.bulk;
-    } else if (config.title) {
-      renderer = row.renderers[config.title];
-    } else {
-      renderer = row.renderers.base;
-    }
-    (renderer || row.renderers.base).call(row, node, config);
-  }
-
   function selectorForCell(config) {
     if (config.title) {
       return "." + Row.getCSSClass(config.title);
@@ -2145,10 +2145,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     render : function() {
-      var cells = this.getCells(), node;
+      var cells = this.$el.find("td"), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(selectorForCell(config));
-        if (node.length) invokeRenderer(this, node, config);
+        if (node.length) config.renderer.call(this, node, config);
       }, this);
     },
 
@@ -2166,23 +2166,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
     },
 
-    getCells : function() {
-      return this.$el.find("td");
-    },
-
     renderers : {
-
-      base : function(cell, config) {
-        var content = this.model.get(config.attr);
-        cell.text(content);
-      },
-
-      bulk : function(cell, config) {
-        if (this.checkbox) return;
-        this.checkbox = $("<input>").attr("type", "checkbox");
-        cell.html(this.checkbox);
-      }
-
     }
 
   }, {
@@ -2488,7 +2472,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
 
       // return all registered column types
-      tableClass.prototype.columnTypes = function() {
+      tableClass.prototype.availableColumnTypes = function() {
         return pluginConfig.columnTypes;
       };
     }
@@ -2768,12 +2752,18 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     };
   });
 
-  // columnType.renderer(function(cell, config) {
-  // });
+  columnType.renderer(function(cell, config) {
+    var renderer = this.renderers[config.title];
+    if (renderer) {
+      renderer.apply(this, arguments);
+    } else {
+       cell.text(this.model.get(config.attr));
+    }
+  });
 });
     app.view.dataTable.columnType(function(columnType) {
   columnType.matcher(function(config) {
-    return !!config.title
+    return !config.attr && config.title;
   });
 
   columnType.definition(function(dataTable, config) {
@@ -2809,8 +2799,11 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     };
   });
 
-  // columnType.renderer(function(cell, config) {
-  // });
+  columnType.renderer(function(cell, config) {
+    var renderer = this.renderers[config.title];
+    if (!renderer) throw new Error("renderer is missing for " + JSON.stringify(config));
+    renderer.apply(this, arguments);
+  });
 });
   });
 

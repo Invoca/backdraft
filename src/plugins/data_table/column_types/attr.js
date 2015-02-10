@@ -24,6 +24,12 @@ app.view.dataTable.columnType(function(columnType) {
     };
   });
 
-  // columnType.renderer(function(cell, config) {
-  // });
+  columnType.renderer(function(cell, config) {
+    var renderer = this.renderers[config.title];
+    if (renderer) {
+      renderer.apply(this, arguments);
+    } else {
+       cell.text(this.model.get(config.attr));
+    }
+  });
 });

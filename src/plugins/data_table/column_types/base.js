@@ -1,6 +1,6 @@
 app.view.dataTable.columnType(function(columnType) {
   columnType.matcher(function(config) {
-    return !!config.title
+    return !config.attr && config.title;
   });
 
   columnType.definition(function(dataTable, config) {
@@ -36,6 +36,9 @@ app.view.dataTable.columnType(function(columnType) {
     };
   });
 
-  // columnType.renderer(function(cell, config) {
-  // });
+  columnType.renderer(function(cell, config) {
+    var renderer = this.renderers[config.title];
+    if (!renderer) throw new Error("renderer is missing for " + JSON.stringify(config));
+    renderer.apply(this, arguments);
+  });
 });

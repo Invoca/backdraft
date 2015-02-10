@@ -59,7 +59,12 @@ describe("DataTable Plugin", function() {
         { attr : "name", title : "Name" },
         { attr : "date", title : "Date" },
         { title : "Non attr column"}
-      ]
+      ],
+      renderers: {
+        "Non attr column": function(node, config) {
+          node.html("Non attr column");
+        }
+      }
     });
     app.view.dataTable("T", {
       rowClassName : "R",

@@ -3,20 +3,6 @@ var Row = (function() {
   var Base = Backdraft.plugin("Base");
   var cssClass = /[^a-zA-Z_0-9\-]/g;
 
-  function invokeRenderer(row, node, config) {
-    var renderer;
-    if (config.renderer) {
-      renderer = config.renderer;
-    } else if (config.bulk) {
-      renderer = row.renderers.bulk;
-    } else if (config.title) {
-      renderer = row.renderers[config.title];
-    } else {
-      renderer = row.renderers.base;
-    }
-    (renderer || row.renderers.base).call(row, node, config);
-  }
-
   function selectorForCell(config) {
     if (config.title) {
       return "." + Row.getCSSClass(config.title);
@@ -32,10 +18,10 @@ var Row = (function() {
     },
 
     render : function() {
-      var cells = this.getCells(), node;
+      var cells = this.$el.find("td"), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(selectorForCell(config));
-        if (node.length) invokeRenderer(this, node, config);
+        if (node.length) config.renderer.call(this, node, config);
       }, this);
     },
 
@@ -53,23 +39,7 @@ var Row = (function() {
       }
     },
 
-    getCells : function() {
-      return this.$el.find("td");
-    },
-
     renderers : {
-
-      base : function(cell, config) {
-        var content = this.model.get(config.attr);
-        cell.text(content);
-      },
-
-      bulk : function(cell, config) {
-        if (this.checkbox) return;
-        this.checkbox = $("<input>").attr("type", "checkbox");
-        cell.html(this.checkbox);
-      }
-
     }
 
   }, {

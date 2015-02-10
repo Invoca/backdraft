@@ -284,7 +284,7 @@ var LocalDataTable = (function() {
       }
 
       // return all registered column types
-      tableClass.prototype.columnTypes = function() {
+      tableClass.prototype.availableColumnTypes = function() {
         return pluginConfig.columnTypes;
       };
     }

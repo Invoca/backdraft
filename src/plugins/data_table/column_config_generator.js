@@ -10,14 +10,12 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     this.dataTableColumns = [];
     this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
     if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
-    var columnType, columnTypes = this.table.columnTypes();
-    // based on available column types, generate definitions for each provided column
-    _.each(this.columns, function(config, index) {
-      columnType = _.find(columnTypes, function(type) {
-        return type.callbacks.matcher(config);
-      });
-      if (!columnType) throw new Error("could not find matching column type: " + JSON.stringify(config));
-      this.dataTableColumns.push(columnType.callbacks.definition(this.table, config));
+    _.each(this._determineColumnTypes(), function(columnType, index) {
+      var columnConfig = this.columns[index];
+      var definition = columnType.callbacks.definition(this.table, columnConfig);
+      this.dataTableColumns.push(definition)
+      // use column type's default renderer if the config doesn't supply one
+      if (!columnConfig.renderer) columnConfig.renderer = columnType.callbacks.renderer;
     }, this);
   },
 
@@ -38,5 +36,21 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     _.each(this.columns, function(col, index) {
       col.title && this.columnIndexByTitle.set(col.title, index);
     }, this);
+  },
+
+  _determineColumnTypes: function() {
+    // match our table's columns to available column types
+    var columnType, availableColumnTypes = this.table.availableColumnTypes();
+    return _.map(this.columns, function(config, index) {
+      var columnType = _.find(availableColumnTypes, function(type) {
+        return type.callbacks.matcher(config);
+      });
+
+      if (!columnType) {
+        throw new Error("could not find matching column type: " + JSON.stringify(config));
+      } else {
+        return columnType;
+      }
+    });
   }
 });
