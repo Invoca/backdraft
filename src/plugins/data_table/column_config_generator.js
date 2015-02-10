@@ -1,29 +1,29 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
-  initialize: function(table, userConfig) {
+  initialize: function(table) {
     this.table = table;
-    this._userConfig = userConfig;
+    this._computeColumnConfig();
     this.columnIndexByTitle = this._computeColumnIndexByTitle();
+    this._computeSortingConfig();
   },
 
-  columns: function() {
+  _computeColumnConfig: function() {
+    this.dataTableColumns = [];
+    this.rawColumns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.rawColumns)) throw new Error("Invalid column configuration provided");
     var columnType, columnTypes = this.table.columnTypes();
     // based on available column types, generate definitions for each provided column
-    return _.map(this._userConfig, function(config, index) {
+    _.each(this.rawColumns, function(config, index) {
       columnType = _.find(columnTypes, function(type) {
         return type.callbacks.matcher(config);
       });
-
-      if (!columnType) {
-        throw new Error("could not find matching column type: " + JSON.stringify(config));
-      }
-
-      return columnType.callbacks.definition(this.table, config);
+      if (!columnType) throw new Error("could not find matching column type: " + JSON.stringify(config));
+      this.dataTableColumns.push(columnType.callbacks.definition(this.table, config));
     }, this);
   },
 
-  sorting: function() {
+  _computeSortingConfig: function() {
     var columnIndex, direction;
-    return _.map(this.table.sorting, function(sortConfig) {
+    this.dataTableSorting = _.map(this.table.sorting, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
@@ -35,7 +35,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
   _computeColumnIndexByTitle: function() {
     var model = new Backbone.Model();
-    _.each(this._userConfig, function(col, index) {
+    _.each(this.rawColumns, function(col, index) {
       col.title && model.set(col.title, index);
     }, this);
     return model;
