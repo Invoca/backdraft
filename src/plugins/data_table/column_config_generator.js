@@ -2,7 +2,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
     this._computeColumnConfig();
-    this.columnIndexByTitle = this._computeColumnIndexByTitle();
+    this._computeColumnIndexByTitle();
     this._computeSortingConfig();
   },
 
@@ -34,10 +34,9 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   },
 
   _computeColumnIndexByTitle: function() {
-    var model = new Backbone.Model();
+    this.columnIndexByTitle = new Backbone.Model();
     _.each(this.columns, function(col, index) {
-      col.title && model.set(col.title, index);
+      col.title && this.columnIndexByTitle.set(col.title, index);
     }, this);
-    return model;
   }
 });
