@@ -1,104 +1,58 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
-  initialize: function(table, columnIndexByTitle) {
+  initialize: function(table) {
     this.table = table;
-    this._columnIndexByTitle = columnIndexByTitle;
+    this._computeColumnConfig();
+    this._computeColumnIndexByTitle();
+    this._computeSortingConfig();
   },
 
-  columns: function() {
-    var configGen;
-    return _.map(this.table.columns, function(config, index) {
-      if (config.bulk)      configGen = this._columnBulk;
-      else if (config.attr) configGen = this._columnAttr;
-      else                  configGen = this._columnBase;
+  _computeColumnConfig: function() {
+    this.dataTableColumns = [];
+    this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
 
-      return configGen.call(this, config);
+    _.each(this._determineColumnTypes(), function(columnType, index) {
+      var columnConfig = this.columns[index];
+      var definition = columnType.definition()(this.table, columnConfig);
+      this.dataTableColumns.push(definition)
+      columnConfig.nodeMatcher = columnType.nodeMatcher();
+      // use column type's default renderer if the config doesn't supply one
+      if (!columnConfig.renderer) columnConfig.renderer = columnType.renderer();
     }, this);
   },
 
-  sorting: function() {
+  _computeSortingConfig: function() {
     var columnIndex, direction;
-    return _.map(this.table.sorting, function(sortConfig) {
+    this.dataTableSorting = _.map(this.table.sorting, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
       // column index can be provided as the column title, convert to index
-      if (_.isString(columnIndex)) columnIndex = this._columnIndexByTitle.get(columnIndex);
+      if (_.isString(columnIndex)) columnIndex = this.columnIndexByTitle.get(columnIndex);
       return [ columnIndex, direction ];
     }, this);
   },
 
-  _columnBulk: function(config) {
-    var self = this;
-    return {
-      bSortable: config.sort,
-      bSearchable: false,
-      sTitle: "<input type='checkbox' />",
-      sClass : "bulk",
-      mData: function(source, type, val) {
-        return self.table.collection.get(source);
-      },
-      mRender : function(data, type, full) {
-        if (type === "sort" || type === "type") {
-          return self.table.selectionManager.has(data) ? 1 : -1;
-        } else {
-          return "";
-        }
-      }
-    };
+  _computeColumnIndexByTitle: function() {
+    this.columnIndexByTitle = new Backbone.Model();
+    _.each(this.columns, function(col, index) {
+      col.title && this.columnIndexByTitle.set(col.title, index);
+    }, this);
   },
 
-  _columnAttr: function(config) {
-    var self = this;
-    return {
-      bSortable: config.sort,
-      bSearchable: config.search,
-      sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
-      mData: function(source, type, val) {
-        return self.table.collection.get(source).get(config.attr);
-      },
-      mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "display") {
-          // nothing to display so that the view can provide its own UI
-          return "";
-        } else {
-          return data;
-        }
-      }
-    };
-  },
+  _determineColumnTypes: function() {
+    // match our table's columns to available column types
+    var columnType, availableColumnTypes = this.table.availableColumnTypes();
+    return _.map(this.columns, function(config, index) {
+      var columnType = _.find(availableColumnTypes, function(type) {
+        return type.configMatcher()(config);
+      });
 
-  _columnBase: function(config) {
-    var self = this, searchable = !_.isUndefined(config.searchBy), sortable = !_.isUndefined(config.sortBy);
-    var ignore = function() {
-      return "";
-    };
-
-    return {
-      bSortable: sortable,
-      bSearchable: searchable,
-      sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
-      mData: function(source, type, val) {
-        return self.table.collection.get(source);
-      },
-      mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "sort") {
-          return (config.sortBy || ignore)(data);
-        } else if (type === "type") {
-          return (config.sortBy || ignore)(data);
-        } else if (type === "display") {
-          // renderers will fill content
-          return ignore();
-        } else if (type === "filter") {
-          return (config.searchBy || ignore)(data);
-        } else {
-          // note dataTables can call in with undefined type
-          return ignore();
-        }
+      if (!columnType) {
+        throw new Error("could not find matching column type: " + JSON.stringify(config));
+      } else {
+        return columnType;
       }
-    };
+    });
   }
 });

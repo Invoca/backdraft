@@ -59,7 +59,12 @@ describe("DataTable Plugin", function() {
         { attr : "name", title : "Name" },
         { attr : "date", title : "Date" },
         { title : "Non attr column"}
-      ]
+      ],
+      renderers: {
+        "Non attr column": function(node, config) {
+          node.html("Non attr column");
+        }
+      }
     });
     app.view.dataTable("T", {
       rowClassName : "R",
@@ -182,7 +187,7 @@ describe("DataTable Plugin", function() {
 
   describe("server side params", function() {
     it("should automatically include column attributes", function() {
-      var expectedAttrParams = $.param({ column_attrs : ["", "name", "date", ""] });
+      var expectedAttrParams = $.param({ column_attrs : [undefined, "name", "date", undefined] });
       table = new app.Views.T({ collection : collection });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);

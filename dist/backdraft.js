@@ -46,12 +46,31 @@
     this.initialize && this.initialize.apply(this, arguments);
   }
 
+  Class.prototype._getterSetter = function(prop) {
+    this._store || (this._store = {});
+
+    this[prop] = function(value) {
+      if (arguments.length === 1) {
+        this._store[prop] = value;
+      } else {
+        return this._store[prop];
+      }
+    };
+  }
+
   _.extend(Class, {
     extend : extend
   });
 
   return Class;
 
+})();
+  // create a valid CSS class name based on input
+Backdraft.Utils.toCSSClass = (function() {
+  var cssClass = /[^a-zA-Z_0-9\-]/g;
+  return function(input) {
+    return input.replace(cssClass, "-");
+  };
 })();
 
   var App = (function() {
@@ -589,116 +608,69 @@ $.extend( $.fn.dataTableExt.oPagination, {
 } );
 
   var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
-  initialize: function(table, columnIndexByTitle) {
+  initialize: function(table) {
     this.table = table;
-    this._columnIndexByTitle = columnIndexByTitle;
+    this._computeColumnConfig();
+    this._computeColumnIndexByTitle();
+    this._computeSortingConfig();
   },
 
-  columns: function() {
-    var configGen;
-    return _.map(this.table.columns, function(config, index) {
-      if (config.bulk)      configGen = this._columnBulk;
-      else if (config.attr) configGen = this._columnAttr;
-      else                  configGen = this._columnBase;
+  _computeColumnConfig: function() {
+    this.dataTableColumns = [];
+    this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
 
-      return configGen.call(this, config);
+    _.each(this._determineColumnTypes(), function(columnType, index) {
+      var columnConfig = this.columns[index];
+      var definition = columnType.definition()(this.table, columnConfig);
+      this.dataTableColumns.push(definition)
+      columnConfig.nodeMatcher = columnType.nodeMatcher();
+      // use column type's default renderer if the config doesn't supply one
+      if (!columnConfig.renderer) columnConfig.renderer = columnType.renderer();
     }, this);
   },
 
-  sorting: function() {
+  _computeSortingConfig: function() {
     var columnIndex, direction;
-    return _.map(this.table.sorting, function(sortConfig) {
+    this.dataTableSorting = _.map(this.table.sorting, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
       // column index can be provided as the column title, convert to index
-      if (_.isString(columnIndex)) columnIndex = this._columnIndexByTitle.get(columnIndex);
+      if (_.isString(columnIndex)) columnIndex = this.columnIndexByTitle.get(columnIndex);
       return [ columnIndex, direction ];
     }, this);
   },
 
-  _columnBulk: function(config) {
-    var self = this;
-    return {
-      bSortable: config.sort,
-      bSearchable: false,
-      sTitle: "<input type='checkbox' />",
-      sClass : "bulk",
-      mData: function(source, type, val) {
-        return self.table.collection.get(source);
-      },
-      mRender : function(data, type, full) {
-        if (type === "sort" || type === "type") {
-          return self.table.selectionManager.has(data) ? 1 : -1;
-        } else {
-          return "";
-        }
-      }
-    };
+  _computeColumnIndexByTitle: function() {
+    this.columnIndexByTitle = new Backbone.Model();
+    _.each(this.columns, function(col, index) {
+      col.title && this.columnIndexByTitle.set(col.title, index);
+    }, this);
   },
 
-  _columnAttr: function(config) {
-    var self = this;
-    return {
-      bSortable: config.sort,
-      bSearchable: config.search,
-      sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
-      mData: function(source, type, val) {
-        return self.table.collection.get(source).get(config.attr);
-      },
-      mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "display") {
-          // nothing to display so that the view can provide its own UI
-          return "";
-        } else {
-          return data;
-        }
-      }
-    };
-  },
+  _determineColumnTypes: function() {
+    // match our table's columns to available column types
+    var columnType, availableColumnTypes = this.table.availableColumnTypes();
+    return _.map(this.columns, function(config, index) {
+      var columnType = _.find(availableColumnTypes, function(type) {
+        return type.configMatcher()(config);
+      });
 
-  _columnBase: function(config) {
-    var self = this, searchable = !_.isUndefined(config.searchBy), sortable = !_.isUndefined(config.sortBy);
-    var ignore = function() {
-      return "";
-    };
-
-    return {
-      bSortable: sortable,
-      bSearchable: searchable,
-      sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
-      mData: function(source, type, val) {
-        return self.table.collection.get(source);
-      },
-      mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "sort") {
-          return (config.sortBy || ignore)(data);
-        } else if (type === "type") {
-          return (config.sortBy || ignore)(data);
-        } else if (type === "display") {
-          // renderers will fill content
-          return ignore();
-        } else if (type === "filter") {
-          return (config.searchBy || ignore)(data);
-        } else {
-          // note dataTables can call in with undefined type
-          return ignore();
-        }
+      if (!columnType) {
+        throw new Error("could not find matching column type: " + JSON.stringify(config));
+      } else {
+        return columnType;
       }
-    };
+    });
   }
 });
   var ColumnManager = Backdraft.Utils.Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
     this.table = table;
-    this._columnIndexByTitle = this._computeColumnIndexByTitle();
-    this.configGenerator = new ColumnConfigGenerator(table, this._columnIndexByTitle);
     this.visibility = new Backbone.Model();
+    this._configGenerator = new ColumnConfigGenerator(table);
     this._initEvents();
   },
 
@@ -706,10 +678,26 @@ $.extend( $.fn.dataTableExt.oPagination, {
     // for now we are assuming that all columns are initially visible, this will need to take into account
     // other things in the futures
     var prefs = {};
-    _.each(this._columnIndexByTitle.keys(), function(title) {
+    _.each(this._configGenerator.columnIndexByTitle.keys(), function(title) {
       prefs[title] = true;
     });
     this.visibility.set(prefs);
+  },
+
+  columnAttrs: function() {
+    return _.pluck(this.columnsConfig(), "attr");
+  },
+
+  dataTableColumnsConfig: function() {
+    return this._configGenerator.dataTableColumns;
+  },
+
+  dataTableSortingConfig: function() {
+    return this._configGenerator.dataTableSorting;
+  },
+
+  columnsConfig: function() {
+    return this._configGenerator.columns;
   },
 
   _initEvents: function() {
@@ -722,16 +710,8 @@ $.extend( $.fn.dataTableExt.oPagination, {
   _applyVisibilitiesToDataTable: function(titleStateMap) {
     _.each(titleStateMap, function(state, title) {
       // last argument of false signifies not to redraw the table
-      this.table.dataTable.fnSetColumnVis(this._columnIndexByTitle.get(title), state, false);
+      this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexByTitle.get(title), state, false);
     }, this);
-  },
-
-  _computeColumnIndexByTitle: function() {
-    var model = new Backbone.Model();
-    _.each(this.table.columns, function(col, index) {
-      col.title && model.set(col.title, index);
-    }, this);
-    return model;
   },
 
   _visibilitySummary: function() {
@@ -781,6 +761,15 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 
 });
+  var ColumnType =  Backdraft.Utils.Class.extend({
+  initialize: function() {
+    this._getterSetter("configMatcher");
+    this._getterSetter("nodeMatcher");
+    this._getterSetter("definition");
+    this._getterSetter("renderer");
+  }
+});
+
   /*! ColReorder 1.1.3-dev
  * ©2010-2014 SpryMedia Ltd - datatables.net/license
  */
@@ -2151,43 +2140,22 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
-  var cssClass = /[^a-zA-Z_0-9\-]/g;
-
-  function invokeRenderer(row, node, config) {
-    var renderer;
-    if (config.renderer) {
-      renderer = config.renderer;
-    } else if (config.bulk) {
-      renderer = row.renderers.bulk;
-    } else if (config.title) {
-      renderer = row.renderers[config.title];
-    } else {
-      renderer = row.renderers.base;
-    }
-    (renderer || row.renderers.base).call(row, node, config);
-  }
-
-  function selectorForCell(config) {
-    if (config.title) {
-      return "." + Row.getCSSClass(config.title);
-    } else if (config.bulk) {
-      return ".bulk";
-    }
-  }
 
   var Row = Base.View.extend({
-
-    constructor : function() {
-      Row.__super__.constructor.apply(this, arguments);
-      this.columns = _.result(this, 'columns');
+    initialize: function(options) {
+      this.columnsConfig = options.columnsConfig;
       this.$el.data("row", this);
     },
 
     render : function() {
-      var cells = this.getCells(), node;
-      _.each(this.columns, function(config) {
-        node = cells.filter(selectorForCell(config));
-        if (node.length) invokeRenderer(this, node, config);
+      var cells = this.$el.find("td"), node;
+      _.each(this.columnsConfig, function(config) {
+        node = cells.filter(config.nodeMatcher(config));
+        if (node.length === 1) {
+          config.renderer.call(this, node, config);
+        } else if (node.length > 1) {
+          throw new Error("multiple nodes were matched");
+        }
       }, this);
     },
 
@@ -2205,35 +2173,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
     },
 
-    getCells : function() {
-      return this.$el.find("td");
-    },
-
     renderers : {
-
-      base : function(cell, config) {
-        var content = this.model.get(config.attr);
-        cell.text(content);
-      },
-
-      bulk : function(cell, config) {
-        if (this.checkbox) return;
-        this.checkbox = $("<input>").attr("type", "checkbox");
-        cell.html(this.checkbox);
-      }
-
     }
 
   }, {
 
     finalize : function(name, rowClass) {
-    },
-
-    // create a valid CSS class name based on input
-    getCSSClass : function(input) {
-      return input.replace(cssClass, function() {
-        return "-";
-      });
     }
 
   });
@@ -2259,8 +2204,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
-      this._initColumns();
       this._applyDefaults();
+      this._initColumns();
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -2329,8 +2274,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     // Private APIs
 
     _initColumns: function() {
-      this.columns = _.result(this.rowClass.prototype, "columns");
-      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
       this._columnManager = new ColumnManager(this);
     },
 
@@ -2433,8 +2376,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.configGenerator.columns(),
-        aaSorting : this._columnManager.configGenerator.sorting(),
+        aoColumns : this._columnManager.dataTableColumnsConfig(),
+        aaSorting : this._columnManager.dataTableSortingConfig(),
         fnDrawCallback : this._onDraw
       };
     },
@@ -2471,7 +2414,11 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     _onRowCreated : function(node, data) {
       var model = this.collection.get(data);
-      var row = new this.rowClass({ el : node, model : model });
+      var row = new this.rowClass({
+        el : node,
+        model : model,
+        columnsConfig: this._columnManager.columnsConfig()
+      });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
@@ -2516,11 +2463,17 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
   }, {
 
-    finalize : function(name, tableClass, views) {
-      if (!tableClass.prototype.rowClassName) return;
-      // method for late resolution of row class, removes dependency on needing access to the entire app
-      tableClass.prototype._resolveRowClass = function() {
-        return views[tableClass.prototype.rowClassName];
+    finalize : function(name, tableClass, views, pluginConfig) {
+      if (tableClass.prototype.rowClassName) {
+        // method for late resolution of row class, removes dependency on needing access to the entire app
+        tableClass.prototype._resolveRowClass = function() {
+          return views[tableClass.prototype.rowClassName];
+        };
+      }
+
+      // return all registered column types
+      tableClass.prototype.availableColumnTypes = function() {
+        return pluginConfig.columnTypes;
       };
     }
 
@@ -2607,8 +2560,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
       // add column attribute mappings as a parameter
-      _.each(this.columns, function(col) {
-        aoData.push({ name: "column_attrs[]", value: col.attr });
+      _.each(this._columnManager.columnAttrs(), function(attr) {
+        aoData.push({ name: "column_attrs[]", value: attr });
       });
     },
 
@@ -2713,7 +2666,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
 
       app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views);
+      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config);
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
@@ -2729,10 +2682,145 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
       app.Views[name] = baseClass.extend(properties);
       baseClass.finalize(name, app.Views[name], app.Views);
+    };
+
+    // storage for app wide configuration of the plugin
+    app.view.dataTable.config = {
+      columnTypes: []
+    };
+
+    app.view.dataTable.columnType = function(cb) {
+      var columnType = new ColumnType();
+      cb(columnType);
+      app.view.dataTable.config.columnTypes.push(columnType);
+    };
+
+    // add standard column types
+    app.view.dataTable.columnType(function(columnType) {
+  columnType.configMatcher(function(config) {
+    return config.bulk === true;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return ".bulk";
+  });
+
+  columnType.definition(function(dataTable, config) {
+    return {
+      bSortable: config.sort,
+      bSearchable: false,
+      sTitle: "<input type='checkbox' />",
+      sClass : "bulk",
+      mData: function(source, type, val) {
+        return dataTable.collection.get(source);
+      },
+      mRender : function(data, type, full) {
+        if (type === "sort" || type === "type") {
+          return dataTable.selectionManager.has(data) ? 1 : -1;
+        } else {
+          return "";
+        }
+      }
+    };
+  });
+
+  columnType.renderer(function(cell, config) {
+    if (this.checkbox) return;
+    this.checkbox = $("<input>").attr("type", "checkbox");
+    cell.html(this.checkbox);
+  });
+});
+    app.view.dataTable.columnType(function(columnType) {
+  columnType.configMatcher(function(config) {
+    return !!config.attr;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return "." + Backdraft.Utils.toCSSClass(config.title);
+  });
+
+  columnType.definition(function(dataTable, config) {
+    return {
+      bSortable: config.sort,
+      bSearchable: config.search,
+      sTitle: config.title,
+      sClass : Backdraft.Utils.toCSSClass(config.title),
+      mData: function(source, type, val) {
+        return dataTable.collection.get(source).get(config.attr);
+      },
+      mRender : function(data, type, full) {
+        // note data is based on the result of mData
+        if (type === "display") {
+          // nothing to display so that the view can provide its own UI
+          return "";
+        } else {
+          return data;
+        }
+      }
+    };
+  });
+
+  columnType.renderer(function(cell, config) {
+    var renderer = this.renderers[config.title];
+    if (renderer) {
+      renderer.apply(this, arguments);
+    } else {
+       cell.text(this.model.get(config.attr));
     }
+  });
+});
+    app.view.dataTable.columnType(function(columnType) {
+  columnType.configMatcher(function(config) {
+    return !config.attr && config.title;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return "." + Backdraft.Utils.toCSSClass(config.title);
+  });
+
+  columnType.definition(function(dataTable, config) {
+    var searchable = !_.isUndefined(config.searchBy), sortable = !_.isUndefined(config.sortBy);
+    var ignore = function() {
+      return "";
+    };
+
+    return {
+      bSortable: sortable,
+      bSearchable: searchable,
+      sTitle: config.title,
+      sClass : Backdraft.Utils.toCSSClass(config.title),
+      mData: function(source, type, val) {
+        return dataTable.collection.get(source);
+      },
+      mRender : function(data, type, full) {
+        // note data is based on the result of mData
+        if (type === "sort") {
+          return (config.sortBy || ignore)(data);
+        } else if (type === "type") {
+          return (config.sortBy || ignore)(data);
+        } else if (type === "display") {
+          // renderers will fill content
+          return ignore();
+        } else if (type === "filter") {
+          return (config.searchBy || ignore)(data);
+        } else {
+          // note dataTables can call in with undefined type
+          return ignore();
+        }
+      }
+    };
+  });
+
+  columnType.renderer(function(cell, config) {
+    var renderer = this.renderers[config.title];
+    if (!renderer) throw new Error("renderer is missing for " + JSON.stringify(config));
+    renderer.apply(this, arguments);
+  });
+});
   });
 
 });
+
 
   Backdraft.plugin("Listing", function(plugin) {
 

@@ -4,6 +4,7 @@
   Backdraft.Utils = {};
 
   {%= inline("src/utils/class.js") %}
+  {%= inline("src/utils/css.js") %}
 
   {%= inline("src/app.js") %}
   Backdraft.app = App.factory;

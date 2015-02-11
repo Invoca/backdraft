@@ -38,6 +38,7 @@ describe("DataTable Plugin", function() {
         it("should render a view for every single model in the collection", function() {
           var rows = table.$("tbody tr");
           expect(rows.length).toEqual(2);
+
           expect(rows.eq(0).find("td").html()).toEqual("Joe");
           expect(rows.eq(1).find("td").html()).toEqual("Bob");
         });

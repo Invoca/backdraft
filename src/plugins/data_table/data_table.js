@@ -16,8 +16,8 @@ var LocalDataTable = (function() {
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
-      this._initColumns();
       this._applyDefaults();
+      this._initColumns();
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -86,8 +86,6 @@ var LocalDataTable = (function() {
     // Private APIs
 
     _initColumns: function() {
-      this.columns = _.result(this.rowClass.prototype, "columns");
-      if (!_.isArray(this.columns)) throw new Error("Columns should be a valid array");
       this._columnManager = new ColumnManager(this);
     },
 
@@ -190,8 +188,8 @@ var LocalDataTable = (function() {
         iDisplayLength : this.paginateLength,
         bInfo : true,
         fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.configGenerator.columns(),
-        aaSorting : this._columnManager.configGenerator.sorting(),
+        aoColumns : this._columnManager.dataTableColumnsConfig(),
+        aaSorting : this._columnManager.dataTableSortingConfig(),
         fnDrawCallback : this._onDraw
       };
     },
@@ -228,7 +226,11 @@ var LocalDataTable = (function() {
 
     _onRowCreated : function(node, data) {
       var model = this.collection.get(data);
-      var row = new this.rowClass({ el : node, model : model });
+      var row = new this.rowClass({
+        el : node,
+        model : model,
+        columnsConfig: this._columnManager.columnsConfig()
+      });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
       // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
@@ -273,11 +275,17 @@ var LocalDataTable = (function() {
 
   }, {
 
-    finalize : function(name, tableClass, views) {
-      if (!tableClass.prototype.rowClassName) return;
-      // method for late resolution of row class, removes dependency on needing access to the entire app
-      tableClass.prototype._resolveRowClass = function() {
-        return views[tableClass.prototype.rowClassName];
+    finalize : function(name, tableClass, views, pluginConfig) {
+      if (tableClass.prototype.rowClassName) {
+        // method for late resolution of row class, removes dependency on needing access to the entire app
+        tableClass.prototype._resolveRowClass = function() {
+          return views[tableClass.prototype.rowClassName];
+        };
+      }
+
+      // return all registered column types
+      tableClass.prototype.availableColumnTypes = function() {
+        return pluginConfig.columnTypes;
       };
     }
 
