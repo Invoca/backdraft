@@ -41,6 +41,18 @@ Backdraft.Utils.Class = (function() {
     this.initialize && this.initialize.apply(this, arguments);
   }
 
+  Class.prototype._getterSetter = function(prop) {
+    this._store || (this._store = {});
+
+    this[prop] = function(value) {
+      if (arguments.length === 1) {
+        this._store[prop] = value;
+      } else {
+        return this._store[prop];
+      }
+    };
+  }
+
   _.extend(Class, {
     extend : extend
   });
