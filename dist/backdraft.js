@@ -69,9 +69,7 @@
 Backdraft.Utils.toCSSClass = (function() {
   var cssClass = /[^a-zA-Z_0-9\-]/g;
   return function(input) {
-    return input.replace(cssClass, function() {
-      return "-";
-    });
+    return input.replace(cssClass, "-");
   };
 })();
 
