@@ -53,6 +53,15 @@
   return Class;
 
 })();
+  // create a valid CSS class name based on input
+Backdraft.Utils.toCSSClass = (function() {
+  var cssClass = /[^a-zA-Z_0-9\-]/g;
+  return function(input) {
+    return input.replace(cssClass, function() {
+      return "-";
+    });
+  };
+})();
 
   var App = (function() {
 
@@ -600,10 +609,12 @@ $.extend( $.fn.dataTableExt.oPagination, {
     this.dataTableColumns = [];
     this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
     if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
+
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var columnConfig = this.columns[index];
       var definition = columnType.callbacks.definition(this.table, columnConfig);
       this.dataTableColumns.push(definition)
+      columnConfig.nodeMatcher = columnType.callbacks.nodeMatcher;
       // use column type's default renderer if the config doesn't supply one
       if (!columnConfig.renderer) columnConfig.renderer = columnType.callbacks.renderer;
     }, this);
@@ -633,7 +644,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     var columnType, availableColumnTypes = this.table.availableColumnTypes();
     return _.map(this.columns, function(config, index) {
       var columnType = _.find(availableColumnTypes, function(type) {
-        return type.callbacks.matcher(config);
+        return type.callbacks.configMatcher(config);
       });
 
       if (!columnType) {
@@ -745,8 +756,12 @@ $.extend( $.fn.dataTableExt.oPagination, {
     this.callbacks = {};
   },
 
-  matcher: function(cb) {
-    this.callbacks.matcher = cb;
+  configMatcher: function(cb) {
+    this.callbacks.configMatcher = cb;
+  },
+
+  nodeMatcher: function(cb) {
+    this.callbacks.nodeMatcher = cb;
   },
 
   definition: function(cb) {
@@ -2128,15 +2143,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
-  var cssClass = /[^a-zA-Z_0-9\-]/g;
-
-  function selectorForCell(config) {
-    if (config.title) {
-      return "." + Row.getCSSClass(config.title);
-    } else if (config.bulk) {
-      return ".bulk";
-    }
-  }
 
   var Row = Base.View.extend({
     initialize: function(options) {
@@ -2147,8 +2153,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     render : function() {
       var cells = this.$el.find("td"), node;
       _.each(this.columnsConfig, function(config) {
-        node = cells.filter(selectorForCell(config));
-        if (node.length) config.renderer.call(this, node, config);
+        node = cells.filter(config.nodeMatcher(config));
+        if (node.length === 1) {
+          config.renderer.call(this, node, config);
+        } else if (node.length > 1) {
+          throw new Error("multiple nodes were matched");
+        }
       }, this);
     },
 
@@ -2172,13 +2182,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   }, {
 
     finalize : function(name, rowClass) {
-    },
-
-    // create a valid CSS class name based on input
-    getCSSClass : function(input) {
-      return input.replace(cssClass, function() {
-        return "-";
-      });
     }
 
   });
@@ -2697,8 +2700,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     // add standard column types
     app.view.dataTable.columnType(function(columnType) {
-  columnType.matcher(function(config) {
+  columnType.configMatcher(function(config) {
     return config.bulk === true;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return ".bulk";
   });
 
   columnType.definition(function(dataTable, config) {
@@ -2727,8 +2734,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   });
 });
     app.view.dataTable.columnType(function(columnType) {
-  columnType.matcher(function(config) {
+  columnType.configMatcher(function(config) {
     return !!config.attr;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return "." + Backdraft.Utils.toCSSClass(config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -2736,7 +2747,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       bSortable: config.sort,
       bSearchable: config.search,
       sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },
@@ -2762,8 +2773,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   });
 });
     app.view.dataTable.columnType(function(columnType) {
-  columnType.matcher(function(config) {
+  columnType.configMatcher(function(config) {
     return !config.attr && config.title;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return "." + Backdraft.Utils.toCSSClass(config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -2776,7 +2791,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       bSortable: sortable,
       bSearchable: searchable,
       sTitle: config.title,
-      sClass : Row.getCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source);
       },

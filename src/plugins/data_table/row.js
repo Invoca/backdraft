@@ -1,15 +1,6 @@
 var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
-  var cssClass = /[^a-zA-Z_0-9\-]/g;
-
-  function selectorForCell(config) {
-    if (config.title) {
-      return "." + Row.getCSSClass(config.title);
-    } else if (config.bulk) {
-      return ".bulk";
-    }
-  }
 
   var Row = Base.View.extend({
     initialize: function(options) {
@@ -20,8 +11,12 @@ var Row = (function() {
     render : function() {
       var cells = this.$el.find("td"), node;
       _.each(this.columnsConfig, function(config) {
-        node = cells.filter(selectorForCell(config));
-        if (node.length) config.renderer.call(this, node, config);
+        node = cells.filter(config.nodeMatcher(config));
+        if (node.length === 1) {
+          config.renderer.call(this, node, config);
+        } else if (node.length > 1) {
+          throw new Error("multiple nodes were matched");
+        }
       }, this);
     },
 
@@ -45,13 +40,6 @@ var Row = (function() {
   }, {
 
     finalize : function(name, rowClass) {
-    },
-
-    // create a valid CSS class name based on input
-    getCSSClass : function(input) {
-      return input.replace(cssClass, function() {
-        return "-";
-      });
     }
 
   });

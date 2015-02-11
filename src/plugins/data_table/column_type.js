@@ -3,8 +3,12 @@ var ColumnType =  Backdraft.Utils.Class.extend({
     this.callbacks = {};
   },
 
-  matcher: function(cb) {
-    this.callbacks.matcher = cb;
+  configMatcher: function(cb) {
+    this.callbacks.configMatcher = cb;
+  },
+
+  nodeMatcher: function(cb) {
+    this.callbacks.nodeMatcher = cb;
   },
 
   definition: function(cb) {

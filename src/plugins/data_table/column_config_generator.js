@@ -10,10 +10,12 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     this.dataTableColumns = [];
     this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
     if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
+
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var columnConfig = this.columns[index];
       var definition = columnType.callbacks.definition(this.table, columnConfig);
       this.dataTableColumns.push(definition)
+      columnConfig.nodeMatcher = columnType.callbacks.nodeMatcher;
       // use column type's default renderer if the config doesn't supply one
       if (!columnConfig.renderer) columnConfig.renderer = columnType.callbacks.renderer;
     }, this);
@@ -43,7 +45,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     var columnType, availableColumnTypes = this.table.availableColumnTypes();
     return _.map(this.columns, function(config, index) {
       var columnType = _.find(availableColumnTypes, function(type) {
-        return type.callbacks.matcher(config);
+        return type.callbacks.configMatcher(config);
       });
 
       if (!columnType) {

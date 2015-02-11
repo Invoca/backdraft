@@ -1,6 +1,10 @@
 app.view.dataTable.columnType(function(columnType) {
-  columnType.matcher(function(config) {
+  columnType.configMatcher(function(config) {
     return config.bulk === true;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return ".bulk";
   });
 
   columnType.definition(function(dataTable, config) {
