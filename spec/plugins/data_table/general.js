@@ -461,4 +461,67 @@ describe("DataTable Plugin", function() {
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
   });
+
+  describe("locking/unlocking controls", function() {
+    beforeEach(function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" }
+        ]
+      });
+      app.view.dataTable("LockUnlock", {
+        rowClassName : "R",
+        sorting: [[0, "desc"]]
+      });
+      table = new app.Views.LockUnlock({ collection : collection }).render();
+    });
+
+    it("should work for pagination ui", function() {
+      table.paginationLock(true);
+      expect(table.$(".dataTables_length").css("visibility")).toEqual("hidden");
+      expect(table.paginationLock()).toEqual(true);
+      table.paginationLock(false);
+      expect(table.$(".dataTables_length").css("visibility")).toEqual("visible");
+      expect(table.paginationLock()).toEqual(false);
+    });
+
+    it("should work for pagination api", function() {
+      table.paginationLock(true);
+      expect(function() {
+        table.page("next");
+      }).toThrowError(/pagination is locked/);
+
+      table.paginationLock(false);
+      expect(function() {
+        table.page("next");
+      }).not.toThrow();
+    });
+
+    it("should work for sorting ui", function() {
+    });
+
+    it("should work for sorting api", function() {
+    });
+
+    it("should work for filter ui", function() {
+      table.filterLock(true);
+      expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
+      expect(table.filterLock()).toEqual(true);
+      table.filterLock(false);
+      expect(table.$(".dataTables_filter").css("visibility")).toEqual("visible");
+      expect(table.filterLock()).toEqual(false);
+    });
+
+    it("should work for filter api", function() {
+      table.filterLock(true);
+      expect(function() {
+        table.filter("stuff");
+      }).toThrowError(/filtering is locked/);
+
+      table.filterLock(false);
+      expect(function() {
+        table.filter("stuff");
+      }).not.toThrow();
+    });
+  });
 });

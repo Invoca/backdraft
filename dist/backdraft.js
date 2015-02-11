@@ -761,6 +761,45 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 
 });
+  var LockManager = Backdraft.Utils.Class.extend({
+  initialize: function(table) {
+    _.extend(this, Backbone.Events);
+    this.table = table;
+    this._locks = new Backbone.Model();
+    this._initData();
+    this._initEvents();
+  },
+
+  val: function(prop, v) {
+    if (arguments.length === 2) {
+      // setter
+      this._locks.set(prop, v);
+    } else {
+      // getter
+      return this._locks.get(prop);
+    }
+  },
+
+  _initData: function() {
+    this._locks.set({
+      paginate: !this.table.paginate,
+      sort: false,
+      filter: false
+    });
+  },
+
+  _initEvents: function() {
+    this.listenTo(this._locks, "change:paginate", function(model, state) {
+      this.table.$(".dataTables_length").css("visibility", state ? "hidden" : "visible");
+    });
+
+    this.listenTo(this._locks, "change:filter", function(model, state) {
+      this.table.$(".dataTables_filter").css("visibility", state ? "hidden" : "visible");
+    });
+  }
+
+});
+
   var ColumnType =  Backdraft.Utils.Class.extend({
   initialize: function() {
     this._getterSetter("configMatcher");
@@ -2205,7 +2244,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
       this._applyDefaults();
-      this._initColumns();
+      this._columnManager = new ColumnManager(this);
+      this._lockManager = new LockManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -2214,12 +2254,13 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     // apply filtering
     filter : function() {
+      if (this.filterLock()) throw new Error("filtering is locked");
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
     // change pagination
-    changePage : function() {
-      if (!this.paginate) throw new Error("#changePage requires the table be enabled for pagination");
+    page : function() {
+      if (this.paginationLock()) throw new Error("pagination is locked");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
@@ -2271,11 +2312,27 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
     },
 
-    // Private APIs
-
-    _initColumns: function() {
-      this._columnManager = new ColumnManager(this);
+    paginationLock: function(state) {
+      if (arguments.length === 0) {
+        // getter
+        return this._lockManager.val("paginate");
+      } else {
+        // setter
+        this._lockManager.val("paginate", state);
+      }
     },
+
+    filterLock: function(state) {
+      if (arguments.length === 0) {
+        // getter
+        return this._lockManager.val("filter");
+      } else {
+        // setter
+        this._lockManager.val("filter", state);
+      }
+    },
+
+    // Private APIs
 
     _enableReorderableColumns: function() {
       new $.fn.dataTable.ColReorder(this.dataTable);

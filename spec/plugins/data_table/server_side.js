@@ -216,7 +216,7 @@ describe("DataTable Plugin", function() {
       table = new app.Views.T({ collection : collection });
       table.serverParams({ monkey : "chicken" });
       table.render();
-      table.changePage("next");
+      table.page("next");
 
       // an initial request and then another for the next page
       expect(jasmine.Ajax.requests.count()).toEqual(2);
@@ -268,7 +268,7 @@ describe("DataTable Plugin", function() {
       })
 
       it("should clear on pagination", function() {
-        table.changePage("next");
+        table.page("next");
         jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
         expect(table.selectAllMatching()).toEqual(null);

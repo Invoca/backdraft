@@ -17,7 +17,8 @@ var LocalDataTable = (function() {
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
       this._applyDefaults();
-      this._initColumns();
+      this._columnManager = new ColumnManager(this);
+      this._lockManager = new LockManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -26,12 +27,13 @@ var LocalDataTable = (function() {
 
     // apply filtering
     filter : function() {
+      if (this.filterLock()) throw new Error("filtering is locked");
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
     // change pagination
-    changePage : function() {
-      if (!this.paginate) throw new Error("#changePage requires the table be enabled for pagination");
+    page : function() {
+      if (this.paginationLock()) throw new Error("pagination is locked");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
@@ -83,11 +85,27 @@ var LocalDataTable = (function() {
       }
     },
 
-    // Private APIs
-
-    _initColumns: function() {
-      this._columnManager = new ColumnManager(this);
+    paginationLock: function(state) {
+      if (arguments.length === 0) {
+        // getter
+        return this._lockManager.val("paginate");
+      } else {
+        // setter
+        this._lockManager.val("paginate", state);
+      }
     },
+
+    filterLock: function(state) {
+      if (arguments.length === 0) {
+        // getter
+        return this._lockManager.val("filter");
+      } else {
+        // setter
+        this._lockManager.val("filter", state);
+      }
+    },
+
+    // Private APIs
 
     _enableReorderableColumns: function() {
       new $.fn.dataTable.ColReorder(this.dataTable);
