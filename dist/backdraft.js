@@ -612,11 +612,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var columnConfig = this.columns[index];
-      var definition = columnType.callbacks.definition(this.table, columnConfig);
+      var definition = columnType.definition()(this.table, columnConfig);
       this.dataTableColumns.push(definition)
-      columnConfig.nodeMatcher = columnType.callbacks.nodeMatcher;
+      columnConfig.nodeMatcher = columnType.nodeMatcher();
       // use column type's default renderer if the config doesn't supply one
-      if (!columnConfig.renderer) columnConfig.renderer = columnType.callbacks.renderer;
+      if (!columnConfig.renderer) columnConfig.renderer = columnType.renderer();
     }, this);
   },
 
@@ -644,7 +644,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     var columnType, availableColumnTypes = this.table.availableColumnTypes();
     return _.map(this.columns, function(config, index) {
       var columnType = _.find(availableColumnTypes, function(type) {
-        return type.callbacks.configMatcher(config);
+        return type.configMatcher()(config);
       });
 
       if (!columnType) {
@@ -753,23 +753,21 @@ $.extend( $.fn.dataTableExt.oPagination, {
 });
   var ColumnType =  Backdraft.Utils.Class.extend({
   initialize: function() {
-    this.callbacks = {};
+    this._store = {};
+    this._getterSetter("configMatcher");
+    this._getterSetter("nodeMatcher");
+    this._getterSetter("definition");
+    this._getterSetter("renderer");
   },
 
-  configMatcher: function(cb) {
-    this.callbacks.configMatcher = cb;
-  },
-
-  nodeMatcher: function(cb) {
-    this.callbacks.nodeMatcher = cb;
-  },
-
-  definition: function(cb) {
-    this.callbacks.definition = cb;
-  },
-
-  renderer: function(cb) {
-    this.callbacks.renderer = cb;
+  _getterSetter: function(prop) {
+    this[prop] = function(value) {
+      if (arguments.length === 1) {
+        this._store[prop] = value;
+      } else {
+        return this._store[prop];
+      }
+    }
   }
 });
 

@@ -1,21 +1,19 @@
 var ColumnType =  Backdraft.Utils.Class.extend({
   initialize: function() {
-    this.callbacks = {};
+    this._store = {};
+    this._getterSetter("configMatcher");
+    this._getterSetter("nodeMatcher");
+    this._getterSetter("definition");
+    this._getterSetter("renderer");
   },
 
-  configMatcher: function(cb) {
-    this.callbacks.configMatcher = cb;
-  },
-
-  nodeMatcher: function(cb) {
-    this.callbacks.nodeMatcher = cb;
-  },
-
-  definition: function(cb) {
-    this.callbacks.definition = cb;
-  },
-
-  renderer: function(cb) {
-    this.callbacks.renderer = cb;
+  _getterSetter: function(prop) {
+    this[prop] = function(value) {
+      if (arguments.length === 1) {
+        this._store[prop] = value;
+      } else {
+        return this._store[prop];
+      }
+    }
   }
 });
