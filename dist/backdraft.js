@@ -780,11 +780,13 @@ $.extend( $.fn.dataTableExt.oPagination, {
     }
   },
 
+  // TODO-EUGE - handle initial bulk state?
   _initData: function() {
     this._locks.set({
       paginate: !this.table.paginate,
       sort: false,
-      filter: false
+      filter: false,
+      bulk: false
     });
   },
 
@@ -795,6 +797,10 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     this.listenTo(this._locks, "change:filter", function(model, state) {
       this.table.$(".dataTables_filter").css("visibility", state ? "hidden" : "visible");
+    });
+
+    this.listenTo(this._locks, "change:bulk", function(model, state) {
+      this.table.$(".bulk :checkbox").prop("disabled", state);
     });
   }
 
@@ -2283,6 +2289,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectedModels : function() {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      // requires: bulk enabled
       return this.selectionManager.models();
     },
 
@@ -2296,6 +2304,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectAllVisible : function(state) {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
@@ -2304,6 +2313,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectAllMatching : function() {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
       if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
@@ -2312,6 +2322,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     matchingCount : function() {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
@@ -2327,10 +2338,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     // TODO-EUGE - this should not be settable if table doesnt support pagination
     paginationLock: createLockAccessor("paginate"),
-    
+
     filterLock: createLockAccessor("filter"),
 
     sortLock: createLockAccessor("sort"),
+
+    bulkLock: createLockAccessor("bulk"),
 
     // Private APIs
 

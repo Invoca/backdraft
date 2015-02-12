@@ -466,12 +466,13 @@ describe("DataTable Plugin", function() {
     beforeEach(function() {
       app.view.dataTable.row("R", {
         columns : [
+          { bulk: true },
           { attr : "name", title : "Name" }
         ]
       });
       app.view.dataTable("LockUnlock", {
         rowClassName : "R",
-        sorting: [[0, "desc"]]
+        sorting: [[1, "desc"]]
       });
       table = new app.Views.LockUnlock({ collection : collection }).render();
     });
@@ -499,17 +500,17 @@ describe("DataTable Plugin", function() {
 
     it("should work for sorting ui", function() {
       function getCells() {
-        return table.$("tbody td").map(function() {
+        return table.$("tbody td.Name").map(function() {
           return $(this).text()
         }).get();
       }
       collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.sortLock(true);
-      table.$("thead th > :first").click();
+      table.$("thead th.Name > :first").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.sortLock(false);
-      table.$("thead th > :first").click();
+      table.$("thead th.Name > :first").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
@@ -545,5 +546,45 @@ describe("DataTable Plugin", function() {
         table.filter("stuff");
       }).not.toThrow();
     });
+
+    it("should work for bulk ui", function() {
+      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
+      expect(table.$(":checkbox:disabled").length).toEqual(0)
+      table.bulkLock(true);
+      expect(table.$(":checkbox:disabled").length).toEqual(4)
+      table.bulkLock(false);
+      expect(table.$(":checkbox:disabled").length).toEqual(0)
+    });
+
+    it("should work for bulk api", function() {
+      table.bulkLock(true);
+      expect(function() {
+        table.selectedModels();
+      }).toThrowError(/bulk selection is locked/);
+      expect(function() {
+        table.selectAllVisible(true);
+      }).toThrowError(/bulk selection is locked/);
+      expect(function() {
+        table.selectAllMatching();
+      }).toThrowError(/bulk selection is locked/);
+      expect(function() {
+        table.matchingCount();
+      }).toThrowError(/bulk selection is locked/);
+
+      table.bulkLock(false);
+      expect(function() {
+        table.selectedModels();
+      }).not.toThrow()
+      expect(function() {
+        table.selectAllVisible(true);
+      }).not.toThrow()
+      expect(function() {
+        table.selectAllMatching();
+      }).not.toThrow()
+      expect(function() {
+        table.matchingCount();
+      }).not.toThrow()
+    });
+
   });
 });

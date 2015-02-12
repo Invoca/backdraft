@@ -17,11 +17,13 @@ var LockManager = Backdraft.Utils.Class.extend({
     }
   },
 
+  // TODO-EUGE - handle initial bulk state?
   _initData: function() {
     this._locks.set({
       paginate: !this.table.paginate,
       sort: false,
-      filter: false
+      filter: false,
+      bulk: false
     });
   },
 
@@ -32,6 +34,10 @@ var LockManager = Backdraft.Utils.Class.extend({
 
     this.listenTo(this._locks, "change:filter", function(model, state) {
       this.table.$(".dataTables_filter").css("visibility", state ? "hidden" : "visible");
+    });
+
+    this.listenTo(this._locks, "change:bulk", function(model, state) {
+      this.table.$(".bulk :checkbox").prop("disabled", state);
     });
   }
 

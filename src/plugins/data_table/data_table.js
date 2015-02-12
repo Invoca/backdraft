@@ -56,6 +56,8 @@ var LocalDataTable = (function() {
     },
 
     selectedModels : function() {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      // requires: bulk enabled
       return this.selectionManager.models();
     },
 
@@ -69,6 +71,7 @@ var LocalDataTable = (function() {
     },
 
     selectAllVisible : function(state) {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
@@ -77,6 +80,7 @@ var LocalDataTable = (function() {
     },
 
     selectAllMatching : function() {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
       if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
@@ -85,6 +89,7 @@ var LocalDataTable = (function() {
     },
 
     matchingCount : function() {
+      if (this.bulkLock()) throw new Error("bulk selection is locked");
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
@@ -100,10 +105,12 @@ var LocalDataTable = (function() {
 
     // TODO-EUGE - this should not be settable if table doesnt support pagination
     paginationLock: createLockAccessor("paginate"),
-    
+
     filterLock: createLockAccessor("filter"),
 
     sortLock: createLockAccessor("sort"),
+
+    bulkLock: createLockAccessor("bulk"),
 
     // Private APIs
 
