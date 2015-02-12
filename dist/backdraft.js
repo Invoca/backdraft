@@ -761,50 +761,69 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 
 });
+  var LockManager = (function() {
+
+  var LOCKS = {
+    "bulk":   "bulk selection is locked",
+    "page":   "pagination is locked",
+    "filter": "filtering is locked",
+    "sort":   "sorting is locked"
+  };
+
+  var LOCK_NAMES = _.keys(LOCKS);
+
   var LockManager = Backdraft.Utils.Class.extend({
-  initialize: function(table) {
-    _.extend(this, Backbone.Events);
-    this.table = table;
-    this._locks = new Backbone.Model();
-    this._initData();
-    this._initEvents();
-  },
+    initialize: function(table) {
+      _.extend(this, Backbone.Events);
+      this.table = table;
+      this._states = new Backbone.Model();
+      this._initData();
+      this._initEvents();
+    },
 
-  val: function(prop, v) {
-    if (arguments.length === 2) {
-      // setter
-      this._locks.set(prop, v);
-    } else {
-      // getter
-      return this._locks.get(prop);
+    lock: function(name, state) {
+      if (!_.include(LOCK_NAMES, name)) throw new Error("unknown lock " + name);
+      if (arguments.length === 1) {
+        // getter
+        return this._states.get(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._states.set(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
+    },
+
+    ensureUnlocked: function(name) {
+      if (this.lock(name)) throw new Error(LOCKS[name]);
+    },
+
+    _initData: function() {
+      // all locks start as unlocked
+      _.each(LOCKS, function(v, k) {
+        this._states.set(k, false);
+      }, this);
+    },
+
+    _initEvents: function() {
+      // note: the sort lock is handled by the table
+      this.listenTo(this._states, "change:page", function(model, state) {
+        this.table.$(".dataTables_length").css("visibility", state ? "hidden" : "visible");
+      });
+
+      this.listenTo(this._states, "change:filter", function(model, state) {
+        this.table.$(".dataTables_filter").css("visibility", state ? "hidden" : "visible");
+      });
+
+      this.listenTo(this._states, "change:bulk", function(model, state) {
+        this.table.$(".bulk :checkbox").prop("disabled", state);
+      });
     }
-  },
 
-  // TODO-EUGE - handle initial bulk state?
-  _initData: function() {
-    this._locks.set({
-      paginate: !this.table.paginate,
-      sort: false,
-      filter: false,
-      bulk: false
-    });
-  },
+  });
 
-  _initEvents: function() {
-    this.listenTo(this._locks, "change:paginate", function(model, state) {
-      this.table.$(".dataTables_length").css("visibility", state ? "hidden" : "visible");
-    });
-
-    this.listenTo(this._locks, "change:filter", function(model, state) {
-      this.table.$(".dataTables_filter").css("visibility", state ? "hidden" : "visible");
-    });
-
-    this.listenTo(this._locks, "change:bulk", function(model, state) {
-      this.table.$(".bulk :checkbox").prop("disabled", state);
-    });
-  }
-
-});
+  return LockManager;
+})();
 
   var ColumnType =  Backdraft.Utils.Class.extend({
   initialize: function() {
@@ -2235,18 +2254,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
   var Base = Backdraft.plugin("Base");
 
-  function createLockAccessor(name) {
-    return function(state) {
-      if (arguments.length === 0) {
-        // getter
-        return this._lockManager.val(name);
-      } else {
-        // setter
-        this._lockManager.val(name, state);
-      }
-    };
-  }
-
   var LocalDataTable = Base.View.extend({
 
     template : '\
@@ -2272,24 +2279,24 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     // apply filtering
     filter : function() {
-      if (this.filterLock()) throw new Error("filtering is locked");
+      this._lockManager.ensureUnlocked("filter");
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
     // change pagination
     page : function() {
-      if (this.paginationLock()) throw new Error("pagination is locked");
+      this._lockManager.ensureUnlocked("page");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
     // sort specific columns
     sort : function() {
-      if (this.sortLock()) throw new Error("sorting is locked");
+      this._lockManager.ensureUnlocked("sort");
       return this.dataTable.fnSort.apply(this.dataTable, arguments);
     },
 
     selectedModels : function() {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       // requires: bulk enabled
       return this.selectionManager.models();
     },
@@ -2304,7 +2311,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectAllVisible : function(state) {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
@@ -2313,7 +2320,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectAllMatching : function() {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
@@ -2322,7 +2329,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     matchingCount : function() {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
@@ -2336,14 +2343,17 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
     },
 
-    // TODO-EUGE - this should not be settable if table doesnt support pagination
-    paginationLock: createLockAccessor("paginate"),
-
-    filterLock: createLockAccessor("filter"),
-
-    sortLock: createLockAccessor("sort"),
-
-    bulkLock: createLockAccessor("bulk"),
+    lock: function(name, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._lockManager.lock(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._lockManager.lock(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
+    },
 
     // Private APIs
 
@@ -2466,7 +2476,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         var wrapper = $("<div>");
         $(this).html(wrapper.html($(this).html()));
         wrapper.on("click", function() {
-          return !self.sortLock();
+          return !self.lock("sort");
         });
       });
     },

@@ -478,21 +478,21 @@ describe("DataTable Plugin", function() {
     });
 
     it("should work for pagination ui", function() {
-      table.paginationLock(true);
+      table.lock("page", true);
       expect(table.$(".dataTables_length").css("visibility")).toEqual("hidden");
-      expect(table.paginationLock()).toEqual(true);
-      table.paginationLock(false);
+      expect(table.lock("page")).toEqual(true);
+      table.lock("page", false);
       expect(table.$(".dataTables_length").css("visibility")).toEqual("visible");
-      expect(table.paginationLock()).toEqual(false);
+      expect(table.lock("page")).toEqual(false);
     });
 
     it("should work for pagination api", function() {
-      table.paginationLock(true);
+      table.lock("page", true);
       expect(function() {
         table.page("next");
       }).toThrowError(/pagination is locked/);
 
-      table.paginationLock(false);
+      table.lock("page", false);
       expect(function() {
         table.page("next");
       }).not.toThrow();
@@ -506,42 +506,42 @@ describe("DataTable Plugin", function() {
       }
       collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
       expect(getCells()).toEqual(["C", "B", "A"]);
-      table.sortLock(true);
+      table.lock("sort", true);
       table.$("thead th.Name > :first").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
-      table.sortLock(false);
+      table.lock("sort", false);
       table.$("thead th.Name > :first").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
     it("should work for sorting api", function() {
-      table.sortLock(true);
+      table.lock("sort", true);
       expect(function() {
         table.sort([ [0,"asc"] ]);
       }).toThrowError(/sorting is locked/);
 
-      table.sortLock(false);
+      table.lock("sort", false);
       expect(function() {
         table.sort([ [0,"asc"] ]);
       }).not.toThrow();
     });
 
     it("should work for filter ui", function() {
-      table.filterLock(true);
+      table.lock("filter", true);
       expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
-      expect(table.filterLock()).toEqual(true);
-      table.filterLock(false);
+      expect(table.lock("filter")).toEqual(true);
+      table.lock("filter", false);
       expect(table.$(".dataTables_filter").css("visibility")).toEqual("visible");
-      expect(table.filterLock()).toEqual(false);
+      expect(table.lock("filter")).toEqual(false);
     });
 
     it("should work for filter api", function() {
-      table.filterLock(true);
+      table.lock("filter", true);
       expect(function() {
         table.filter("stuff");
       }).toThrowError(/filtering is locked/);
 
-      table.filterLock(false);
+      table.lock("filter", false);
       expect(function() {
         table.filter("stuff");
       }).not.toThrow();
@@ -550,14 +550,14 @@ describe("DataTable Plugin", function() {
     it("should work for bulk ui", function() {
       collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
       expect(table.$(":checkbox:disabled").length).toEqual(0)
-      table.bulkLock(true);
+      table.lock("bulk", true);
       expect(table.$(":checkbox:disabled").length).toEqual(4)
-      table.bulkLock(false);
+      table.lock("bulk", false);
       expect(table.$(":checkbox:disabled").length).toEqual(0)
     });
 
     it("should work for bulk api", function() {
-      table.bulkLock(true);
+      table.lock("bulk", true);
       expect(function() {
         table.selectedModels();
       }).toThrowError(/bulk selection is locked/);
@@ -571,7 +571,7 @@ describe("DataTable Plugin", function() {
         table.matchingCount();
       }).toThrowError(/bulk selection is locked/);
 
-      table.bulkLock(false);
+      table.lock("bulk", false);
       expect(function() {
         table.selectedModels();
       }).not.toThrow()

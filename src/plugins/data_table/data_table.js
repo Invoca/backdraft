@@ -2,18 +2,6 @@ var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
 
-  function createLockAccessor(name) {
-    return function(state) {
-      if (arguments.length === 0) {
-        // getter
-        return this._lockManager.val(name);
-      } else {
-        // setter
-        this._lockManager.val(name, state);
-      }
-    };
-  }
-
   var LocalDataTable = Base.View.extend({
 
     template : '\
@@ -39,24 +27,24 @@ var LocalDataTable = (function() {
 
     // apply filtering
     filter : function() {
-      if (this.filterLock()) throw new Error("filtering is locked");
+      this._lockManager.ensureUnlocked("filter");
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
     // change pagination
     page : function() {
-      if (this.paginationLock()) throw new Error("pagination is locked");
+      this._lockManager.ensureUnlocked("page");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
     // sort specific columns
     sort : function() {
-      if (this.sortLock()) throw new Error("sorting is locked");
+      this._lockManager.ensureUnlocked("sort");
       return this.dataTable.fnSort.apply(this.dataTable, arguments);
     },
 
     selectedModels : function() {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       // requires: bulk enabled
       return this.selectionManager.models();
     },
@@ -71,7 +59,7 @@ var LocalDataTable = (function() {
     },
 
     selectAllVisible : function(state) {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
@@ -80,7 +68,7 @@ var LocalDataTable = (function() {
     },
 
     selectAllMatching : function() {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
@@ -89,7 +77,7 @@ var LocalDataTable = (function() {
     },
 
     matchingCount : function() {
-      if (this.bulkLock()) throw new Error("bulk selection is locked");
+      this._lockManager.ensureUnlocked("bulk");
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
@@ -103,14 +91,17 @@ var LocalDataTable = (function() {
       }
     },
 
-    // TODO-EUGE - this should not be settable if table doesnt support pagination
-    paginationLock: createLockAccessor("paginate"),
-
-    filterLock: createLockAccessor("filter"),
-
-    sortLock: createLockAccessor("sort"),
-
-    bulkLock: createLockAccessor("bulk"),
+    lock: function(name, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._lockManager.lock(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._lockManager.lock(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
+    },
 
     // Private APIs
 
@@ -233,7 +224,7 @@ var LocalDataTable = (function() {
         var wrapper = $("<div>");
         $(this).html(wrapper.html($(this).html()));
         wrapper.on("click", function() {
-          return !self.sortLock();
+          return !self.lock("sort");
         });
       });
     },
