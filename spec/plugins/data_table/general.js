@@ -498,6 +498,19 @@ describe("DataTable Plugin", function() {
     });
 
     it("should work for sorting ui", function() {
+      function getCells() {
+        return table.$("tbody td").map(function() {
+          return $(this).text()
+        }).get();
+      }
+      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
+      expect(getCells()).toEqual(["C", "B", "A"]);
+      table.sortLock(true);
+      table.$("thead th > :first").click();
+      expect(getCells()).toEqual(["C", "B", "A"]);
+      table.sortLock(false);
+      table.$("thead th > :first").click();
+      expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
     it("should work for sorting api", function() {

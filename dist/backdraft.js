@@ -2381,6 +2381,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this._installSortInterceptors();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences()
@@ -2442,6 +2443,20 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     _triggerChangeSelection: function(extraData) {
       var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
+    },
+
+    _installSortInterceptors: function() {
+      // dataTables does not provide a good way to programmatically disable sorting
+      // so we wrap the text in each header cell with a div that we can intercept clicks on
+      // TODO-EUGE: how does this handle bulk column?
+      var self = this;
+      this.dataTable.find("thead th").each(function() {
+        var wrapper = $("<div>");
+        $(this).html(wrapper.html($(this).html()));
+        wrapper.on("click", function() {
+          return !self.sortLock();
+        });
+      });
     },
 
     // events
