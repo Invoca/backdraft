@@ -221,7 +221,6 @@ var LocalDataTable = (function() {
     _installSortInterceptors: function() {
       // dataTables does not provide a good way to programmatically disable sorting
       // so we wrap the text in each header cell with a div that we can intercept clicks on
-      // TODO-EUGE: how does this handle bulk column?
       var self = this;
       this.dataTable.find("thead th").each(function() {
         var wrapper = $("<div>");
