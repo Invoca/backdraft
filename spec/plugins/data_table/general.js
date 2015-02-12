@@ -501,6 +501,15 @@ describe("DataTable Plugin", function() {
     });
 
     it("should work for sorting api", function() {
+      table.sortLock(true);
+      expect(function() {
+        table.sort([ [0,"asc"] ]);
+      }).toThrowError(/sorting is locked/);
+
+      table.sortLock(false);
+      expect(function() {
+        table.sort([ [0,"asc"] ]);
+      }).not.toThrow();
     });
 
     it("should work for filter ui", function() {

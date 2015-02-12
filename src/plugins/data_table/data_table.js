@@ -2,6 +2,18 @@ var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
 
+  function createLockAccessor(name) {
+    return function(state) {
+      if (arguments.length === 0) {
+        // getter
+        return this._lockManager.val(name);
+      } else {
+        // setter
+        this._lockManager.val(name, state);
+      }
+    };
+  }
+
   var LocalDataTable = Base.View.extend({
 
     template : '\
@@ -39,6 +51,7 @@ var LocalDataTable = (function() {
 
     // sort specific columns
     sort : function() {
+      if (this.sortLock()) throw new Error("sorting is locked");
       return this.dataTable.fnSort.apply(this.dataTable, arguments);
     },
 
@@ -85,25 +98,12 @@ var LocalDataTable = (function() {
       }
     },
 
-    paginationLock: function(state) {
-      if (arguments.length === 0) {
-        // getter
-        return this._lockManager.val("paginate");
-      } else {
-        // setter
-        this._lockManager.val("paginate", state);
-      }
-    },
+    // TODO-EUGE - this should not be settable if table doesnt support pagination
+    paginationLock: createLockAccessor("paginate"),
+    
+    filterLock: createLockAccessor("filter"),
 
-    filterLock: function(state) {
-      if (arguments.length === 0) {
-        // getter
-        return this._lockManager.val("filter");
-      } else {
-        // setter
-        this._lockManager.val("filter", state);
-      }
-    },
+    sortLock: createLockAccessor("sort"),
 
     // Private APIs
 
