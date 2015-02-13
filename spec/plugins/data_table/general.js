@@ -474,6 +474,7 @@ describe("DataTable Plugin", function() {
         rowClassName : "R",
         sorting: [[1, "desc"]]
       });
+      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
       table = new app.Views.LockUnlock({ collection : collection }).render();
     });
 
@@ -504,7 +505,6 @@ describe("DataTable Plugin", function() {
           return $(this).text()
         }).get();
       }
-      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
       table.$("thead th.Name > :first").click();
@@ -548,7 +548,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should work for bulk ui", function() {
-      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
       expect(table.$(":checkbox:disabled").length).toEqual(0)
       table.lock("bulk", true);
       expect(table.$(":checkbox:disabled").length).toEqual(4)
