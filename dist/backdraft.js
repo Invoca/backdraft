@@ -2297,7 +2297,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     selectedModels : function() {
       this._lockManager.ensureUnlocked("bulk");
-      // requires: bulk enabled
       return this.selectionManager.models();
     },
 

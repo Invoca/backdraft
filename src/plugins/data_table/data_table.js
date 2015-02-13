@@ -45,7 +45,6 @@ var LocalDataTable = (function() {
 
     selectedModels : function() {
       this._lockManager.ensureUnlocked("bulk");
-      // requires: bulk enabled
       return this.selectionManager.models();
     },
 
