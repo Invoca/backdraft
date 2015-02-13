@@ -808,7 +808,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     _initEvents: function() {
       // note: the sort lock is handled by the table
       this.listenTo(this._states, "change:page", function(model, state) {
-        this.table.$(".dataTables_length").css("visibility", state ? "hidden" : "visible");
+        this.table.$(".dataTables_length, .dataTables_paginate").css("visibility", state ? "hidden" : "visible");
       });
 
       this.listenTo(this._states, "change:filter", function(model, state) {

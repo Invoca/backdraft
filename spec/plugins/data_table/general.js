@@ -481,9 +481,11 @@ describe("DataTable Plugin", function() {
     it("should work for pagination ui", function() {
       table.lock("page", true);
       expect(table.$(".dataTables_length").css("visibility")).toEqual("hidden");
+      expect(table.$(".dataTables_paginate").css("visibility")).toEqual("hidden");
       expect(table.lock("page")).toEqual(true);
       table.lock("page", false);
       expect(table.$(".dataTables_length").css("visibility")).toEqual("visible");
+      expect(table.$(".dataTables_paginate").css("visibility")).toEqual("visible");
       expect(table.lock("page")).toEqual(false);
     });
 
