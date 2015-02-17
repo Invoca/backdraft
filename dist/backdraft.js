@@ -2212,7 +2212,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     render : function() {
-      var cells = this.$el.find("td"), node;
+      var cells = this.findCells(), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(config.nodeMatcher(config));
         if (node.length === 1) {
@@ -2235,6 +2235,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         // getter
         return this.checkbox.prop("checked");
       }
+    },
+
+    findCells: function() {
+      return this.$el.find("td");
     },
 
     renderers : {

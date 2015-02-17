@@ -9,7 +9,7 @@ var Row = (function() {
     },
 
     render : function() {
-      var cells = this.$el.find("td"), node;
+      var cells = this.findCells(), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(config.nodeMatcher(config));
         if (node.length === 1) {
@@ -32,6 +32,10 @@ var Row = (function() {
         // getter
         return this.checkbox.prop("checked");
       }
+    },
+
+    findCells: function() {
+      return this.$el.find("td");
     },
 
     renderers : {
