@@ -509,10 +509,10 @@ describe("DataTable Plugin", function() {
       }
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
-      table.$("thead th.Name > :first").click();
+      table.$("thead th.Name").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", false);
-      table.$("thead th.Name > :first").click();
+      table.$("thead th.Name").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 

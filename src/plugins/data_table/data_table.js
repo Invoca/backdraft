@@ -216,15 +216,19 @@ var LocalDataTable = (function() {
     },
 
     _installSortInterceptors: function() {
-      // dataTables does not provide a good way to programmatically disable sorting
-      // so we wrap the text in each header cell with a div that we can intercept clicks on
+      // dataTables does not provide a good way to programmatically disable sorting, so we:
+      // 1) remove the default sorting event handler that dataTables adds
+      // 2) insert our own that stops the event if we are locked
+      // 3) re-insert the dataTables sort event handler
       var self = this;
-      this.dataTable.find("thead th").each(function() {
-        var wrapper = $("<div>");
-        $(this).html(wrapper.html($(this).html()));
-        wrapper.on("click", function() {
-          return !self.lock("sort");
+      this.dataTable.find("thead th").each(function(index) {
+        $(this).off("click.DT").on("click", function(event) {
+          if (self.lock("sort")) {
+            event.stopImmediatePropagation();
+          }
         });
+        // default sort handler for column with index
+        self.dataTable.fnSortListener($(this), index);
       });
     },
 
