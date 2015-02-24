@@ -296,7 +296,8 @@ describe("DataTable Plugin", function() {
           { attr : "attr1", title : "Attr1", present: yes },
           { attr : "attr2", title : "Attr2", present: no },
           { attr : "attr3", title : "Attr3", present: no },
-          { attr : "attr4", title : "Attr4", present: yes }
+          { attr : "attr4", title : "Attr4", present: yes },
+          { attr : "attr5", title : "Attr5" }
         ]
       });
       app.view.dataTable("T", {
@@ -306,7 +307,7 @@ describe("DataTable Plugin", function() {
       table = new app.Views.T({ collection : collection });
       table.render();
 
-      expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
+      expect(getHeaders(table)).toEqual(["Attr1", "Attr4", "Attr5"]);
     })
 
     describe("visibility", function() {
