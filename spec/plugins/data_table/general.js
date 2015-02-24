@@ -284,6 +284,31 @@ describe("DataTable Plugin", function() {
       expect(failing).toThrow();
     });
 
+    it("should allow columns to provide a #present method controlling whether they are included", function() {
+      var yes = function() {
+        return true;
+      };
+      var no = function() {
+        return false;
+      };
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "attr1", title : "Attr1", present: yes },
+          { attr : "attr2", title : "Attr2", present: no },
+          { attr : "attr3", title : "Attr3", present: no },
+          { attr : "attr4", title : "Attr4", present: yes }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
+    })
+
     describe("visibility", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {

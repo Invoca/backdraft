@@ -619,6 +619,13 @@ $.extend( $.fn.dataTableExt.oPagination, {
     this.dataTableColumns = [];
     this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
     if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
+    this.columns = _.reject(this.columns, function(columnConfig) {
+      if (!columnConfig.present) {
+        return false;
+      } else {
+        return !columnConfig.present();
+      }
+    });
 
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var columnConfig = this.columns[index];
