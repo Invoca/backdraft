@@ -461,4 +461,131 @@ describe("DataTable Plugin", function() {
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
   });
+
+  describe("locking/unlocking controls", function() {
+    beforeEach(function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { bulk: true },
+          { attr : "name", title : "Name" }
+        ]
+      });
+      app.view.dataTable("LockUnlock", {
+        rowClassName : "R",
+        sorting: [[1, "desc"]]
+      });
+      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
+      table = new app.Views.LockUnlock({ collection : collection }).render();
+    });
+
+    it("should work for pagination ui", function() {
+      table.lock("page", true);
+      expect(table.$(".dataTables_length").css("visibility")).toEqual("hidden");
+      expect(table.$(".dataTables_paginate").css("visibility")).toEqual("hidden");
+      expect(table.lock("page")).toEqual(true);
+      table.lock("page", false);
+      expect(table.$(".dataTables_length").css("visibility")).toEqual("visible");
+      expect(table.$(".dataTables_paginate").css("visibility")).toEqual("visible");
+      expect(table.lock("page")).toEqual(false);
+    });
+
+    it("should work for pagination api", function() {
+      table.lock("page", true);
+      expect(function() {
+        table.page("next");
+      }).toThrowError(/pagination is locked/);
+
+      table.lock("page", false);
+      expect(function() {
+        table.page("next");
+      }).not.toThrow();
+    });
+
+    it("should work for sorting ui", function() {
+      function getCells() {
+        return table.$("tbody td.Name").map(function() {
+          return $(this).text()
+        }).get();
+      }
+      expect(getCells()).toEqual(["C", "B", "A"]);
+      table.lock("sort", true);
+      table.$("thead th.Name").click();
+      expect(getCells()).toEqual(["C", "B", "A"]);
+      table.lock("sort", false);
+      table.$("thead th.Name").click();
+      expect(getCells()).toEqual(["A", "B", "C"]);
+    });
+
+    it("should work for sorting api", function() {
+      table.lock("sort", true);
+      expect(function() {
+        table.sort([ [0,"asc"] ]);
+      }).toThrowError(/sorting is locked/);
+
+      table.lock("sort", false);
+      expect(function() {
+        table.sort([ [0,"asc"] ]);
+      }).not.toThrow();
+    });
+
+    it("should work for filter ui", function() {
+      table.lock("filter", true);
+      expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
+      expect(table.lock("filter")).toEqual(true);
+      table.lock("filter", false);
+      expect(table.$(".dataTables_filter").css("visibility")).toEqual("visible");
+      expect(table.lock("filter")).toEqual(false);
+    });
+
+    it("should work for filter api", function() {
+      table.lock("filter", true);
+      expect(function() {
+        table.filter("stuff");
+      }).toThrowError(/filtering is locked/);
+
+      table.lock("filter", false);
+      expect(function() {
+        table.filter("stuff");
+      }).not.toThrow();
+    });
+
+    it("should work for bulk ui", function() {
+      expect(table.$(":checkbox:disabled").length).toEqual(0)
+      table.lock("bulk", true);
+      expect(table.$(":checkbox:disabled").length).toEqual(4)
+      table.lock("bulk", false);
+      expect(table.$(":checkbox:disabled").length).toEqual(0)
+    });
+
+    it("should work for bulk api", function() {
+      table.lock("bulk", true);
+      expect(function() {
+        table.selectedModels();
+      }).toThrowError(/bulk selection is locked/);
+      expect(function() {
+        table.selectAllVisible(true);
+      }).toThrowError(/bulk selection is locked/);
+      expect(function() {
+        table.selectAllMatching();
+      }).toThrowError(/bulk selection is locked/);
+      expect(function() {
+        table.matchingCount();
+      }).toThrowError(/bulk selection is locked/);
+
+      table.lock("bulk", false);
+      expect(function() {
+        table.selectedModels();
+      }).not.toThrow()
+      expect(function() {
+        table.selectAllVisible(true);
+      }).not.toThrow()
+      expect(function() {
+        table.selectAllMatching();
+      }).not.toThrow()
+      expect(function() {
+        table.matchingCount();
+      }).not.toThrow()
+    });
+
+  });
 });

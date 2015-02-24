@@ -17,7 +17,8 @@ var LocalDataTable = (function() {
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
       this._applyDefaults();
-      this._initColumns();
+      this._columnManager = new ColumnManager(this);
+      this._lockManager = new LockManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -26,21 +27,24 @@ var LocalDataTable = (function() {
 
     // apply filtering
     filter : function() {
+      this._lockManager.ensureUnlocked("filter");
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
     // change pagination
-    changePage : function() {
-      if (!this.paginate) throw new Error("#changePage requires the table be enabled for pagination");
+    page : function() {
+      this._lockManager.ensureUnlocked("page");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
     // sort specific columns
     sort : function() {
+      this._lockManager.ensureUnlocked("sort");
       return this.dataTable.fnSort.apply(this.dataTable, arguments);
     },
 
     selectedModels : function() {
+      this._lockManager.ensureUnlocked("bulk");
       return this.selectionManager.models();
     },
 
@@ -54,6 +58,7 @@ var LocalDataTable = (function() {
     },
 
     selectAllVisible : function(state) {
+      this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
@@ -62,6 +67,7 @@ var LocalDataTable = (function() {
     },
 
     selectAllMatching : function() {
+      this._lockManager.ensureUnlocked("bulk");
       if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
@@ -70,6 +76,7 @@ var LocalDataTable = (function() {
     },
 
     matchingCount : function() {
+      this._lockManager.ensureUnlocked("bulk");
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
@@ -83,11 +90,19 @@ var LocalDataTable = (function() {
       }
     },
 
-    // Private APIs
-
-    _initColumns: function() {
-      this._columnManager = new ColumnManager(this);
+    lock: function(name, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._lockManager.lock(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._lockManager.lock(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
     },
+
+    // Private APIs
 
     _enableReorderableColumns: function() {
       new $.fn.dataTable.ColReorder(this.dataTable);
@@ -136,6 +151,7 @@ var LocalDataTable = (function() {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this._installSortInterceptors();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences()
@@ -197,6 +213,23 @@ var LocalDataTable = (function() {
     _triggerChangeSelection: function(extraData) {
       var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
+    },
+
+    _installSortInterceptors: function() {
+      // dataTables does not provide a good way to programmatically disable sorting, so we:
+      // 1) remove the default sorting event handler that dataTables adds
+      // 2) insert our own that stops the event if we are locked
+      // 3) re-insert the dataTables sort event handler
+      var self = this;
+      this.dataTable.find("thead th").each(function(index) {
+        $(this).off("click.DT").on("click", function(event) {
+          if (self.lock("sort")) {
+            event.stopImmediatePropagation();
+          }
+        });
+        // default sort handler for column with index
+        self.dataTable.fnSortListener($(this), index);
+      });
     },
 
     // events

@@ -761,6 +761,70 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 
 });
+  var LockManager = (function() {
+
+  var LOCKS = {
+    "bulk":   "bulk selection is locked",
+    "page":   "pagination is locked",
+    "filter": "filtering is locked",
+    "sort":   "sorting is locked"
+  };
+
+  var LOCK_NAMES = _.keys(LOCKS);
+
+  var LockManager = Backdraft.Utils.Class.extend({
+    initialize: function(table) {
+      _.extend(this, Backbone.Events);
+      this.table = table;
+      this._states = new Backbone.Model();
+      this._initData();
+      this._initEvents();
+    },
+
+    lock: function(name, state) {
+      if (!_.include(LOCK_NAMES, name)) throw new Error("unknown lock " + name);
+      if (arguments.length === 1) {
+        // getter
+        return this._states.get(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._states.set(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
+    },
+
+    ensureUnlocked: function(name) {
+      if (this.lock(name)) throw new Error(LOCKS[name]);
+    },
+
+    _initData: function() {
+      // all locks start as unlocked
+      _.each(LOCKS, function(v, k) {
+        this._states.set(k, false);
+      }, this);
+    },
+
+    _initEvents: function() {
+      // note: the sort lock is handled by the table
+      this.listenTo(this._states, "change:page", function(model, state) {
+        this.table.$(".dataTables_length, .dataTables_paginate").css("visibility", state ? "hidden" : "visible");
+      });
+
+      this.listenTo(this._states, "change:filter", function(model, state) {
+        this.table.$(".dataTables_filter").css("visibility", state ? "hidden" : "visible");
+      });
+
+      this.listenTo(this._states, "change:bulk", function(model, state) {
+        this.table.$(".bulk :checkbox").prop("disabled", state);
+      });
+    }
+
+  });
+
+  return LockManager;
+})();
+
   var ColumnType =  Backdraft.Utils.Class.extend({
   initialize: function() {
     this._getterSetter("configMatcher");
@@ -2148,7 +2212,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     render : function() {
-      var cells = this.$el.find("td"), node;
+      var cells = this.findCells(), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(config.nodeMatcher(config));
         if (node.length === 1) {
@@ -2171,6 +2235,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         // getter
         return this.checkbox.prop("checked");
       }
+    },
+
+    findCells: function() {
+      return this.$el.find("td");
     },
 
     renderers : {
@@ -2205,7 +2273,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
       this._applyDefaults();
-      this._initColumns();
+      this._columnManager = new ColumnManager(this);
+      this._lockManager = new LockManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -2214,21 +2283,24 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     // apply filtering
     filter : function() {
+      this._lockManager.ensureUnlocked("filter");
       this.dataTable.fnFilter.apply(this.dataTable, arguments);
     },
 
     // change pagination
-    changePage : function() {
-      if (!this.paginate) throw new Error("#changePage requires the table be enabled for pagination");
+    page : function() {
+      this._lockManager.ensureUnlocked("page");
       return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
     },
 
     // sort specific columns
     sort : function() {
+      this._lockManager.ensureUnlocked("sort");
       return this.dataTable.fnSort.apply(this.dataTable, arguments);
     },
 
     selectedModels : function() {
+      this._lockManager.ensureUnlocked("bulk");
       return this.selectionManager.models();
     },
 
@@ -2242,6 +2314,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectAllVisible : function(state) {
+      this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
       _.each(this._visibleRowsOnCurrentPage(), function(row) {
         this._setRowSelectedState(row.model, row, state);
@@ -2250,6 +2323,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     selectAllMatching : function() {
+      this._lockManager.ensureUnlocked("bulk");
       if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
@@ -2258,6 +2332,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     matchingCount : function() {
+      this._lockManager.ensureUnlocked("bulk");
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
@@ -2271,11 +2346,19 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
     },
 
-    // Private APIs
-
-    _initColumns: function() {
-      this._columnManager = new ColumnManager(this);
+    lock: function(name, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._lockManager.lock(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._lockManager.lock(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
     },
+
+    // Private APIs
 
     _enableReorderableColumns: function() {
       new $.fn.dataTable.ColReorder(this.dataTable);
@@ -2324,6 +2407,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this._installSortInterceptors();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences()
@@ -2385,6 +2469,23 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     _triggerChangeSelection: function(extraData) {
       var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
+    },
+
+    _installSortInterceptors: function() {
+      // dataTables does not provide a good way to programmatically disable sorting, so we:
+      // 1) remove the default sorting event handler that dataTables adds
+      // 2) insert our own that stops the event if we are locked
+      // 3) re-insert the dataTables sort event handler
+      var self = this;
+      this.dataTable.find("thead th").each(function(index) {
+        $(this).off("click.DT").on("click", function(event) {
+          if (self.lock("sort")) {
+            event.stopImmediatePropagation();
+          }
+        });
+        // default sort handler for column with index
+        self.dataTable.fnSortListener($(this), index);
+      });
     },
 
     // events
