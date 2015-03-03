@@ -422,6 +422,41 @@ describe("DataTable Plugin", function() {
       new app.Views.def({ collection : collection }).render();
       expect(reorderableSpy).toHaveBeenCalled();
     });
+
+    describe("should provide an interface to access the column configuration", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2" },
+            { attr : "attr3", title : "Attr3" },
+            { attr : "attr4", title : "Attr4" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+      });
+
+      it("should return the configuration with some additional properties", function() {
+        var columnsConfig = table.columnsConfig();
+        expect(columnsConfig.length).toEqual(4);
+
+        var expectedAttrs = ["attr1", "attr2", "attr3", "attr4"];
+        var expectedTitles = ["Attr1", "Attr2", "Attr3", "Attr4"];
+
+        expect(_.pluck(columnsConfig, "attr")).toEqual(expectedAttrs);
+        expect(_.pluck(columnsConfig, "title")).toEqual(expectedTitles);
+
+        _.each(columnsConfig, function(c) {
+          expect(c.renderer).toBeDefined();
+          expect(c.nodeMatcher).toBeDefined();
+        });
+      });
+    });
   });
 
   describe("sorting", function() {

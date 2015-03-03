@@ -2365,6 +2365,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
     },
 
+    columnsConfig: function() {
+      return this._columnManager.columnsConfig();
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {
@@ -2525,7 +2529,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       var row = new this.rowClass({
         el : node,
         model : model,
-        columnsConfig: this._columnManager.columnsConfig()
+        columnsConfig: this.columnsConfig()
       });
       this.cache.set(model, row);
       this.child("child" + row.cid, row).render();
