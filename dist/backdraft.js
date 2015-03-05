@@ -694,11 +694,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
   },
 
   applyVisibilityPreferences: function() {
-    // for now we are assuming that all columns are initially visible, this will need to take into account
-    // other things in the futures
     var prefs = {};
-    _.each(this._configGenerator.columnIndexByTitle.keys(), function(title) {
-      prefs[title] = true;
+    _.each(this.columnsConfig(), function(config) {
+      if (config.title) {
+        prefs[config.title] = config.visible;
+      }
     });
     this.visibility.set(prefs);
   },

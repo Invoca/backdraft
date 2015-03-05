@@ -485,7 +485,8 @@ describe("DataTable Plugin", function() {
             { attr : "attr2", title : "Attr2", visible: true },
             { attr : "attr3", title : "Attr3", visible: false },
             { attr : "attr4", title : "Attr4", required: true },
-            { attr : "attr5", title : "Attr5", required: false }
+            { attr : "attr5", title : "Attr5", required: false },
+            { attr : "attr6", title : "Attr6", visible: false }
           ]
         });
         app.view.dataTable("T", {
@@ -528,6 +529,15 @@ describe("DataTable Plugin", function() {
           table = new app.Views.TError({ collection : collection });
           table.render();
         }).toThrowError(/column can't be required, but not visible/);
+      });
+
+      it("should initially have certain columns hidden", function() {
+        expect(table.columnVisibility("Attr1")).toEqual(true);
+        expect(table.columnVisibility("Attr2")).toEqual(true);
+        expect(table.columnVisibility("Attr3")).toEqual(false);
+        expect(table.columnVisibility("Attr4")).toEqual(true);
+        expect(table.columnVisibility("Attr5")).toEqual(true);
+        expect(table.columnVisibility("Attr6")).toEqual(false);
       });
     });
 
