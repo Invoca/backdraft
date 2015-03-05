@@ -30,7 +30,11 @@ var ColumnManager = Backdraft.Utils.Class.extend({
   },
 
   columnsConfig: function() {
-    return this._configGenerator.columns;
+    return this._configGenerator.columnsConfig;
+  },
+
+  columnConfigForTitle: function(title) {
+    return this._configGenerator.columnConfigByTitle.get(title);
   },
 
   _initEvents: function() {

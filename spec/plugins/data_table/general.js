@@ -539,20 +539,18 @@ describe("DataTable Plugin", function() {
         expect(table.columnVisibility("Attr5")).toEqual(true);
         expect(table.columnVisibility("Attr6")).toEqual(false);
       });
-    });
 
-    it("should restore columns to columnConfig", function() {
-      var defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
-      //uncomment this when setting default visibility works.
-      //expect(getHeaders(table)).toEqual(defaultColumnVisibility);
-      table.columnVisibility("Attr1", false);
-      table.columnVisibility("Attr2", false);
-      table.columnVisibility("Attr3", true);
-      table.columnVisibility("Attr4", true);
-      table.columnVisibility("Attr5", false);
-      expect(getHeaders(table)).toEqual(["Attr3", "Attr4"]);
-      table.restoreColumnVisibility();
-      expect(getHeaders(table)).toEqual(defaultColumnVisibility);
+      it("should restore columns to their default visibility", function() {
+        var defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
+        table.columnVisibility("Attr1", false);
+        table.columnVisibility("Attr2", false);
+        table.columnVisibility("Attr3", true);
+        table.columnVisibility("Attr4", true);
+        table.columnVisibility("Attr5", false);
+        expect(getHeaders(table)).toEqual(["Attr3", "Attr4"]);
+        table.restoreColumnVisibility();
+        expect(getHeaders(table)).toEqual(defaultColumnVisibility);
+      });
     });
   });
 

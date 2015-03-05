@@ -85,13 +85,9 @@ var LocalDataTable = (function() {
         // getter
         return this._columnManager.visibility.get(title);
       } else {
-        // setter
-        _.each(this.columnsConfig(), function(column) {
-          if (title == column.title && column.required === true && state === false) {
-            throw new Error("can not disable visibility when column is required");
-          }
-        }, this);
-
+        if (!state && this._columnManager.columnConfigForTitle(title).required) {
+          throw new Error("can not disable visibility when column is required");
+        }
         this._columnManager.visibility.set(title, state);
       }
     },
