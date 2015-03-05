@@ -310,7 +310,7 @@ describe("DataTable Plugin", function() {
       expect(getHeaders(table)).toEqual(["Attr1", "Attr4", "Attr5"]);
     })
 
-    describe("visibility", function() {
+    describe("getting and setting visibility", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
@@ -423,7 +423,7 @@ describe("DataTable Plugin", function() {
       expect(reorderableSpy).toHaveBeenCalled();
     });
 
-    describe("should provide an interface to access the column configuration", function() {
+    describe("provide an interface to access the column configuration", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
@@ -455,6 +455,63 @@ describe("DataTable Plugin", function() {
           expect(c.renderer).toBeDefined();
           expect(c.nodeMatcher).toBeDefined();
         });
+      });
+    });
+
+    describe("initial visibility and required property", function() {
+      var columnsConfig;
+
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2", visible: true },
+            { attr : "attr3", title : "Attr3", visible: false },
+            { attr : "attr4", title : "Attr4", required: true },
+            { attr : "attr5", title : "Attr5", required: false },
+            { attr : "attr6", title : "Attr6", required: true, visible: false },
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        columnsConfig = table.columnsConfig();
+      });
+
+      it("should default to visible and not required", function() {
+        expect(_.has(columnsConfig[0], "required")).toEqual(true);
+        expect(_.has(columnsConfig[0], "visible")).toEqual(true);
+        expect(columnsConfig[0].required).toEqual(false);
+        expect(columnsConfig[0].visible).toEqual(true);
+      });
+
+      it("should preserve the value of visible if provided", function() {
+        expect(columnsConfig[1].visible).toEqual(true);
+        expect(columnsConfig[2].visible).toEqual(false);
+      });
+
+      it("should preserve the value of required if provided", function() {
+        expect(columnsConfig[3].required).toEqual(true);
+        expect(columnsConfig[4].required).toEqual(false);
+      });
+
+      it("should throw an error if a column is not visible, but is required", function() {
+        expect(function() {
+          app.view.dataTable.row("RError", {
+            columns : [
+              { attr : "attr6", title : "Attr6", required: true, visible: false },
+            ]
+          });
+          app.view.dataTable("TError", {
+            rowClassName : "RError"
+          });
+
+          table = new app.Views.TError({ collection : collection });
+          table.render();
+        }).toThrowError(/column can't be required, but not visible/);
       });
     });
   });
