@@ -630,7 +630,19 @@ $.extend( $.fn.dataTableExt.oPagination, {
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var columnConfig = this.columns[index];
       var definition = columnType.definition()(this.table, columnConfig);
-      this.dataTableColumns.push(definition)
+
+      if (!_.has(columnConfig, "required")) {
+        columnConfig.required = false;
+      }
+      if (!_.has(columnConfig, "visible")) {
+        columnConfig.visible = true;
+      }
+
+      if (columnConfig.required === true && columnConfig.visible === false) {
+        throw new Error("column can't be required, but not visible");
+      }
+
+      this.dataTableColumns.push(definition);
       columnConfig.nodeMatcher = columnType.nodeMatcher();
       // use column type's default renderer if the config doesn't supply one
       if (!columnConfig.renderer) columnConfig.renderer = columnType.renderer();

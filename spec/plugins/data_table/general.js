@@ -468,8 +468,7 @@ describe("DataTable Plugin", function() {
             { attr : "attr2", title : "Attr2", visible: true },
             { attr : "attr3", title : "Attr3", visible: false },
             { attr : "attr4", title : "Attr4", required: true },
-            { attr : "attr5", title : "Attr5", required: false },
-            { attr : "attr6", title : "Attr6", required: true, visible: false },
+            { attr : "attr5", title : "Attr5", required: false }
           ]
         });
         app.view.dataTable("T", {
