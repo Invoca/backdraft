@@ -2361,8 +2361,20 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         return this._columnManager.visibility.get(title);
       } else {
         // setter
+        _.each(this.columnsConfig(), function(column) {
+          if (title == column.title && column.required === true && state === false) {
+            throw new Error("can not disable visibility when column is required");
+          }
+        }, this);
+
         this._columnManager.visibility.set(title, state);
       }
+    },
+
+    restoreColumnVisibility: function() {
+      _.each(this.columnsConfig(), function(column) {
+        this.columnVisibility(column.title, column.visible);
+      }, this);
     },
 
     lock: function(name, state) {

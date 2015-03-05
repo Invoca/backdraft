@@ -403,6 +403,23 @@ describe("DataTable Plugin", function() {
         table.columnVisibility("Attr3", true);
         expect(getColspanLength()).toEqual(4);
       });
+
+      it("should raise when setting visibility to false on a column that is required", function() {
+        expect(function() {
+          app.view.dataTable.row("RError", {
+            columns : [
+              { attr : "attr5", title : "Attr5", required: true},
+            ]
+          });
+          app.view.dataTable("TError", {
+            rowClassName : "RError"
+          });
+
+          table = new app.Views.TError({ collection : collection });
+          table.render();
+          table.columnVisibility("Attr5", false);
+        }).toThrowError(/can not disable visibility when column is required/);
+      });
     });
 
     it("should allow columns to be reorderable", function() {
@@ -512,6 +529,20 @@ describe("DataTable Plugin", function() {
           table.render();
         }).toThrowError(/column can't be required, but not visible/);
       });
+    });
+
+    it("should restore columns to columnConfig", function() {
+      var defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
+      //uncomment this when setting default visibility works.
+      //expect(getHeaders(table)).toEqual(defaultColumnVisibility);
+      table.columnVisibility("Attr1", false);
+      table.columnVisibility("Attr2", false);
+      table.columnVisibility("Attr3", true);
+      table.columnVisibility("Attr4", true);
+      table.columnVisibility("Attr5", false);
+      expect(getHeaders(table)).toEqual(["Attr3", "Attr4"]);
+      table.restoreColumnVisibility();
+      expect(getHeaders(table)).toEqual(defaultColumnVisibility);
     });
   });
 
