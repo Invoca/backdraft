@@ -57,6 +57,16 @@ var LocalDataTable = (function() {
       return this;
     },
 
+    renderColumn: function(title) {
+      var config = this._columnManager.columnConfigForTitle(title);
+      if (!config) {
+        throw new Error("column not found");
+      }
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
     selectAllVisible : function(state) {
       this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
@@ -89,6 +99,7 @@ var LocalDataTable = (function() {
           throw new Error("can not disable visibility when column is required");
         }
         this._columnManager.visibility.set(title, state);
+        state && this.renderColumn(title);
       }
     },
 

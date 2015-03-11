@@ -552,6 +552,47 @@ describe("DataTable Plugin", function() {
         expect(getHeaders(table)).toEqual(defaultColumnVisibility);
       });
     });
+
+    it("should allow specific columns to be re rendered", function() {
+      function cellsForColumn(view, title) {
+        return view.$("tbody td." + title).map(function() {
+          return $.trim($(this).text());
+        }).get();
+      }
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "attr1", title : "Attr1", visible: true },
+          { attr : "attr2", title : "Attr2", visible: false },
+          { attr : "attr3", title : "Attr3", visible: true },
+          { attr : "attr4", title : "Attr4", visible: false }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        sorting: [ [ "Attr1", "asc" ] ]
+      });
+
+      collection.add([
+        { attr1: "A1", attr2: "A2", attr3: "A3", attr4: "A4" },
+        { attr1: "B1", attr2: "B2", attr3: "B3", attr4: "B4" },
+        { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
+        { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" },
+      ])
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      // enable columns that were hidden when initially rendered, which should now be populated
+      table.columnVisibility("Attr2", true);
+      table.columnVisibility("Attr4", true);
+      expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
+      expect(cellsForColumn(table, "Attr4")).toEqual(["A4", "B4", "C4", "D4"]);
+
+      // remove some content
+      table.$("tbody td.Attr2").html("");
+      table.renderColumn("Attr2");
+      expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
+    });
   });
 
   describe("sorting", function() {

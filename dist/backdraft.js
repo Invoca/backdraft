@@ -2243,12 +2243,13 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       var cells = this.findCells(), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(config.nodeMatcher(config));
-        if (node.length === 1) {
-          config.renderer.call(this, node, config);
-        } else if (node.length > 1) {
-          throw new Error("multiple nodes were matched");
-        }
+        this._invokeRenderer(config, node);
       }, this);
+    },
+
+    renderColumnByConfig: function(config) {
+      var node = this.findCells().filter(config.nodeMatcher(config));
+      this._invokeRenderer(config, node);
     },
 
     bulkState : function(state) {
@@ -2270,6 +2271,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     renderers : {
+    },
+
+    _invokeRenderer: function(config, node) {
+      if (node.length === 1) {
+        config.renderer.call(this, node, config);
+      } else if (node.length > 1) {
+        throw new Error("multiple nodes were matched");
+      }
     }
 
   }, {
@@ -2341,6 +2350,16 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       return this;
     },
 
+    renderColumn: function(title) {
+      var config = this._columnManager.columnConfigForTitle(title);
+      if (!config) {
+        throw new Error("column not found");
+      }
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
     selectAllVisible : function(state) {
       this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
@@ -2373,6 +2392,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
           throw new Error("can not disable visibility when column is required");
         }
         this._columnManager.visibility.set(title, state);
+        state && this.renderColumn(title);
       }
     },
 
