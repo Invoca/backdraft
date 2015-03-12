@@ -2,15 +2,15 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
     this._computeColumnConfig();
-    this._computeColumnIndexByTitle();
+    this._computeColumnLookups();
     this._computeSortingConfig();
   },
 
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
-    this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
-    if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
-    this.columns = _.reject(this.columns, function(columnConfig) {
+    this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.columnsConfig)) throw new Error("Invalid column configuration provided");
+    this.columnsConfig = _.reject(this.columnsConfig, function(columnConfig) {
       if (!columnConfig.present) {
         return false;
       } else {
@@ -19,12 +19,24 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     });
 
     _.each(this._determineColumnTypes(), function(columnType, index) {
-      var columnConfig = this.columns[index];
-      var definition = columnType.definition()(this.table, columnConfig);
-      this.dataTableColumns.push(definition)
-      columnConfig.nodeMatcher = columnType.nodeMatcher();
+      var config = this.columnsConfig[index];
+      var definition = columnType.definition()(this.table, config);
+
+      if (!_.has(config, "required")) {
+        config.required = false;
+      }
+      if (!_.has(config, "visible")) {
+        config.visible = true;
+      }
+
+      if (config.required === true && config.visible === false) {
+        throw new Error("column can't be required, but not visible");
+      }
+
+      this.dataTableColumns.push(definition);
+      config.nodeMatcher = columnType.nodeMatcher();
       // use column type's default renderer if the config doesn't supply one
-      if (!columnConfig.renderer) columnConfig.renderer = columnType.renderer();
+      if (!config.renderer) config.renderer = columnType.renderer();
     }, this);
   },
 
@@ -40,17 +52,22 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     }, this);
   },
 
-  _computeColumnIndexByTitle: function() {
+  _computeColumnLookups: function() {
     this.columnIndexByTitle = new Backbone.Model();
-    _.each(this.columns, function(col, index) {
-      col.title && this.columnIndexByTitle.set(col.title, index);
+    this.columnConfigByTitle = new Backbone.Model();
+
+    _.each(this.columnsConfig, function(col, index) {
+      if (col.title) {
+        this.columnIndexByTitle.set(col.title, index);
+        this.columnConfigByTitle.set(col.title, col);
+      }
     }, this);
   },
 
   _determineColumnTypes: function() {
     // match our table's columns to available column types
     var columnType, availableColumnTypes = this.table.availableColumnTypes();
-    return _.map(this.columns, function(config, index) {
+    return _.map(this.columnsConfig, function(config, index) {
       var columnType = _.find(availableColumnTypes, function(type) {
         return type.configMatcher()(config);
       });

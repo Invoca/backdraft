@@ -310,7 +310,7 @@ describe("DataTable Plugin", function() {
       expect(getHeaders(table)).toEqual(["Attr1", "Attr4", "Attr5"]);
     })
 
-    describe("visibility", function() {
+    describe("getting and setting visibility", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
@@ -403,6 +403,23 @@ describe("DataTable Plugin", function() {
         table.columnVisibility("Attr3", true);
         expect(getColspanLength()).toEqual(4);
       });
+
+      it("should raise when setting visibility to false on a column that is required", function() {
+        expect(function() {
+          app.view.dataTable.row("RError", {
+            columns : [
+              { attr : "attr5", title : "Attr5", required: true},
+            ]
+          });
+          app.view.dataTable("TError", {
+            rowClassName : "RError"
+          });
+
+          table = new app.Views.TError({ collection : collection });
+          table.render();
+          table.columnVisibility("Attr5", false);
+        }).toThrowError(/can not disable visibility when column is required/);
+      });
     });
 
     it("should allow columns to be reorderable", function() {
@@ -423,7 +440,7 @@ describe("DataTable Plugin", function() {
       expect(reorderableSpy).toHaveBeenCalled();
     });
 
-    describe("should provide an interface to access the column configuration", function() {
+    describe("provide an interface to access the column configuration", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns : [
@@ -456,6 +473,125 @@ describe("DataTable Plugin", function() {
           expect(c.nodeMatcher).toBeDefined();
         });
       });
+    });
+
+    describe("initial visibility and required property", function() {
+      var columnsConfig;
+
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2", visible: true },
+            { attr : "attr3", title : "Attr3", visible: false },
+            { attr : "attr4", title : "Attr4", required: true },
+            { attr : "attr5", title : "Attr5", required: false },
+            { attr : "attr6", title : "Attr6", visible: false }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        columnsConfig = table.columnsConfig();
+      });
+
+      it("should default to visible and not required", function() {
+        expect(_.has(columnsConfig[0], "required")).toEqual(true);
+        expect(_.has(columnsConfig[0], "visible")).toEqual(true);
+        expect(columnsConfig[0].required).toEqual(false);
+        expect(columnsConfig[0].visible).toEqual(true);
+      });
+
+      it("should preserve the value of visible if provided", function() {
+        expect(columnsConfig[1].visible).toEqual(true);
+        expect(columnsConfig[2].visible).toEqual(false);
+      });
+
+      it("should preserve the value of required if provided", function() {
+        expect(columnsConfig[3].required).toEqual(true);
+        expect(columnsConfig[4].required).toEqual(false);
+      });
+
+      it("should throw an error if a column is not visible, but is required", function() {
+        expect(function() {
+          app.view.dataTable.row("RError", {
+            columns : [
+              { attr : "attr6", title : "Attr6", required: true, visible: false },
+            ]
+          });
+          app.view.dataTable("TError", {
+            rowClassName : "RError"
+          });
+
+          table = new app.Views.TError({ collection : collection });
+          table.render();
+        }).toThrowError(/column can't be required, but not visible/);
+      });
+
+      it("should initially have certain columns hidden", function() {
+        expect(table.columnVisibility("Attr1")).toEqual(true);
+        expect(table.columnVisibility("Attr2")).toEqual(true);
+        expect(table.columnVisibility("Attr3")).toEqual(false);
+        expect(table.columnVisibility("Attr4")).toEqual(true);
+        expect(table.columnVisibility("Attr5")).toEqual(true);
+        expect(table.columnVisibility("Attr6")).toEqual(false);
+      });
+
+      it("should restore columns to their default visibility", function() {
+        var defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
+        table.columnVisibility("Attr1", false);
+        table.columnVisibility("Attr2", false);
+        table.columnVisibility("Attr3", true);
+        table.columnVisibility("Attr4", true);
+        table.columnVisibility("Attr5", false);
+        expect(getHeaders(table)).toEqual(["Attr3", "Attr4"]);
+        table.restoreColumnVisibility();
+        expect(getHeaders(table)).toEqual(defaultColumnVisibility);
+      });
+    });
+
+    it("should allow specific columns to be re rendered", function() {
+      function cellsForColumn(view, title) {
+        return view.$("tbody td." + title).map(function() {
+          return $.trim($(this).text());
+        }).get();
+      }
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "attr1", title : "Attr1", visible: true },
+          { attr : "attr2", title : "Attr2", visible: false },
+          { attr : "attr3", title : "Attr3", visible: true },
+          { attr : "attr4", title : "Attr4", visible: false }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        sorting: [ [ "Attr1", "asc" ] ]
+      });
+
+      collection.add([
+        { attr1: "A1", attr2: "A2", attr3: "A3", attr4: "A4" },
+        { attr1: "B1", attr2: "B2", attr3: "B3", attr4: "B4" },
+        { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
+        { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" },
+      ])
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      // enable columns that were hidden when initially rendered, which should now be populated
+      table.columnVisibility("Attr2", true);
+      table.columnVisibility("Attr4", true);
+      expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
+      expect(cellsForColumn(table, "Attr4")).toEqual(["A4", "B4", "C4", "D4"]);
+
+      // remove some content
+      table.$("tbody td.Attr2").html("");
+      table.renderColumn("Attr2");
+      expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
     });
   });
 

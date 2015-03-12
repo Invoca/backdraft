@@ -611,15 +611,15 @@ $.extend( $.fn.dataTableExt.oPagination, {
   initialize: function(table) {
     this.table = table;
     this._computeColumnConfig();
-    this._computeColumnIndexByTitle();
+    this._computeColumnLookups();
     this._computeSortingConfig();
   },
 
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
-    this.columns = _.clone(_.result(this.table.rowClass.prototype, "columns"));
-    if (!_.isArray(this.columns)) throw new Error("Invalid column configuration provided");
-    this.columns = _.reject(this.columns, function(columnConfig) {
+    this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
+    if (!_.isArray(this.columnsConfig)) throw new Error("Invalid column configuration provided");
+    this.columnsConfig = _.reject(this.columnsConfig, function(columnConfig) {
       if (!columnConfig.present) {
         return false;
       } else {
@@ -628,12 +628,24 @@ $.extend( $.fn.dataTableExt.oPagination, {
     });
 
     _.each(this._determineColumnTypes(), function(columnType, index) {
-      var columnConfig = this.columns[index];
-      var definition = columnType.definition()(this.table, columnConfig);
-      this.dataTableColumns.push(definition)
-      columnConfig.nodeMatcher = columnType.nodeMatcher();
+      var config = this.columnsConfig[index];
+      var definition = columnType.definition()(this.table, config);
+
+      if (!_.has(config, "required")) {
+        config.required = false;
+      }
+      if (!_.has(config, "visible")) {
+        config.visible = true;
+      }
+
+      if (config.required === true && config.visible === false) {
+        throw new Error("column can't be required, but not visible");
+      }
+
+      this.dataTableColumns.push(definition);
+      config.nodeMatcher = columnType.nodeMatcher();
       // use column type's default renderer if the config doesn't supply one
-      if (!columnConfig.renderer) columnConfig.renderer = columnType.renderer();
+      if (!config.renderer) config.renderer = columnType.renderer();
     }, this);
   },
 
@@ -649,17 +661,22 @@ $.extend( $.fn.dataTableExt.oPagination, {
     }, this);
   },
 
-  _computeColumnIndexByTitle: function() {
+  _computeColumnLookups: function() {
     this.columnIndexByTitle = new Backbone.Model();
-    _.each(this.columns, function(col, index) {
-      col.title && this.columnIndexByTitle.set(col.title, index);
+    this.columnConfigByTitle = new Backbone.Model();
+
+    _.each(this.columnsConfig, function(col, index) {
+      if (col.title) {
+        this.columnIndexByTitle.set(col.title, index);
+        this.columnConfigByTitle.set(col.title, col);
+      }
     }, this);
   },
 
   _determineColumnTypes: function() {
     // match our table's columns to available column types
     var columnType, availableColumnTypes = this.table.availableColumnTypes();
-    return _.map(this.columns, function(config, index) {
+    return _.map(this.columnsConfig, function(config, index) {
       var columnType = _.find(availableColumnTypes, function(type) {
         return type.configMatcher()(config);
       });
@@ -682,11 +699,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
   },
 
   applyVisibilityPreferences: function() {
-    // for now we are assuming that all columns are initially visible, this will need to take into account
-    // other things in the futures
     var prefs = {};
-    _.each(this._configGenerator.columnIndexByTitle.keys(), function(title) {
-      prefs[title] = true;
+    _.each(this.columnsConfig(), function(config) {
+      if (config.title) {
+        prefs[config.title] = config.visible;
+      }
     });
     this.visibility.set(prefs);
   },
@@ -704,7 +721,11 @@ $.extend( $.fn.dataTableExt.oPagination, {
   },
 
   columnsConfig: function() {
-    return this._configGenerator.columns;
+    return this._configGenerator.columnsConfig;
+  },
+
+  columnConfigForTitle: function(title) {
+    return this._configGenerator.columnConfigByTitle.get(title);
   },
 
   _initEvents: function() {
@@ -2222,12 +2243,13 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       var cells = this.findCells(), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(config.nodeMatcher(config));
-        if (node.length === 1) {
-          config.renderer.call(this, node, config);
-        } else if (node.length > 1) {
-          throw new Error("multiple nodes were matched");
-        }
+        this._invokeRenderer(config, node);
       }, this);
+    },
+
+    renderColumnByConfig: function(config) {
+      var node = this.findCells().filter(config.nodeMatcher(config));
+      this._invokeRenderer(config, node);
     },
 
     bulkState : function(state) {
@@ -2249,6 +2271,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     renderers : {
+    },
+
+    _invokeRenderer: function(config, node) {
+      if (node.length === 1) {
+        config.renderer.call(this, node, config);
+      } else if (node.length > 1) {
+        throw new Error("multiple nodes were matched");
+      }
     }
 
   }, {
@@ -2320,6 +2350,16 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       return this;
     },
 
+    renderColumn: function(title) {
+      var config = this._columnManager.columnConfigForTitle(title);
+      if (!config) {
+        throw new Error("column not found");
+      }
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
     selectAllVisible : function(state) {
       this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
@@ -2348,9 +2388,18 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         // getter
         return this._columnManager.visibility.get(title);
       } else {
-        // setter
+        if (!state && this._columnManager.columnConfigForTitle(title).required) {
+          throw new Error("can not disable visibility when column is required");
+        }
         this._columnManager.visibility.set(title, state);
+        state && this.renderColumn(title);
       }
+    },
+
+    restoreColumnVisibility: function() {
+      _.each(this.columnsConfig(), function(column) {
+        this.columnVisibility(column.title, column.visible);
+      }, this);
     },
 
     lock: function(name, state) {

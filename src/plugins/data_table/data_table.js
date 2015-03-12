@@ -57,6 +57,16 @@ var LocalDataTable = (function() {
       return this;
     },
 
+    renderColumn: function(title) {
+      var config = this._columnManager.columnConfigForTitle(title);
+      if (!config) {
+        throw new Error("column not found");
+      }
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
     selectAllVisible : function(state) {
       this._lockManager.ensureUnlocked("bulk");
       this.bulkCheckbox.prop("checked", state);
@@ -85,9 +95,18 @@ var LocalDataTable = (function() {
         // getter
         return this._columnManager.visibility.get(title);
       } else {
-        // setter
+        if (!state && this._columnManager.columnConfigForTitle(title).required) {
+          throw new Error("can not disable visibility when column is required");
+        }
         this._columnManager.visibility.set(title, state);
+        state && this.renderColumn(title);
       }
+    },
+
+    restoreColumnVisibility: function() {
+      _.each(this.columnsConfig(), function(column) {
+        this.columnVisibility(column.title, column.visible);
+      }, this);
     },
 
     lock: function(name, state) {
