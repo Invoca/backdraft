@@ -2904,6 +2904,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     return {
       bSortable: config.sort,
       bSearchable: config.search,
+      asSorting: config.sortDir,
       sTitle: config.title,
       sClass : Backdraft.Utils.toCSSClass(config.title),
       mData: function(source, type, val) {
@@ -2930,6 +2931,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     }
   });
 });
+
     app.view.dataTable.columnType(function(columnType) {
   columnType.configMatcher(function(config) {
     return !config.attr && config.title;

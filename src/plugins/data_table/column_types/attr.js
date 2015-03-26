@@ -11,6 +11,7 @@ app.view.dataTable.columnType(function(columnType) {
     return {
       bSortable: config.sort,
       bSearchable: config.search,
+      asSorting: config.sortDir,
       sTitle: config.title,
       sClass : Backdraft.Utils.toCSSClass(config.title),
       mData: function(source, type, val) {
