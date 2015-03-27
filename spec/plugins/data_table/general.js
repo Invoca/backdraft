@@ -308,7 +308,57 @@ describe("DataTable Plugin", function() {
       table.render();
 
       expect(getHeaders(table)).toEqual(["Attr1", "Attr4", "Attr5"]);
-    })
+    });
+
+    it("should allow columns to set default sort direction", function() {
+      function cellsByIndex(table, index) {
+        return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+          return $(this).text();
+        }).get();
+      }
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" },
+          { attr : "age",  title : "Age", sortDir: ['desc', 'asc'] },
+          { attr : "zip",  title : "Zip", sortDir: ['asc', 'desc'] }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      collection.reset([
+        { name: "Zebra", age: 1,  zip: 90000 },
+        { name: "Bob",   age: 10, zip: 10000 },
+        { name: "Joe",   age: 8,  zip: 33333 }
+      ]);
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      // when nothing specified, sort asc by default
+      table.$("thead th.Name").click();
+      expect(cellsByIndex(table, 0)).toEqual(["Bob", "Joe", "Zebra"]);
+
+
+      // when clicking on a 'desc' specified one, sort desc by default
+      table.$("thead th.Age").click();
+      expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+
+      // a second click should go to 'asc'
+      table.$("thead th.Age").click();
+      expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
+
+
+      // when clicking on a 'asc' specified one, sort asc by default
+      table.$("thead th.Zip").click();
+      expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
+
+      // a second click should go to 'desc''
+      table.$("thead th.Zip").click();
+      expect(cellsByIndex(table, 2)).toEqual(["90000", "33333", "10000"]);
+    });
 
     describe("getting and setting visibility", function() {
       beforeEach(function() {
