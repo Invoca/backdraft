@@ -78,6 +78,56 @@ describe("DataTable Plugin", function() {
     });
   });
 
+  describe("object names", function() {
+    beforeEach(function() {
+      app.view.dataTable.row("abc", { columns : [] });
+    });
+
+    it("should default to using the object name of 'row' / 'rows'", function() {
+      app.view.dataTable("def", {
+        rowClassName : "abc"
+      });
+      var table = new app.Views.def({ collection: collection });
+      expect(table.objectName.singular).toEqual("row");
+      expect(table.objectName.plural).toEqual("rows");
+    });
+
+    it("should allow the object name to be configurable", function() {
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        objectName: {
+          singular: "server",
+          plural: "servers"
+        }
+      });
+      var table = new app.Views.def({ collection: collection });
+      expect(table.objectName.singular).toEqual("server");
+      expect(table.objectName.plural).toEqual("servers");
+    });
+
+    it("should require that both the singular and plural forms of the object name be provided", function() {
+      expect(function() {
+        app.view.dataTable("noplural", {
+          rowClassName : "abc",
+          objectName: {
+            singular: "server"
+          }
+        });
+        var table = new app.Views.noplural({ collection: collection });
+      }).toThrowError(/plural object name must be provided/);
+
+      expect(function() {
+        app.view.dataTable("nosingular", {
+          rowClassName : "abc",
+          objectName: {
+            plural: "servers"
+          }
+        });
+        var table = new app.Views.nosingular({ collection: collection });
+      }).toThrowError(/singular object name must be provided/);
+    });
+  });
+
   describe("renderers", function() {
     describe("attr based", function() {
       beforeEach(function() {
@@ -833,6 +883,25 @@ describe("DataTable Plugin", function() {
         table.matchingCount();
       }).not.toThrow()
     });
+  });
 
+  describe("totalRecordsCount", function() {
+    it("should return total number of records across all pages", function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "id", title: "Id" }
+        ]
+      });
+      app.view.dataTable("def", {
+        rowClassName : "abc"
+      });
+      var data = _.map(_.range(1, 100), function(id) {
+        return { id: id };
+      });
+      var table = new app.Views.def({ collection: collection }).render();
+      expect(table.totalRecordsCount()).toEqual(0);
+      collection.reset(data);
+      expect(table.totalRecordsCount()).toEqual(99);
+    })
   });
 });

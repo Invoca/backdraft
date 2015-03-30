@@ -2383,6 +2383,11 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
+    totalRecordsCount: function() {
+      this._lockManager.ensureUnlocked("bulk");
+      return this.dataTable.fnSettings().fnRecordsTotal();
+    },
+
     columnVisibility: function(title, state) {
       if (arguments.length === 1) {
         // getter
@@ -2442,11 +2447,21 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         paginateLength : 10,
         selectedIds : [],
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-        reorderableColumns: false
+        reorderableColumns: false,
+        objectName: {
+          singular: "row",
+          plural: "rows"
+        }
       });
       _.defaults(this, {
         sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
       });
+
+      if (!this.objectName.plural) {
+        throw new Error("plural object name must be provided");
+      } else if (!this.objectName.singular) {
+        throw new Error("singular object name must be provided");
+      }
     },
 
     // returns row objects that have not been filtered out and are on the current page
@@ -2648,16 +2663,13 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
   var ServerSideDataTable = LocalDataTable.extend({
 
-    // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
-    _visibleRowsCurrentPageArgs : { filter : "applied" },
-
     constructor : function() {
       // force pagination
       this.paginate = true;
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_drawCallback");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
       this.serverParams({});
       this.selectAllMatching(false);
     },
@@ -2711,8 +2723,10 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         row.close();
       });
       this.cache.reset();
+      this.selectionManager = new SelectionManager();
       // actually add new data
       options.addData(cidMap(collection));
+      this._triggerChangeSelection();
     },
 
     // dataTables callback to allow addition of params to the ajax request
@@ -2727,10 +2741,12 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     },
 
     // dataTables callback after a draw event has occurred
-    _drawCallback : function() {
+    _onDraw : function() {
       // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectAllMatchingParams
+      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
       this.selectAllMatching(false);
+      this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
+      this.trigger("draw", arguments);
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -2769,7 +2785,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         sAjaxSource : _.result(this.collection, "url"),
         fnServerData : this._fetchServerData,
         fnServerParams : this._addServerParams,
-        fnDrawCallback : this._drawCallback,
+        fnDrawCallback : this._onDraw,
         oLanguage: {
           sProcessing: this.processingText,
           sEmptyTable: this.emptyText
@@ -2780,8 +2796,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     _dataTableCreate : function() {
       try {
         ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
-      }
-      catch(ex) {
+      } catch(ex) {
         throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
       }
 
@@ -2789,16 +2804,11 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.$(".dataTables_filter").css("visibility", "hidden");
     },
 
-    // overriden to just clear the header bulk checkbox between page transitions
-    // since rows are re-rendered on every interaction with the server
-    _initPaginationHandling : function() {
-      var self = this;
-      if (this.bulkCheckbox) {
-        this.dataTable.on("page", function() {
-          self.bulkCheckbox.prop("checked", false);
-        });
-      }
-    },
+    // overridden and will be handled via the _onDraw callback
+    _initPaginationHandling: $.noop,
+
+    // overridden and will be handled via the _onDraw callback
+    _bulkCheckboxAdjust: $.noop,
 
     _initBulkHandling : function() {
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
@@ -2806,6 +2816,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       this.on("change:selected", function() {
         this.selectAllMatching(false);
       }, this);
+    },
+
+    _visibleRowsOnCurrentPage : function() {
+      // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
+      var visibleRowsCurrentPageArgs = { filter : "applied" };
+      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
+        return $(node).data("row");
+      });
     }
 
   });
