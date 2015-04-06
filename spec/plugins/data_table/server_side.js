@@ -222,6 +222,16 @@ describe("DataTable Plugin", function() {
       expect(jasmine.Ajax.requests.count()).toEqual(2);
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
     });
+
+    it("should set an X-Backdraft header on dataTables' ajax requests", function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      expect(jasmine.Ajax.requests.mostRecent().requestHeaders["X-Backdraft"]).toEqual("1");
+      expect(jasmine.Ajax.requests.count()).toEqual(1);
+      table.page("next");
+      expect(jasmine.Ajax.requests.mostRecent().requestHeaders["X-Backdraft"]).toEqual("1");
+      expect(jasmine.Ajax.requests.count()).toEqual(2);
+    });
   });
 
   describe("#selectAllMatching", function() {

@@ -2757,6 +2757,9 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         dataType : "json",
         cache : false,
         type : "GET",
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader('X-Backdraft', "1");
+        },
         success : function(json) {
           // ensure we ignore old Ajax responses
           // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
