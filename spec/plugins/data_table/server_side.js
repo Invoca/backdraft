@@ -222,6 +222,16 @@ describe("DataTable Plugin", function() {
       expect(jasmine.Ajax.requests.count()).toEqual(2);
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
     });
+
+    it("should set an X-Backdraft header on dataTables' ajax requests", function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      expect(jasmine.Ajax.requests.mostRecent().requestHeaders["X-Backdraft"]).toEqual("1");
+      expect(jasmine.Ajax.requests.count()).toEqual(1);
+      table.page("next");
+      expect(jasmine.Ajax.requests.mostRecent().requestHeaders["X-Backdraft"]).toEqual("1");
+      expect(jasmine.Ajax.requests.count()).toEqual(2);
+    });
   });
 
   describe("#selectAllMatching", function() {
@@ -309,4 +319,54 @@ describe("DataTable Plugin", function() {
       });
     });
   });
+
+  describe("bulk selection", function() {
+    beforeEach(function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+    });
+
+    function bulkSelectionTests(action, callback) {
+      it("should clear the bulk selection checkbox after " + action, function() {
+        table.selectAllVisible(true);
+        expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
+        callback(table);
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+        expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+      });
+
+      it("should reset selections after " + action, function() {
+        expect(table.selectedModels().length).toEqual(0);
+        table.selectAllVisible(true);
+        expect(table.selectedModels().length).toEqual(10);
+        callback(table);
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+        expect(table.selectedModels().length).toEqual(0);
+      });
+
+      it("should trigger a selection change event after " + action, function() {
+        var changeSelectSpy = jasmine.createSpy("changeSelectSpy");
+        table.on("change:selected", changeSelectSpy);
+        table.selectAllVisible(true);
+        expect(changeSelectSpy.calls.allArgs()[0][0]).toEqual({ count: 10, selectAllVisible: true });
+        callback(table);
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+        expect(changeSelectSpy.calls.allArgs()[1][0]).toEqual({ count: 0 });
+      });
+    }
+
+    bulkSelectionTests("paginating", function(table) {
+      table.page("next");
+    });
+
+    bulkSelectionTests("filtering", function(table) {
+      table.filter("anything");
+    });
+
+    bulkSelectionTests("changing page size", function(table) {
+      table.$(".dataTables_length select").val(25).change();
+    });
+  });
+
 });

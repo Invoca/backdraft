@@ -2,16 +2,13 @@ var ServerSideDataTable = (function() {
 
   var ServerSideDataTable = LocalDataTable.extend({
 
-    // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
-    _visibleRowsCurrentPageArgs : { filter : "applied" },
-
     constructor : function() {
       // force pagination
       this.paginate = true;
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_drawCallback");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
       this.serverParams({});
       this.selectAllMatching(false);
     },
@@ -65,8 +62,10 @@ var ServerSideDataTable = (function() {
         row.close();
       });
       this.cache.reset();
+      this.selectionManager = new SelectionManager();
       // actually add new data
       options.addData(cidMap(collection));
+      this._triggerChangeSelection();
     },
 
     // dataTables callback to allow addition of params to the ajax request
@@ -81,10 +80,12 @@ var ServerSideDataTable = (function() {
     },
 
     // dataTables callback after a draw event has occurred
-    _drawCallback : function() {
+    _onDraw : function() {
       // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectAllMatchingParams
+      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
       this.selectAllMatching(false);
+      this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
+      this.trigger("draw", arguments);
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
@@ -95,6 +96,9 @@ var ServerSideDataTable = (function() {
         dataType : "json",
         cache : false,
         type : "GET",
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader('X-Backdraft', "1");
+        },
         success : function(json) {
           // ensure we ignore old Ajax responses
           // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
@@ -123,7 +127,7 @@ var ServerSideDataTable = (function() {
         sAjaxSource : _.result(this.collection, "url"),
         fnServerData : this._fetchServerData,
         fnServerParams : this._addServerParams,
-        fnDrawCallback : this._drawCallback,
+        fnDrawCallback : this._onDraw,
         oLanguage: {
           sProcessing: this.processingText,
           sEmptyTable: this.emptyText
@@ -134,8 +138,7 @@ var ServerSideDataTable = (function() {
     _dataTableCreate : function() {
       try {
         ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
-      }
-      catch(ex) {
+      } catch(ex) {
         throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
       }
 
@@ -143,16 +146,11 @@ var ServerSideDataTable = (function() {
       this.$(".dataTables_filter").css("visibility", "hidden");
     },
 
-    // overriden to just clear the header bulk checkbox between page transitions
-    // since rows are re-rendered on every interaction with the server
-    _initPaginationHandling : function() {
-      var self = this;
-      if (this.bulkCheckbox) {
-        this.dataTable.on("page", function() {
-          self.bulkCheckbox.prop("checked", false);
-        });
-      }
-    },
+    // overridden and will be handled via the _onDraw callback
+    _initPaginationHandling: $.noop,
+
+    // overridden and will be handled via the _onDraw callback
+    _bulkCheckboxAdjust: $.noop,
 
     _initBulkHandling : function() {
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
@@ -160,6 +158,14 @@ var ServerSideDataTable = (function() {
       this.on("change:selected", function() {
         this.selectAllMatching(false);
       }, this);
+    },
+
+    _visibleRowsOnCurrentPage : function() {
+      // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
+      var visibleRowsCurrentPageArgs = { filter : "applied" };
+      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
+        return $(node).data("row");
+      });
     }
 
   });

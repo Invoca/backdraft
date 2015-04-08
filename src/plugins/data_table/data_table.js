@@ -90,6 +90,11 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().aiDisplay.length;
     },
 
+    totalRecordsCount: function() {
+      this._lockManager.ensureUnlocked("bulk");
+      return this.dataTable.fnSettings().fnRecordsTotal();
+    },
+
     columnVisibility: function(title, state) {
       if (arguments.length === 1) {
         // getter
@@ -149,11 +154,21 @@ var LocalDataTable = (function() {
         paginateLength : 10,
         selectedIds : [],
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-        reorderableColumns: false
+        reorderableColumns: false,
+        objectName: {
+          singular: "row",
+          plural: "rows"
+        }
       });
       _.defaults(this, {
         sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
       });
+
+      if (!this.objectName.plural) {
+        throw new Error("plural object name must be provided");
+      } else if (!this.objectName.singular) {
+        throw new Error("singular object name must be provided");
+      }
     },
 
     // returns row objects that have not been filtered out and are on the current page
