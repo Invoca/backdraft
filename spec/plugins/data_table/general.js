@@ -522,7 +522,7 @@ describe("DataTable Plugin", function() {
       });
     });
 
-    it("should allow columns to be reorderable", function() {
+    it("should allow columns to be reorderable by default", function() {
       var reorderableSpy = jasmine.createSpy("reorderableSpy");
       app.view.dataTable.row("abc", {
         columns : [
@@ -532,12 +532,29 @@ describe("DataTable Plugin", function() {
       });
       app.view.dataTable("def", {
         rowClassName : "abc",
-        reorderableColumns: true,
         _enableReorderableColumns: reorderableSpy
       });
 
       new app.Views.def({ collection : collection }).render();
       expect(reorderableSpy).toHaveBeenCalled();
+    });
+
+    it("should allow disabling of column reordering", function() {
+      var reorderableSpy = jasmine.createSpy("reorderableSpy");
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        reorderableColumns: false,
+        _enableReorderableColumns: reorderableSpy
+      });
+
+      new app.Views.def({ collection : collection }).render();
+      expect(reorderableSpy).not.toHaveBeenCalled();
     });
 
     describe("provide an interface to access the column configuration", function() {

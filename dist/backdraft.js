@@ -2447,7 +2447,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
         paginateLength : 10,
         selectedIds : [],
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-        reorderableColumns: false,
+        reorderableColumns: true,
         objectName: {
           singular: "row",
           plural: "rows"
