@@ -487,126 +487,6 @@ _.extend(Plugin.factory, {
     });
   }
 
-  /* Set the defaults for DataTables initialisation */
-$.extend( true, $.fn.dataTable.defaults, {
-  "sDom":
-    "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
-    "t"+
-    "<'row'<'col-xs-6'i><'col-xs-6'p>>",
-  "oLanguage": {
-    "sLengthMenu": "_MENU_ records per page",
-    "sInfoFiltered" : "<br/>(filtered from _MAX_ total)"
-  }
-} );
-
-
-/* Default class modification */
-$.extend( $.fn.dataTableExt.oStdClasses, {
-  "sWrapper": "dataTables_wrapper form-inline",
-  "sFilterInput": "form-control input-sm",
-  "sLengthSelect": "form-control input-sm"
-} );
-
-// Integration for 1.9-
-$.fn.dataTable.defaults.sPaginationType = 'bootstrap';
-
-/* API method to get paging information */
-$.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
-{
-  return {
-    "iStart":         oSettings._iDisplayStart,
-    "iEnd":           oSettings.fnDisplayEnd(),
-    "iLength":        oSettings._iDisplayLength,
-    "iTotal":         oSettings.fnRecordsTotal(),
-    "iFilteredTotal": oSettings.fnRecordsDisplay(),
-    "iPage":          oSettings._iDisplayLength === -1 ?
-      0 : Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
-    "iTotalPages":    oSettings._iDisplayLength === -1 ?
-      0 : Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
-  };
-};
-
-/* Bootstrap style pagination control */
-$.extend( $.fn.dataTableExt.oPagination, {
-  "bootstrap": {
-    "fnInit": function( oSettings, nPaging, fnDraw ) {
-      var oLang = oSettings.oLanguage.oPaginate;
-      var fnClickHandler = function ( e ) {
-        e.preventDefault();
-        // prevent clicks on disabled links
-        if ($(e.target).closest("li").is(".disabled")) {
-          return;
-        }
-        if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
-          fnDraw( oSettings );
-        }
-      };
-
-      $(nPaging).append(
-        '<ul class="pagination pagination-sm">'+
-          '<li class="prev disabled"><a href="#">&larr; </a></li>'+
-          '<li class="next disabled"><a href="#"> &rarr; </a></li>'+
-        '</ul>'
-      );
-      var els = $('a', nPaging);
-      $(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
-      $(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
-    },
-
-    "fnUpdate": function ( oSettings, fnDraw ) {
-      var iListLength = 5;
-      var oPaging = oSettings.oInstance.fnPagingInfo();
-      var an = oSettings.aanFeatures.p;
-      var i, ien, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
-
-      if ( oPaging.iTotalPages < iListLength) {
-        iStart = 1;
-        iEnd = oPaging.iTotalPages;
-      }
-      else if ( oPaging.iPage <= iHalf ) {
-        iStart = 1;
-        iEnd = iListLength;
-      } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
-        iStart = oPaging.iTotalPages - iListLength + 1;
-        iEnd = oPaging.iTotalPages;
-      } else {
-        iStart = oPaging.iPage - iHalf + 1;
-        iEnd = iStart + iListLength - 1;
-      }
-
-      for ( i=0, ien=an.length ; i<ien ; i++ ) {
-        // Remove the middle elements
-        $('li:gt(0)', an[i]).filter(':not(:last)').remove();
-
-        // Add the new list items and their event handlers
-        for ( j=iStart ; j<=iEnd ; j++ ) {
-          sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
-          $('<li '+sClass+'><a href="#">'+j+'</a></li>')
-            .insertBefore( $('li:last', an[i])[0] )
-            .bind('click', function (e) {
-              e.preventDefault();
-              // EUGE - patched to make sure the "page" event is fired when numbers are clicked
-              oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
-            } );
-        }
-
-        // Add / remove disabled classes from the static elements
-        if ( oPaging.iPage === 0 ) {
-          $('li:first', an[i]).addClass('disabled');
-        } else {
-          $('li:first', an[i]).removeClass('disabled');
-        }
-
-        if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
-          $('li:last', an[i]).addClass('disabled');
-        } else {
-          $('li:last', an[i]).removeClass('disabled');
-        }
-      }
-    }
-  }
-} );
-
   var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
@@ -862,7 +742,736 @@ $.extend( $.fn.dataTableExt.oPagination, {
   }
 });
 
-  /*! ColReorder 1.1.3-dev
+  var Row = (function() {
+
+  var Base = Backdraft.plugin("Base");
+
+  var Row = Base.View.extend({
+    initialize: function(options) {
+      this.columnsConfig = options.columnsConfig;
+      this.$el.data("row", this);
+    },
+
+    render : function() {
+      var cells = this.findCells(), node;
+      _.each(this.columnsConfig, function(config) {
+        node = cells.filter(config.nodeMatcher(config));
+        this._invokeRenderer(config, node);
+      }, this);
+    },
+
+    renderColumnByConfig: function(config) {
+      var node = this.findCells().filter(config.nodeMatcher(config));
+      this._invokeRenderer(config, node);
+    },
+
+    bulkState : function(state) {
+      // TODO: throw error when no checkbox
+      if (!this.checkbox) return;
+
+      if (arguments.length === 1) {
+        // setter
+        this.checkbox.prop("checked", state);
+        this.$el.toggleClass("backdraft-selected", state);
+      } else {
+        // getter
+        return this.checkbox.prop("checked");
+      }
+    },
+
+    findCells: function() {
+      return this.$el.find("td");
+    },
+
+    renderers : {
+    },
+
+    _invokeRenderer: function(config, node) {
+      if (node.length === 1) {
+        config.renderer.call(this, node, config);
+      } else if (node.length > 1) {
+        throw new Error("multiple nodes were matched");
+      }
+    }
+
+  }, {
+
+    finalize : function(name, rowClass) {
+    }
+
+  });
+
+  return Row;
+
+})();
+  var LocalDataTable = (function() {
+
+  var Base = Backdraft.plugin("Base");
+
+  var LocalDataTable = Base.View.extend({
+
+    template : '\
+      <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
+    ',
+
+    constructor : function(options) {
+      this.options = options || {};
+      // copy over certain properties from options to the table itself
+      _.extend(this, _.pick(this.options, [ "selectedIds" ]));
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
+      this.cache = new Base.Cache();
+      this.selectionManager = new SelectionManager();
+      this.rowClass = this.options.rowClass || this._resolveRowClass();
+      this._applyDefaults();
+      this._columnManager = new ColumnManager(this);
+      this._lockManager = new LockManager(this);
+      LocalDataTable.__super__.constructor.apply(this, arguments);
+      this.listenTo(this.collection, "add", this._onAdd);
+      this.listenTo(this.collection, "remove", this._onRemove);
+      this.listenTo(this.collection, "reset", this._onReset);
+    },
+
+    // apply filtering
+    filter : function() {
+      this._lockManager.ensureUnlocked("filter");
+      this.dataTable.fnFilter.apply(this.dataTable, arguments);
+    },
+
+    // change pagination
+    page : function() {
+      this._lockManager.ensureUnlocked("page");
+      return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
+    },
+
+    // sort specific columns
+    sort : function() {
+      this._lockManager.ensureUnlocked("sort");
+      return this.dataTable.fnSort.apply(this.dataTable, arguments);
+    },
+
+    selectedModels : function() {
+      this._lockManager.ensureUnlocked("bulk");
+      return this.selectionManager.models();
+    },
+
+    render : function() {
+      this.$el.html(this.template);
+      this._dataTableCreate();
+      this._initBulkHandling();
+      this.paginate && this._initPaginationHandling();
+      this._triggerChangeSelection();
+      return this;
+    },
+
+    renderColumn: function(title) {
+      var config = this._columnManager.columnConfigForTitle(title);
+      if (!config) {
+        throw new Error("column not found");
+      }
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
+    selectAllVisible : function(state) {
+      this._lockManager.ensureUnlocked("bulk");
+      this.bulkCheckbox.prop("checked", state);
+      _.each(this._visibleRowsOnCurrentPage(), function(row) {
+        this._setRowSelectedState(row.model, row, state);
+      }, this);
+      this._triggerChangeSelection({ selectAllVisible: state });
+    },
+
+    selectAllMatching : function() {
+      this._lockManager.ensureUnlocked("bulk");
+      if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
+      _.each(this._allMatchingModels(), function(model) {
+        this._setRowSelectedState(model, this.cache.get(model), true);
+      }, this);
+      this._triggerChangeSelection();
+    },
+
+    matchingCount : function() {
+      this._lockManager.ensureUnlocked("bulk");
+      return this.dataTable.fnSettings().aiDisplay.length;
+    },
+
+    totalRecordsCount: function() {
+      this._lockManager.ensureUnlocked("bulk");
+      return this.dataTable.fnSettings().fnRecordsTotal();
+    },
+
+    columnVisibility: function(title, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._columnManager.visibility.get(title);
+      } else {
+        if (!state && this._columnManager.columnConfigForTitle(title).required) {
+          throw new Error("can not disable visibility when column is required");
+        }
+        this._columnManager.visibility.set(title, state);
+        state && this.renderColumn(title);
+      }
+    },
+
+    restoreColumnVisibility: function() {
+      _.each(this.columnsConfig(), function(column) {
+        this.columnVisibility(column.title, column.visible);
+      }, this);
+    },
+
+    lock: function(name, state) {
+      if (arguments.length === 1) {
+        // getter
+        return this._lockManager.lock(name);
+      } else if (arguments.length === 2) {
+        // setter
+        this._lockManager.lock(name, state);
+      } else {
+        throw new Error("#lock requires a name and/or a state");
+      }
+    },
+
+    columnsConfig: function() {
+      return this._columnManager.columnsConfig();
+    },
+
+    // Private APIs
+
+    _enableReorderableColumns: function() {
+      new $.fn.dataTable.ColReorder(this.dataTable);
+    },
+
+    _allMatchingModels : function() {
+      // returns all models matching the current filter criteria, regardless of pagination
+      // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
+      // matching data since some of the rows may not have been rendered yet.
+      // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
+      // and return the associated models
+      return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
+        return this.collection.at(index);
+      }, this);
+    },
+
+    _applyDefaults : function() {
+      _.defaults(this, {
+        paginate : true,
+        paginateLengthMenu : [ 10, 25, 50, 100 ],
+        paginateLength : 10,
+        selectedIds : [],
+        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+        reorderableColumns: true,
+        objectName: {
+          singular: "row",
+          plural: "rows"
+        }
+      });
+      _.defaults(this, {
+        sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
+      });
+
+      if (!this.objectName.plural) {
+        throw new Error("plural object name must be provided");
+      } else if (!this.objectName.singular) {
+        throw new Error("singular object name must be provided");
+      }
+    },
+
+    // returns row objects that have not been filtered out and are on the current page
+    _visibleRowsOnCurrentPage : function() {
+      // non-paginated tables will return all rows, ignoring the page param
+      var visibleRowsCurrentPageArgs = { filter : "applied", page : "current" };
+      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
+        return $(node).data("row");
+      });
+    },
+
+    _setRowSelectedState : function(model, row, state) {
+      this.selectionManager.process(model, state);
+      // the row may not exist yet as we utilize deferred rendering. we track the model as
+      // selected and make the ui reflect this when the row is finally created
+      row && row.bulkState(state);
+    },
+
+    _dataTableCreate : function() {
+      this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this._installSortInterceptors();
+      this.reorderableColumns && this._enableReorderableColumns();
+      this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
+      this._columnManager.applyVisibilityPreferences()
+      if (this.collection.length) this._onReset(this.collection);
+    },
+
+    _areAllVisibleRowsSelected : function() {
+      var allSelected, visibleRows = this._visibleRowsOnCurrentPage();
+      if (visibleRows.length) {
+        allSelected = _.all(visibleRows, function(row) {
+          return row.bulkState() === true;
+        });
+      } else {
+        // have no selections does not count as having all selected
+        allSelected = false;
+      }
+      return allSelected;
+    },
+
+    // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
+    // note: we defer execution as the "page" and "filter" events are called before new rows are swapped in
+    // this allows our code to run after the all the new rows are inserted
+    _bulkCheckboxAdjust : function() {
+      var self = this;
+      if (!self.bulkCheckbox) return;
+      _.defer(function() {
+        self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
+      });
+    },
+
+    _initPaginationHandling : function() {
+      this.dataTable.on("page", this._bulkCheckboxAdjust);
+    },
+
+    _initBulkHandling : function() {
+      var bulkCheckbox = this.$el.find("th.bulk :checkbox");
+      if (!bulkCheckbox.length) return
+      this.bulkCheckbox = bulkCheckbox;
+      this.bulkCheckbox.click(this._onBulkHeaderClick);
+      this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
+      this.dataTable.on("filter", this._bulkCheckboxAdjust);
+    },
+
+    _dataTableConfig : function() {
+      return {
+        sDom : this.layout,
+        bDeferRender : true,
+        bPaginate : this.paginate,
+        aLengthMenu : this.paginateLengthMenu,
+        iDisplayLength : this.paginateLength,
+        bInfo : true,
+        fnCreatedRow : this._onRowCreated,
+        aoColumns : this._columnManager.dataTableColumnsConfig(),
+        aaSorting : this._columnManager.dataTableSortingConfig(),
+        fnDrawCallback : this._onDraw
+      };
+    },
+
+    _triggerChangeSelection: function(extraData) {
+      var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
+      this.trigger("change:selected", data);
+    },
+
+    _installSortInterceptors: function() {
+      // dataTables does not provide a good way to programmatically disable sorting, so we:
+      // 1) remove the default sorting event handler that dataTables adds
+      // 2) insert our own that stops the event if we are locked
+      // 3) re-insert the dataTables sort event handler
+      var self = this;
+      this.dataTable.find("thead th").each(function(index) {
+        $(this).off("click.DT").on("click", function(event) {
+          if (self.lock("sort")) {
+            event.stopImmediatePropagation();
+          }
+        });
+        // default sort handler for column with index
+        self.dataTable.fnSortListener($(this), index);
+      });
+    },
+
+    // events
+
+    _onDraw : function() {
+      this.trigger("draw", arguments);
+    },
+
+    _onColumnVisibilityChange: function(summary) {
+      this.dataTable.find(".dataTables_empty").attr("colspan", summary.visible.length);
+    },
+
+    _onBulkHeaderClick : function(event) {
+      var state = this.bulkCheckbox.prop("checked");
+      this.selectAllVisible(state);
+      // don't let dataTables sort this column on the click of checkbox
+      event.stopPropagation();
+    },
+
+    _onBulkRowClick : function(event) {
+      var checkbox = $(event.target), row = checkbox.closest("tr").data("row"), checked = checkbox.prop("checked");
+      // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
+      if (!checked) this.bulkCheckbox.prop("checked", false);
+      this._setRowSelectedState(row.model, row, checked);
+      this._triggerChangeSelection();
+    },
+
+    _onRowCreated : function(node, data) {
+      var model = this.collection.get(data);
+      var row = new this.rowClass({
+        el : node,
+        model : model,
+        columnsConfig: this.columnsConfig()
+      });
+      this.cache.set(model, row);
+      this.child("child" + row.cid, row).render();
+      // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
+      this.selectionManager.has(model) && row.bulkState(true);
+    },
+
+    _onAdd : function(model) {
+      if (!this.dataTable) return;
+      this.dataTable.fnAddData({ cid : model.cid })
+      this._triggerChangeSelection();
+    },
+
+    _onRemove : function(model) {
+      if (!this.dataTable) return;
+      var cache = this.cache, row = cache.get(model);
+      this.dataTable.fnDeleteRow(row.el, function() {
+        cache.unset(model);
+        row.close();
+      });
+      this._triggerChangeSelection();
+    },
+
+    _onReset : function(collection) {
+      if (!this.dataTable) return;
+      this.dataTable.fnClearTable();
+      this.cache.each(function(row) {
+        row.close();
+      });
+      this.cache.reset();
+      // populate with preselected items
+      this.selectionManager = new SelectionManager();
+      _.each(this.selectedIds, function(id) {
+        // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
+        var selectedModel = this.collection.get(id);
+        selectedModel && this._setRowSelectedState(selectedModel, null, true);
+      }, this);
+
+      // add new data
+      this.dataTable.fnAddData(cidMap(collection));
+      this._triggerChangeSelection();
+    }
+
+  }, {
+
+    finalize : function(name, tableClass, views, pluginConfig) {
+      if (tableClass.prototype.rowClassName) {
+        // method for late resolution of row class, removes dependency on needing access to the entire app
+        tableClass.prototype._resolveRowClass = function() {
+          return views[tableClass.prototype.rowClassName];
+        };
+      }
+
+      // return all registered column types
+      tableClass.prototype.availableColumnTypes = function() {
+        return pluginConfig.columnTypes;
+      };
+    }
+
+  });
+
+  return LocalDataTable;
+
+})();
+
+  var ServerSideDataTable = (function() {
+
+  var ServerSideDataTable = LocalDataTable.extend({
+
+    constructor : function() {
+      // force pagination
+      this.paginate = true;
+      ServerSideDataTable.__super__.constructor.apply(this, arguments);
+      if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
+      if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
+      this.serverParams({});
+      this.selectAllMatching(false);
+    },
+
+    selectAllMatching : function(val) {
+      // getter
+      if (arguments.length === 0) return this._selectAllMatchingParams;
+
+      // setter
+      if (val) {
+        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
+        if (!this._areAllVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
+        // store current server params
+        this._selectAllMatchingParams = this.serverParams();
+      } else {
+        // clear stored server params
+        this._selectAllMatchingParams = null;
+      }
+    },
+
+    // get / set additional params that should be passed as part of the ajax request
+    serverParams : function(params) {
+      if (arguments.length === 1) {
+        this._serverParams = params;
+        this.reload();
+      } else {
+        // make a clone so that params aren't inadvertently modified externally
+        return _.clone(this._serverParams);
+      }
+    },
+
+    // reload data from the server
+    reload : function() {
+      this.dataTable && this.dataTable.fnDraw();
+    },
+
+    _onAdd : function() {
+      throw new Error("Server side dataTables do not allow adding to the collection");
+    },
+
+    _onRemove : function() {
+      throw new Error("Server side dataTables do not allow removing from collection")
+    },
+
+    _onReset : function(collection, options) {
+      if (!options.addData) throw new Error("An addData option is required to reset the collection");
+      // clean up old data
+      // note: since we have enabled server-side processing, we don't need to call
+      // #fnClearTable here - it is a client-side only function
+      this.cache.each(function(row) {
+        row.close();
+      });
+      this.cache.reset();
+      this.selectionManager = new SelectionManager();
+      // actually add new data
+      options.addData(cidMap(collection));
+      this._triggerChangeSelection();
+    },
+
+    // dataTables callback to allow addition of params to the ajax request
+    _addServerParams : function(aoData) {
+      for (var key in this._serverParams) {
+        aoData.push({ name : key, value : this._serverParams[key] });
+      }
+      // add column attribute mappings as a parameter
+      _.each(this._columnManager.columnAttrs(), function(attr) {
+        aoData.push({ name: "column_attrs[]", value: attr });
+      });
+    },
+
+    // dataTables callback after a draw event has occurred
+    _onDraw : function() {
+      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
+      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
+      this.selectAllMatching(false);
+      this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
+      this.trigger("draw", arguments);
+    },
+
+    _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
+      var self = this;
+      oSettings.jqXHR = $.ajax({
+        url : sUrl,
+        data : aoData,
+        dataType : "json",
+        cache : false,
+        type : "GET",
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader('X-Backdraft', "1");
+        },
+        success : function(json) {
+          // ensure we ignore old Ajax responses
+          // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
+          // what gets called by fnCallback. However, fnCallback should only be invoked after we reset the
+          // collection, so we must perform the check at this point as well.
+          if (_.isUndefined(json.sEcho)) return;
+          if (json.sEcho * 1 < oSettings.iDraw) return;
+
+          self.collection.reset(json.aaData, {
+            addData : function(data) {
+              // calling fnCallback is what will actually cause the data to be populated
+              json.aaData = data;
+              fnCallback(json)
+            }
+          });
+        }
+      });
+    },
+
+    _dataTableConfig : function() {
+      var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
+      // add server side related options
+      return _.extend(config, {
+        bProcessing : true,
+        bServerSide : true,
+        sAjaxSource : _.result(this.collection, "url"),
+        fnServerData : this._fetchServerData,
+        fnServerParams : this._addServerParams,
+        fnDrawCallback : this._onDraw,
+        oLanguage: {
+          sProcessing: this.processingText,
+          sEmptyTable: this.emptyText
+        }
+      });
+    },
+
+    _dataTableCreate : function() {
+      try {
+        ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
+      } catch(ex) {
+        throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
+      }
+
+      // hide inefficient filter
+      this.$(".dataTables_filter").css("visibility", "hidden");
+    },
+
+    // overridden and will be handled via the _onDraw callback
+    _initPaginationHandling: $.noop,
+
+    // overridden and will be handled via the _onDraw callback
+    _bulkCheckboxAdjust: $.noop,
+
+    _initBulkHandling : function() {
+      ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
+      // whenever selections change, clear out stored server params
+      this.on("change:selected", function() {
+        this.selectAllMatching(false);
+      }, this);
+    },
+
+    _visibleRowsOnCurrentPage : function() {
+      // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
+      var visibleRowsCurrentPageArgs = { filter : "applied" };
+      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
+        return $(node).data("row");
+      });
+    }
+
+  });
+
+  return ServerSideDataTable;
+
+})();
+
+
+  plugin.initializer(function(app) {
+
+    /* Set the defaults for DataTables initialisation */
+$.extend( true, $.fn.dataTable.defaults, {
+  "sDom":
+    "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
+    "t"+
+    "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+  "oLanguage": {
+    "sLengthMenu": "_MENU_ records per page",
+    "sInfoFiltered" : "<br/>(filtered from _MAX_ total)"
+  }
+} );
+
+
+/* Default class modification */
+$.extend( $.fn.dataTableExt.oStdClasses, {
+  "sWrapper": "dataTables_wrapper form-inline",
+  "sFilterInput": "form-control input-sm",
+  "sLengthSelect": "form-control input-sm"
+} );
+
+// Integration for 1.9-
+$.fn.dataTable.defaults.sPaginationType = 'bootstrap';
+
+/* API method to get paging information */
+$.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
+{
+  return {
+    "iStart":         oSettings._iDisplayStart,
+    "iEnd":           oSettings.fnDisplayEnd(),
+    "iLength":        oSettings._iDisplayLength,
+    "iTotal":         oSettings.fnRecordsTotal(),
+    "iFilteredTotal": oSettings.fnRecordsDisplay(),
+    "iPage":          oSettings._iDisplayLength === -1 ?
+      0 : Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
+    "iTotalPages":    oSettings._iDisplayLength === -1 ?
+      0 : Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
+  };
+};
+
+/* Bootstrap style pagination control */
+$.extend( $.fn.dataTableExt.oPagination, {
+  "bootstrap": {
+    "fnInit": function( oSettings, nPaging, fnDraw ) {
+      var oLang = oSettings.oLanguage.oPaginate;
+      var fnClickHandler = function ( e ) {
+        e.preventDefault();
+        // prevent clicks on disabled links
+        if ($(e.target).closest("li").is(".disabled")) {
+          return;
+        }
+        if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
+          fnDraw( oSettings );
+        }
+      };
+
+      $(nPaging).append(
+        '<ul class="pagination pagination-sm">'+
+          '<li class="prev disabled"><a href="#">&larr; </a></li>'+
+          '<li class="next disabled"><a href="#"> &rarr; </a></li>'+
+        '</ul>'
+      );
+      var els = $('a', nPaging);
+      $(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
+      $(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
+    },
+
+    "fnUpdate": function ( oSettings, fnDraw ) {
+      var iListLength = 5;
+      var oPaging = oSettings.oInstance.fnPagingInfo();
+      var an = oSettings.aanFeatures.p;
+      var i, ien, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
+
+      if ( oPaging.iTotalPages < iListLength) {
+        iStart = 1;
+        iEnd = oPaging.iTotalPages;
+      }
+      else if ( oPaging.iPage <= iHalf ) {
+        iStart = 1;
+        iEnd = iListLength;
+      } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
+        iStart = oPaging.iTotalPages - iListLength + 1;
+        iEnd = oPaging.iTotalPages;
+      } else {
+        iStart = oPaging.iPage - iHalf + 1;
+        iEnd = iStart + iListLength - 1;
+      }
+
+      for ( i=0, ien=an.length ; i<ien ; i++ ) {
+        // Remove the middle elements
+        $('li:gt(0)', an[i]).filter(':not(:last)').remove();
+
+        // Add the new list items and their event handlers
+        for ( j=iStart ; j<=iEnd ; j++ ) {
+          sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
+          $('<li '+sClass+'><a href="#">'+j+'</a></li>')
+            .insertBefore( $('li:last', an[i])[0] )
+            .bind('click', function (e) {
+              e.preventDefault();
+              // EUGE - patched to make sure the "page" event is fired when numbers are clicked
+              oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
+            } );
+        }
+
+        // Add / remove disabled classes from the static elements
+        if ( oPaging.iPage === 0 ) {
+          $('li:first', an[i]).addClass('disabled');
+        } else {
+          $('li:first', an[i]).removeClass('disabled');
+        }
+
+        if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
+          $('li:last', an[i]).addClass('disabled');
+        } else {
+          $('li:last', an[i]).removeClass('disabled');
+        }
+      }
+    }
+  }
+} );
+
+    /*! ColReorder 1.1.3-dev
  * ©2010-2014 SpryMedia Ltd - datatables.net/license
  */
 
@@ -2229,614 +2838,6 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
 
 })(window, document);
-  var Row = (function() {
-
-  var Base = Backdraft.plugin("Base");
-
-  var Row = Base.View.extend({
-    initialize: function(options) {
-      this.columnsConfig = options.columnsConfig;
-      this.$el.data("row", this);
-    },
-
-    render : function() {
-      var cells = this.findCells(), node;
-      _.each(this.columnsConfig, function(config) {
-        node = cells.filter(config.nodeMatcher(config));
-        this._invokeRenderer(config, node);
-      }, this);
-    },
-
-    renderColumnByConfig: function(config) {
-      var node = this.findCells().filter(config.nodeMatcher(config));
-      this._invokeRenderer(config, node);
-    },
-
-    bulkState : function(state) {
-      // TODO: throw error when no checkbox
-      if (!this.checkbox) return;
-
-      if (arguments.length === 1) {
-        // setter
-        this.checkbox.prop("checked", state);
-        this.$el.toggleClass("backdraft-selected", state);
-      } else {
-        // getter
-        return this.checkbox.prop("checked");
-      }
-    },
-
-    findCells: function() {
-      return this.$el.find("td");
-    },
-
-    renderers : {
-    },
-
-    _invokeRenderer: function(config, node) {
-      if (node.length === 1) {
-        config.renderer.call(this, node, config);
-      } else if (node.length > 1) {
-        throw new Error("multiple nodes were matched");
-      }
-    }
-
-  }, {
-
-    finalize : function(name, rowClass) {
-    }
-
-  });
-
-  return Row;
-
-})();
-  var LocalDataTable = (function() {
-
-  var Base = Backdraft.plugin("Base");
-
-  var LocalDataTable = Base.View.extend({
-
-    template : '\
-      <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
-    ',
-
-    constructor : function(options) {
-      this.options = options || {};
-      // copy over certain properties from options to the table itself
-      _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
-      this.cache = new Base.Cache();
-      this.selectionManager = new SelectionManager();
-      this.rowClass = this.options.rowClass || this._resolveRowClass();
-      this._applyDefaults();
-      this._columnManager = new ColumnManager(this);
-      this._lockManager = new LockManager(this);
-      LocalDataTable.__super__.constructor.apply(this, arguments);
-      this.listenTo(this.collection, "add", this._onAdd);
-      this.listenTo(this.collection, "remove", this._onRemove);
-      this.listenTo(this.collection, "reset", this._onReset);
-    },
-
-    // apply filtering
-    filter : function() {
-      this._lockManager.ensureUnlocked("filter");
-      this.dataTable.fnFilter.apply(this.dataTable, arguments);
-    },
-
-    // change pagination
-    page : function() {
-      this._lockManager.ensureUnlocked("page");
-      return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
-    },
-
-    // sort specific columns
-    sort : function() {
-      this._lockManager.ensureUnlocked("sort");
-      return this.dataTable.fnSort.apply(this.dataTable, arguments);
-    },
-
-    selectedModels : function() {
-      this._lockManager.ensureUnlocked("bulk");
-      return this.selectionManager.models();
-    },
-
-    render : function() {
-      this.$el.html(this.template);
-      this._dataTableCreate();
-      this._initBulkHandling();
-      this.paginate && this._initPaginationHandling();
-      this._triggerChangeSelection();
-      return this;
-    },
-
-    renderColumn: function(title) {
-      var config = this._columnManager.columnConfigForTitle(title);
-      if (!config) {
-        throw new Error("column not found");
-      }
-      this.cache.each(function(row) {
-        row.renderColumnByConfig(config);
-      });
-    },
-
-    selectAllVisible : function(state) {
-      this._lockManager.ensureUnlocked("bulk");
-      this.bulkCheckbox.prop("checked", state);
-      _.each(this._visibleRowsOnCurrentPage(), function(row) {
-        this._setRowSelectedState(row.model, row, state);
-      }, this);
-      this._triggerChangeSelection({ selectAllVisible: state });
-    },
-
-    selectAllMatching : function() {
-      this._lockManager.ensureUnlocked("bulk");
-      if (!this.paginate) throw new Error("#selectAllMatching can only be used with paginated tables");
-      _.each(this._allMatchingModels(), function(model) {
-        this._setRowSelectedState(model, this.cache.get(model), true);
-      }, this);
-      this._triggerChangeSelection();
-    },
-
-    matchingCount : function() {
-      this._lockManager.ensureUnlocked("bulk");
-      return this.dataTable.fnSettings().aiDisplay.length;
-    },
-
-    totalRecordsCount: function() {
-      this._lockManager.ensureUnlocked("bulk");
-      return this.dataTable.fnSettings().fnRecordsTotal();
-    },
-
-    columnVisibility: function(title, state) {
-      if (arguments.length === 1) {
-        // getter
-        return this._columnManager.visibility.get(title);
-      } else {
-        if (!state && this._columnManager.columnConfigForTitle(title).required) {
-          throw new Error("can not disable visibility when column is required");
-        }
-        this._columnManager.visibility.set(title, state);
-        state && this.renderColumn(title);
-      }
-    },
-
-    restoreColumnVisibility: function() {
-      _.each(this.columnsConfig(), function(column) {
-        this.columnVisibility(column.title, column.visible);
-      }, this);
-    },
-
-    lock: function(name, state) {
-      if (arguments.length === 1) {
-        // getter
-        return this._lockManager.lock(name);
-      } else if (arguments.length === 2) {
-        // setter
-        this._lockManager.lock(name, state);
-      } else {
-        throw new Error("#lock requires a name and/or a state");
-      }
-    },
-
-    columnsConfig: function() {
-      return this._columnManager.columnsConfig();
-    },
-
-    // Private APIs
-
-    _enableReorderableColumns: function() {
-      new $.fn.dataTable.ColReorder(this.dataTable);
-    },
-
-    _allMatchingModels : function() {
-      // returns all models matching the current filter criteria, regardless of pagination
-      // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
-      // matching data since some of the rows may not have been rendered yet.
-      // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
-      // and return the associated models
-      return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
-        return this.collection.at(index);
-      }, this);
-    },
-
-    _applyDefaults : function() {
-      _.defaults(this, {
-        paginate : true,
-        paginateLengthMenu : [ 10, 25, 50, 100 ],
-        paginateLength : 10,
-        selectedIds : [],
-        layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-        reorderableColumns: true,
-        objectName: {
-          singular: "row",
-          plural: "rows"
-        }
-      });
-      _.defaults(this, {
-        sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
-      });
-
-      if (!this.objectName.plural) {
-        throw new Error("plural object name must be provided");
-      } else if (!this.objectName.singular) {
-        throw new Error("singular object name must be provided");
-      }
-    },
-
-    // returns row objects that have not been filtered out and are on the current page
-    _visibleRowsOnCurrentPage : function() {
-      // non-paginated tables will return all rows, ignoring the page param
-      var visibleRowsCurrentPageArgs = { filter : "applied", page : "current" };
-      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
-        return $(node).data("row");
-      });
-    },
-
-    _setRowSelectedState : function(model, row, state) {
-      this.selectionManager.process(model, state);
-      // the row may not exist yet as we utilize deferred rendering. we track the model as
-      // selected and make the ui reflect this when the row is finally created
-      row && row.bulkState(state);
-    },
-
-    _dataTableCreate : function() {
-      this.dataTable = this.$("table").dataTable(this._dataTableConfig());
-      this._installSortInterceptors();
-      this.reorderableColumns && this._enableReorderableColumns();
-      this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
-      this._columnManager.applyVisibilityPreferences()
-      if (this.collection.length) this._onReset(this.collection);
-    },
-
-    _areAllVisibleRowsSelected : function() {
-      var allSelected, visibleRows = this._visibleRowsOnCurrentPage();
-      if (visibleRows.length) {
-        allSelected = _.all(visibleRows, function(row) {
-          return row.bulkState() === true;
-        });
-      } else {
-        // have no selections does not count as having all selected
-        allSelected = false;
-      }
-      return allSelected;
-    },
-
-    // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
-    // note: we defer execution as the "page" and "filter" events are called before new rows are swapped in
-    // this allows our code to run after the all the new rows are inserted
-    _bulkCheckboxAdjust : function() {
-      var self = this;
-      if (!self.bulkCheckbox) return;
-      _.defer(function() {
-        self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
-      });
-    },
-
-    _initPaginationHandling : function() {
-      this.dataTable.on("page", this._bulkCheckboxAdjust);
-    },
-
-    _initBulkHandling : function() {
-      var bulkCheckbox = this.$el.find("th.bulk :checkbox");
-      if (!bulkCheckbox.length) return
-      this.bulkCheckbox = bulkCheckbox;
-      this.bulkCheckbox.click(this._onBulkHeaderClick);
-      this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
-      this.dataTable.on("filter", this._bulkCheckboxAdjust);
-    },
-
-    _dataTableConfig : function() {
-      return {
-        sDom : this.layout,
-        bDeferRender : true,
-        bPaginate : this.paginate,
-        aLengthMenu : this.paginateLengthMenu,
-        iDisplayLength : this.paginateLength,
-        bInfo : true,
-        fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.dataTableColumnsConfig(),
-        aaSorting : this._columnManager.dataTableSortingConfig(),
-        fnDrawCallback : this._onDraw
-      };
-    },
-
-    _triggerChangeSelection: function(extraData) {
-      var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
-      this.trigger("change:selected", data);
-    },
-
-    _installSortInterceptors: function() {
-      // dataTables does not provide a good way to programmatically disable sorting, so we:
-      // 1) remove the default sorting event handler that dataTables adds
-      // 2) insert our own that stops the event if we are locked
-      // 3) re-insert the dataTables sort event handler
-      var self = this;
-      this.dataTable.find("thead th").each(function(index) {
-        $(this).off("click.DT").on("click", function(event) {
-          if (self.lock("sort")) {
-            event.stopImmediatePropagation();
-          }
-        });
-        // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
-      });
-    },
-
-    // events
-
-    _onDraw : function() {
-      this.trigger("draw", arguments);
-    },
-
-    _onColumnVisibilityChange: function(summary) {
-      this.dataTable.find(".dataTables_empty").attr("colspan", summary.visible.length);
-    },
-
-    _onBulkHeaderClick : function(event) {
-      var state = this.bulkCheckbox.prop("checked");
-      this.selectAllVisible(state);
-      // don't let dataTables sort this column on the click of checkbox
-      event.stopPropagation();
-    },
-
-    _onBulkRowClick : function(event) {
-      var checkbox = $(event.target), row = checkbox.closest("tr").data("row"), checked = checkbox.prop("checked");
-      // ensure that when a single row checkbox is unchecked, we uncheck the header bulk checkbox
-      if (!checked) this.bulkCheckbox.prop("checked", false);
-      this._setRowSelectedState(row.model, row, checked);
-      this._triggerChangeSelection();
-    },
-
-    _onRowCreated : function(node, data) {
-      var model = this.collection.get(data);
-      var row = new this.rowClass({
-        el : node,
-        model : model,
-        columnsConfig: this.columnsConfig()
-      });
-      this.cache.set(model, row);
-      this.child("child" + row.cid, row).render();
-      // due to deferred rendering, the model associated with the row may have already been selected, but not rendered yet.
-      this.selectionManager.has(model) && row.bulkState(true);
-    },
-
-    _onAdd : function(model) {
-      if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
-      this._triggerChangeSelection();
-    },
-
-    _onRemove : function(model) {
-      if (!this.dataTable) return;
-      var cache = this.cache, row = cache.get(model);
-      this.dataTable.fnDeleteRow(row.el, function() {
-        cache.unset(model);
-        row.close();
-      });
-      this._triggerChangeSelection();
-    },
-
-    _onReset : function(collection) {
-      if (!this.dataTable) return;
-      this.dataTable.fnClearTable();
-      this.cache.each(function(row) {
-        row.close();
-      });
-      this.cache.reset();
-      // populate with preselected items
-      this.selectionManager = new SelectionManager();
-      _.each(this.selectedIds, function(id) {
-        // its possible that a selected id is provided for a model that doesn't actually exist in the table, ignore it
-        var selectedModel = this.collection.get(id);
-        selectedModel && this._setRowSelectedState(selectedModel, null, true);
-      }, this);
-
-      // add new data
-      this.dataTable.fnAddData(cidMap(collection));
-      this._triggerChangeSelection();
-    }
-
-  }, {
-
-    finalize : function(name, tableClass, views, pluginConfig) {
-      if (tableClass.prototype.rowClassName) {
-        // method for late resolution of row class, removes dependency on needing access to the entire app
-        tableClass.prototype._resolveRowClass = function() {
-          return views[tableClass.prototype.rowClassName];
-        };
-      }
-
-      // return all registered column types
-      tableClass.prototype.availableColumnTypes = function() {
-        return pluginConfig.columnTypes;
-      };
-    }
-
-  });
-
-  return LocalDataTable;
-
-})();
-
-  var ServerSideDataTable = (function() {
-
-  var ServerSideDataTable = LocalDataTable.extend({
-
-    constructor : function() {
-      // force pagination
-      this.paginate = true;
-      ServerSideDataTable.__super__.constructor.apply(this, arguments);
-      if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
-      if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
-      this.serverParams({});
-      this.selectAllMatching(false);
-    },
-
-    selectAllMatching : function(val) {
-      // getter
-      if (arguments.length === 0) return this._selectAllMatchingParams;
-
-      // setter
-      if (val) {
-        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
-        if (!this._areAllVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
-        // store current server params
-        this._selectAllMatchingParams = this.serverParams();
-      } else {
-        // clear stored server params
-        this._selectAllMatchingParams = null;
-      }
-    },
-
-    // get / set additional params that should be passed as part of the ajax request
-    serverParams : function(params) {
-      if (arguments.length === 1) {
-        this._serverParams = params;
-        this.reload();
-      } else {
-        // make a clone so that params aren't inadvertently modified externally
-        return _.clone(this._serverParams);
-      }
-    },
-
-    // reload data from the server
-    reload : function() {
-      this.dataTable && this.dataTable.fnDraw();
-    },
-
-    _onAdd : function() {
-      throw new Error("Server side dataTables do not allow adding to the collection");
-    },
-
-    _onRemove : function() {
-      throw new Error("Server side dataTables do not allow removing from collection")
-    },
-
-    _onReset : function(collection, options) {
-      if (!options.addData) throw new Error("An addData option is required to reset the collection");
-      // clean up old data
-      // note: since we have enabled server-side processing, we don't need to call
-      // #fnClearTable here - it is a client-side only function
-      this.cache.each(function(row) {
-        row.close();
-      });
-      this.cache.reset();
-      this.selectionManager = new SelectionManager();
-      // actually add new data
-      options.addData(cidMap(collection));
-      this._triggerChangeSelection();
-    },
-
-    // dataTables callback to allow addition of params to the ajax request
-    _addServerParams : function(aoData) {
-      for (var key in this._serverParams) {
-        aoData.push({ name : key, value : this._serverParams[key] });
-      }
-      // add column attribute mappings as a parameter
-      _.each(this._columnManager.columnAttrs(), function(attr) {
-        aoData.push({ name: "column_attrs[]", value: attr });
-      });
-    },
-
-    // dataTables callback after a draw event has occurred
-    _onDraw : function() {
-      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
-      this.selectAllMatching(false);
-      this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
-      this.trigger("draw", arguments);
-    },
-
-    _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
-      var self = this;
-      oSettings.jqXHR = $.ajax({
-        url : sUrl,
-        data : aoData,
-        dataType : "json",
-        cache : false,
-        type : "GET",
-        beforeSend: function(xhr) {
-          xhr.setRequestHeader('X-Backdraft', "1");
-        },
-        success : function(json) {
-          // ensure we ignore old Ajax responses
-          // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
-          // what gets called by fnCallback. However, fnCallback should only be invoked after we reset the
-          // collection, so we must perform the check at this point as well.
-          if (_.isUndefined(json.sEcho)) return;
-          if (json.sEcho * 1 < oSettings.iDraw) return;
-
-          self.collection.reset(json.aaData, {
-            addData : function(data) {
-              // calling fnCallback is what will actually cause the data to be populated
-              json.aaData = data;
-              fnCallback(json)
-            }
-          });
-        }
-      });
-    },
-
-    _dataTableConfig : function() {
-      var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
-      // add server side related options
-      return _.extend(config, {
-        bProcessing : true,
-        bServerSide : true,
-        sAjaxSource : _.result(this.collection, "url"),
-        fnServerData : this._fetchServerData,
-        fnServerParams : this._addServerParams,
-        fnDrawCallback : this._onDraw,
-        oLanguage: {
-          sProcessing: this.processingText,
-          sEmptyTable: this.emptyText
-        }
-      });
-    },
-
-    _dataTableCreate : function() {
-      try {
-        ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
-      } catch(ex) {
-        throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
-      }
-
-      // hide inefficient filter
-      this.$(".dataTables_filter").css("visibility", "hidden");
-    },
-
-    // overridden and will be handled via the _onDraw callback
-    _initPaginationHandling: $.noop,
-
-    // overridden and will be handled via the _onDraw callback
-    _bulkCheckboxAdjust: $.noop,
-
-    _initBulkHandling : function() {
-      ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
-      // whenever selections change, clear out stored server params
-      this.on("change:selected", function() {
-        this.selectAllMatching(false);
-      }, this);
-    },
-
-    _visibleRowsOnCurrentPage : function() {
-      // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
-      var visibleRowsCurrentPageArgs = { filter : "applied" };
-      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
-        return $(node).data("row");
-      });
-    }
-
-  });
-
-  return ServerSideDataTable;
-
-})();
-
-
-  plugin.initializer(function(app) {
 
     app.view.dataTable = function(name, baseClassName, properties) {
       var baseClass;
