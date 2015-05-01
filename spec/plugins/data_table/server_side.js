@@ -160,6 +160,41 @@ describe("DataTable Plugin", function() {
       jasmine.Ajax.requests.mostRecent().response(mockResponse.getEmpty());
       expect(table.$(".dataTables_empty").text()).toEqual("Sad, there is nothing here!");
     });
+
+    it("should trigger events on the document body when dataTables starts and finishes ajax ", function() {
+      var startSpy = jasmine.createSpy("startSpy");
+      var finishSpy = jasmine.createSpy("finishSpy");
+      $("body").on(app.name + ":" + "ajax-start.backdraft", startSpy);
+      $("body").on(app.name + ":" + "ajax-finish.backdraft", finishSpy);
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      expect(startSpy).toHaveBeenCalled();
+      expect(finishSpy).not.toHaveBeenCalled();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+      expect(finishSpy).toHaveBeenCalled();
+
+      var startArgs = startSpy.calls.argsFor(0);
+      var finishArgs = finishSpy.calls.argsFor(0);
+
+      // event
+      expect(startArgs[0] instanceof jQuery.Event).toEqual(true);
+      // xhr
+      expect(_.keys(startArgs[1])).toContain("responseText")
+      expect(_.keys(startArgs[1])).toContain("statusCode")
+      // table
+      expect(startArgs[2]).toEqual(table);
+
+      // event
+      expect(finishArgs[0] instanceof jQuery.Event).toEqual(true);
+      // xhr
+      expect(_.keys(finishArgs[1])).toContain("responseText")
+      expect(_.keys(finishArgs[1])).toContain("statusCode")
+      // status
+      expect(finishArgs[2]).toEqual("success");
+      // table
+      expect(finishArgs[3]).toEqual(table);
+    });
   });
 
   describe("server side urls", function() {

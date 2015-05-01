@@ -30,7 +30,7 @@ Backdraft.plugin("DataTable", function(plugin) {
       }
 
       app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config);
+      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config, app.name);
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {

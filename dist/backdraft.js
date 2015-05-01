@@ -1152,7 +1152,7 @@ _.extend(Plugin.factory, {
 
   }, {
 
-    finalize : function(name, tableClass, views, pluginConfig) {
+    finalize : function(name, tableClass, views, pluginConfig, appName) {
       if (tableClass.prototype.rowClassName) {
         // method for late resolution of row class, removes dependency on needing access to the entire app
         tableClass.prototype._resolveRowClass = function() {
@@ -1164,6 +1164,10 @@ _.extend(Plugin.factory, {
       tableClass.prototype.availableColumnTypes = function() {
         return pluginConfig.columnTypes;
       };
+
+      tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
+        $("body").trigger(appName + ":" + eventName, args);
+      }
     }
 
   });
@@ -1272,6 +1276,7 @@ _.extend(Plugin.factory, {
         type : "GET",
         beforeSend: function(xhr) {
           xhr.setRequestHeader('X-Backdraft', "1");
+          self._triggerGlobalEvent("ajax-start.backdraft", [xhr, self]);
         },
         success : function(json) {
           // ensure we ignore old Ajax responses
@@ -1288,6 +1293,9 @@ _.extend(Plugin.factory, {
               fnCallback(json)
             }
           });
+        },
+        complete: function(xhr, status) {
+          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self]);
         }
       });
     },
@@ -2849,7 +2857,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
       }
 
       app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config);
+      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config, app.name);
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {

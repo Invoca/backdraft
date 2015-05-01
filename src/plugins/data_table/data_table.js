@@ -346,7 +346,7 @@ var LocalDataTable = (function() {
 
   }, {
 
-    finalize : function(name, tableClass, views, pluginConfig) {
+    finalize : function(name, tableClass, views, pluginConfig, appName) {
       if (tableClass.prototype.rowClassName) {
         // method for late resolution of row class, removes dependency on needing access to the entire app
         tableClass.prototype._resolveRowClass = function() {
@@ -358,6 +358,10 @@ var LocalDataTable = (function() {
       tableClass.prototype.availableColumnTypes = function() {
         return pluginConfig.columnTypes;
       };
+
+      tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
+        $("body").trigger(appName + ":" + eventName, args);
+      }
     }
 
   });

@@ -98,6 +98,7 @@ var ServerSideDataTable = (function() {
         type : "GET",
         beforeSend: function(xhr) {
           xhr.setRequestHeader('X-Backdraft', "1");
+          self._triggerGlobalEvent("ajax-start.backdraft", [xhr, self]);
         },
         success : function(json) {
           // ensure we ignore old Ajax responses
@@ -114,6 +115,9 @@ var ServerSideDataTable = (function() {
               fnCallback(json)
             }
           });
+        },
+        complete: function(xhr, status) {
+          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self]);
         }
       });
     },
