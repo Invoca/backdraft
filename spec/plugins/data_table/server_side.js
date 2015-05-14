@@ -280,6 +280,18 @@ describe("DataTable Plugin", function() {
 
       expect(jasmine.Ajax.requests.mostRecent().method).toEqual("POST");
     });
+
+    it("should default to GET when an AJAX method is not specified", function() {
+      app.view.dataTable("AjaxMethodTestTable", {
+        rowClassName : "R",
+        serverSide : true,
+      });
+
+      table = new app.Views.AjaxMethodTestTable({ collection : collection });
+      table.render();
+
+      expect(jasmine.Ajax.requests.mostRecent().method).toEqual("GET");
+    });
   });
 
   describe("#selectAllMatching", function() {
