@@ -267,6 +267,19 @@ describe("DataTable Plugin", function() {
       expect(jasmine.Ajax.requests.mostRecent().requestHeaders["X-Backdraft"]).toEqual("1");
       expect(jasmine.Ajax.requests.count()).toEqual(2);
     });
+
+    it("should allow an AJAX method to be specified", function() {
+      app.view.dataTable("AjaxMethodTestTable", {
+        rowClassName : "R",
+        serverSide : true,
+        ajaxMethod: "POST",
+      });
+
+      table = new app.Views.AjaxMethodTestTable({ collection : collection });
+      table.render();
+
+      expect(jasmine.Ajax.requests.mostRecent().method).toEqual("POST");
+    });
   });
 
   describe("#selectAllMatching", function() {
