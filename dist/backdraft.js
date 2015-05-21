@@ -1273,7 +1273,7 @@ _.extend(Plugin.factory, {
         data : aoData,
         dataType : "json",
         cache : false,
-        type : "GET",
+        type : this.ajaxMethod || "GET",
         beforeSend: function(xhr) {
           xhr.setRequestHeader('X-Backdraft', "1");
           self._triggerGlobalEvent("ajax-start.backdraft", [xhr, self]);
@@ -1295,7 +1295,7 @@ _.extend(Plugin.factory, {
           });
         },
         complete: function(xhr, status) {
-          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self]);
+          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
         }
       });
     },

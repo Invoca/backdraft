@@ -194,6 +194,10 @@ describe("DataTable Plugin", function() {
       expect(finishArgs[2]).toEqual("success");
       // table
       expect(finishArgs[3]).toEqual(table);
+      // filters
+      expect(_.isArray(finishArgs[4])).toEqual(true);
+      expect(_.pluck(finishArgs[4], "name")).toContain("sEcho");
+      expect(_.pluck(finishArgs[4], "name")).toContain("column_attrs[]");
     });
   });
 

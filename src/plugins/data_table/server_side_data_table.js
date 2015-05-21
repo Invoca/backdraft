@@ -117,7 +117,7 @@ var ServerSideDataTable = (function() {
           });
         },
         complete: function(xhr, status) {
-          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self]);
+          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
         }
       });
     },
