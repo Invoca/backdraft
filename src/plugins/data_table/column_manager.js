@@ -37,6 +37,10 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     return this._configGenerator.columnConfigByTitle.get(title);
   },
 
+  columnsSwapped: function(fromIndex, toIndex) {
+    return this._configGenerator.columnsSwapped(fromIndex, toIndex);
+  },
+
   _initEvents: function() {
     this.visibility.on("change", function() {
       this._applyVisibilitiesToDataTable(this.visibility.changed);

@@ -110,7 +110,9 @@ var LocalDataTable = (function() {
 
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
-        this.columnVisibility(column.title, column.visible);
+        if (column.title) {
+          this.columnVisibility(column.title, column.visible);
+        }
       }, this);
     },
 
@@ -133,7 +135,13 @@ var LocalDataTable = (function() {
     // Private APIs
 
     _enableReorderableColumns: function() {
-      new $.fn.dataTable.ColReorder(this.dataTable);
+      var self = this;
+      new $.fn.dataTable.ColReorder(this.dataTable, {
+        fnReorderCallback: function(fromIndex, toIndex) {
+          // notify that columns have been externally rearranged
+          self._columnManager.columnsSwapped(fromIndex, toIndex);
+        }
+      });
     },
 
     _allMatchingModels : function() {

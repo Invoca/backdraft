@@ -490,9 +490,18 @@ _.extend(Plugin.factory, {
   var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
+    this.columnIndexByTitle = new Backbone.Model();
+    this.columnConfigByTitle = new Backbone.Model();
     this._computeColumnConfig();
     this._computeColumnLookups();
     this._computeSortingConfig();
+  },
+
+  columnsSwapped: function(fromIndex, toIndex) {
+    // move the config around and recompute lookup models
+    var removed = this.columnsConfig.splice(fromIndex, 1)[0];
+    this.columnsConfig.splice(toIndex, 0, removed);
+    this._computeColumnLookups();
   },
 
   _computeColumnConfig: function() {
@@ -542,9 +551,8 @@ _.extend(Plugin.factory, {
   },
 
   _computeColumnLookups: function() {
-    this.columnIndexByTitle = new Backbone.Model();
-    this.columnConfigByTitle = new Backbone.Model();
-
+    this.columnIndexByTitle.clear();
+    this.columnConfigByTitle.clear();
     _.each(this.columnsConfig, function(col, index) {
       if (col.title) {
         this.columnIndexByTitle.set(col.title, index);
@@ -606,6 +614,10 @@ _.extend(Plugin.factory, {
 
   columnConfigForTitle: function(title) {
     return this._configGenerator.columnConfigByTitle.get(title);
+  },
+
+  columnsSwapped: function(fromIndex, toIndex) {
+    return this._configGenerator.columnsSwapped(fromIndex, toIndex);
   },
 
   _initEvents: function() {
@@ -916,7 +928,9 @@ _.extend(Plugin.factory, {
 
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
-        this.columnVisibility(column.title, column.visible);
+        if (column.title) {
+          this.columnVisibility(column.title, column.visible);
+        }
       }, this);
     },
 
@@ -939,7 +953,13 @@ _.extend(Plugin.factory, {
     // Private APIs
 
     _enableReorderableColumns: function() {
-      new $.fn.dataTable.ColReorder(this.dataTable);
+      var self = this;
+      new $.fn.dataTable.ColReorder(this.dataTable, {
+        fnReorderCallback: function(fromIndex, toIndex) {
+          // notify that columns have been externally rearranged
+          self._columnManager.columnsSwapped(fromIndex, toIndex);
+        }
+      });
     },
 
     _allMatchingModels : function() {
@@ -2446,7 +2466,7 @@ ColReorder.prototype = {
 
       if ( this.s.dropCallback !== null )
       {
-        this.s.dropCallback.call( this );
+        this.s.dropCallback.call( this, this.s.mouse.fromIndex, this.s.mouse.toIndex );
       }
 
       /* Save the state */

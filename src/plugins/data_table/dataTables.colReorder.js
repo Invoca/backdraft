@@ -965,7 +965,7 @@ ColReorder.prototype = {
 
       if ( this.s.dropCallback !== null )
       {
-        this.s.dropCallback.call( this );
+        this.s.dropCallback.call( this, this.s.mouse.fromIndex, this.s.mouse.toIndex );
       }
 
       /* Save the state */

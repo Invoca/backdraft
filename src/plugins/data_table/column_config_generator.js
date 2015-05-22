@@ -1,9 +1,18 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
+    this.columnIndexByTitle = new Backbone.Model();
+    this.columnConfigByTitle = new Backbone.Model();
     this._computeColumnConfig();
     this._computeColumnLookups();
     this._computeSortingConfig();
+  },
+
+  columnsSwapped: function(fromIndex, toIndex) {
+    // move the config around and recompute lookup models
+    var removed = this.columnsConfig.splice(fromIndex, 1)[0];
+    this.columnsConfig.splice(toIndex, 0, removed);
+    this._computeColumnLookups();
   },
 
   _computeColumnConfig: function() {
@@ -53,9 +62,8 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   },
 
   _computeColumnLookups: function() {
-    this.columnIndexByTitle = new Backbone.Model();
-    this.columnConfigByTitle = new Backbone.Model();
-
+    this.columnIndexByTitle.clear();
+    this.columnConfigByTitle.clear();
     _.each(this.columnsConfig, function(col, index) {
       if (col.title) {
         this.columnIndexByTitle.set(col.title, index);
