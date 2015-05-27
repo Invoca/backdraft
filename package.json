@@ -16,6 +16,7 @@
     "grunt-contrib-concat": "^0.3.0",
     "express": "^4.1.0",
     "morgan": "^1.0.0",
-    "serve-index": "^1.0.1"
+    "serve-index": "^1.0.1",
+    "grunt-docco": "^0.3.3"
   }
 }

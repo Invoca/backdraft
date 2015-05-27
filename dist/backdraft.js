@@ -1255,7 +1255,7 @@ _.extend(Plugin.factory, {
       if (!options.addData) throw new Error("An addData option is required to reset the collection");
       // clean up old data
       // note: since we have enabled server-side processing, we don't need to call
-      // #fnClearTable here - it is a client-side only function
+      // fnClearTable here - it is a client-side only function
       this.cache.each(function(row) {
         row.close();
       });
