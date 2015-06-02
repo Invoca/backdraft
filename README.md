@@ -7,7 +7,7 @@ First, define a new Backdraft app and what plugins it will use:
 
 ```javascript
 Backdraft.app("TableExample", {
-  plugins : [ "DataTable"],
+  plugins : ["DataTable"],
 
   activate : function($el) {
     this.mainRouter = new this.Routers.Main({ $el : $el });
@@ -68,7 +68,7 @@ Backdraft.app("TableExample", function(app) {
 
 Now create the view that pulls all the pieces together:
 
-```
+```javascript
 // views/index.js
 Backdraft.app("TableExample", function(app) {
   app.view("Index", {
