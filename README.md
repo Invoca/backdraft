@@ -148,11 +148,13 @@ See all available commands with:
 
 ### Contributing
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+If you'd like to contribute a feature or bugfix: Thanks! To make sure your change has a high chance of being included, please read the following guidelines:
 
-## License
-[MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE).
+1. Post a [pull request](https://github.com/invoca/backdraft/compare/).
+2. Please add tests. We will not accept any patch that is not tested. (It's rare when explicit tests aren't needed.) Please see existing tests for examples and structure.
+
+Thank you to all [the contributors](https://github.com/invoca/backdraft/contributors)!
+
+License
+-------
+Backdraft is Copyright © 2014-2015 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.
