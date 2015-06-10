@@ -148,7 +148,7 @@ var LocalDataTable = (function() {
       // returns all models matching the current filter criteria, regardless of pagination
       // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
       // matching data since some of the rows may not have been rendered yet.
-      // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
+      // here we use the the aiDisplay property to get indicies of the data matching the current filtering
       // and return the associated models
       return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
         return this.collection.at(index);
@@ -198,6 +198,7 @@ var LocalDataTable = (function() {
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       this._installSortInterceptors();
+      this._createFilterControls();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences()
@@ -261,24 +262,127 @@ var LocalDataTable = (function() {
       this.trigger("change:selected", data);
     },
 
+    // dataTables does not provide a good way to programmatically disable sorting, so we:
+    // 1) remove the default sorting event handler that dataTables adds
+    // 2) Create a div and put the header in it.  We need to do this so sorting doesn't conflict with filtering
+    // on the click events.
+    // 3) insert our own event handler on the div that stops the event if we are locked
+    // 4) re-insert the dataTables sort event handler
+    // currently there's a bug where this resets when a column is moved.
     _installSortInterceptors: function() {
-      // dataTables does not provide a good way to programmatically disable sorting, so we:
-      // 1) remove the default sorting event handler that dataTables adds
-      // 2) insert our own that stops the event if we are locked
-      // 3) re-insert the dataTables sort event handler
       var self = this;
       this.dataTable.find("thead th").each(function(index) {
-        $(this).off("click.DT").on("click", function(event) {
+        $(this).off("click.DT");
+        // put the header text in a div
+        var nDiv = document.createElement('div');
+        nDiv.className = "DataTables_sort_wrapper";
+        $(this).contents().appendTo(nDiv);
+        this.appendChild(nDiv);
+        // handle clicking on div as sorting
+        $('.DataTables_sort_wrapper', this).on("click", function(event) {
           if (self.lock("sort")) {
             event.stopImmediatePropagation();
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
+        self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
+      });
+    },
+
+    // Creates the filter controls for the dataTable in thead th
+    // Supports:
+    //  * String search, with a single input box
+    //  * Numeric search, with three input boxes for >, <, =
+    //  * List search, with a radio checklist
+    _createFilterControls: function() {
+      var cg = this._columnManager._configGenerator;
+      var that = this;
+
+      this.dataTable.find("thead th").each(function (index) {
+        var title = this.outerText;
+        var col = cg.columnConfigByTitle.attributes[title];
+        var filter = col.filter;
+        var listClass = "single";
+
+        if (filter) {
+          // if the column has a filter element, create filter controls
+          if (filter.type == "string") {
+            // if filter type is search, create input
+            $(this).append('<input class="search" id ="value" type="text" placeholder="Search ' + title + '" />');
+          } else if (filter.type == "numeric") {
+            // if filter type is numeric, create multiple labeled inputs
+            $(this).append('<ul> <li>&gt; <input id="gt" class="numeric" type="text" /></li>'+
+                '<li>&lt; <input id="lt" class="numeric" type="text"/></li>'+
+                '<li> = <input id="eq" class="numeric" type="text" /></li> </ul>');
+          } else if (filter.type == "list") {
+            // handle long lists in multiple columns
+            if (filter.options.length > 30)
+              listClass = "triple"
+            else if (filter.options.length > 15)
+              listClass = "double";
+            // if filter type is checklist, create radio checklist
+            var radioList = '<ul>';
+            radioList += '<li id="any"><input checked class="list" id="value" type="radio" name="'+col.attr+'" value="Any"/> Any</li>';
+            for (var i = 0; i < filter.options.length; i++) {
+              radioList += '<li><input class="list" id="value" type="radio" name="'+col.attr+'" value="'+filter.options[i]+'" /> '+
+                  filter.options[i]+'</li>';
+            }
+            radioList += '</ul>';
+            $(this).append(radioList);
+          }
+
+          // need to manually focus on inputs because we disabled the click event for thead
+          // when installing sort interceptors
+          $('input', this).on("click", function () {
+            this.focus();
+          });
+          $('input', this).on('focusout change', function() {
+            if ((this.value == "") || (this.value == "Any")) {
+              filter[this.id] = null;
+            } else if (filter.type == "list") {
+              filter.value = [this.value];
+            } else {
+              filter[this.id] = this.value;
+            }
+            that.dataTable._fnAjaxUpdate();
+          });
+
+          // create filtering wrapper div
+          var wrapperDiv = document.createElement('div');
+          wrapperDiv.className = "DataTables_filter_wrapper";
+          var wrapperID = 'wrapper-'+col.attr;
+          wrapperDiv.id = wrapperID;
+          wrapperDiv.innerHTML = 'Filter';
+
+          // create filtering menu div
+          var filterDiv = document.createElement('div');
+          filterDiv.className = "filterMenu "+listClass;
+          var filterID = 'menu-'+col.attr;
+          filterDiv.id = filterID;
+          wrapperDiv.appendChild(filterDiv);
+
+          // put filtering controls in filter div and put wrapper div in header
+          if (filter.type == "string")
+            $('input', this).appendTo(filterDiv)
+          else
+            $('ul', this).appendTo(filterDiv);
+          this.appendChild(wrapperDiv);
+
+          // handle hovering on wrapperDiv
+          $('.DataTables_filter_wrapper', this).hover(function() {
+            $('.filterMenu', this).show();
+          }, function() {
+            $('.filterMenu', this).hide();
+          });
+        }
       });
     },
 
     // events
+
+    _onReorder : function() {
+      this.trigger("reorder");
+    },
 
     _onDraw : function() {
       this.trigger("draw", arguments);

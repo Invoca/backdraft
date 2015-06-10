@@ -66,7 +66,7 @@ describe("DataTable Plugin", function() {
       expect(app.Views.new_def.prototype.baseMethod()).toEqual("i am the new base");
     });
 
-    it("should allow rowClass to be provided as an argument instad of rowClassName", function() {
+    it("should allow rowClass to be provided as an argument instead of rowClassName", function() {
       app.view.dataTable.row("abc", {
         columns : [
           { attr : "name", title : "I came from a rowClass argument" }

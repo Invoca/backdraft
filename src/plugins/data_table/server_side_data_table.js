@@ -81,8 +81,8 @@ var ServerSideDataTable = (function() {
 
     // dataTables callback after a draw event has occurred
     _onDraw : function() {
-      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
+      // anytime a draw occurs (pagination change, pagination size change, sorting, etc) we want
+      // to clear out any stored selectAllMatchingParams and reset the bulk select checkbox
       this.selectAllMatching(false);
       this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
       this.trigger("draw", arguments);
@@ -90,6 +90,12 @@ var ServerSideDataTable = (function() {
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
       var self = this;
+      if (this.serverSideFiltering) {
+        var filterJson = {};
+        filterJson.name = "ext_filter_json";
+        filterJson.value = this._getFilteringSettings();
+        aoData.push(filterJson);
+      }
       oSettings.jqXHR = $.ajax({
         url : sUrl,
         data : aoData,
@@ -120,6 +126,52 @@ var ServerSideDataTable = (function() {
           self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
         }
       });
+    },
+
+    _getFilteringSettings: function() {
+      var result = [];
+      var cg = this._columnManager._configGenerator;
+      for (var i = 0; i < cg.columnsConfig.length; i++) {
+        var col = cg.columnsConfig[i];
+        if ((col.filter) ) {
+          if (col.filter.value) {
+            var filterObj = {};
+            filterObj.type = col.filter.type;
+            filterObj.value = col.filter.value;
+            filterObj.field = col.attr;
+            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
+            result.push(filterObj);
+          }
+          if (col.filter.eq) {
+            var filterObj = {};
+            filterObj.type = col.filter.type;
+            filterObj.comparison = "eq";
+            filterObj.value = parseFloat(col.filter.eq);
+            filterObj.field = col.attr;
+            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
+            result.push(filterObj);
+          }
+          if (col.filter.lt) {
+            var filterObj = {};
+            filterObj.type = col.filter.type;
+            filterObj.comparison = "lt";
+            filterObj.value = parseFloat(col.filter.lt);
+            filterObj.field = col.attr;
+            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
+            result.push(filterObj);
+          }
+          if (col.filter.gt) {
+            var filterObj = {};
+            filterObj.type = col.filter.type;
+            filterObj.comparison = "gt";
+            filterObj.value = parseFloat(col.filter.gt);
+            filterObj.field = col.attr;
+            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
+            result.push(filterObj);
+          }
+        }
+      }
+      return JSON.stringify(result);
     },
 
     _dataTableConfig : function() {

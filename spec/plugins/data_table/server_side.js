@@ -433,4 +433,28 @@ describe("DataTable Plugin", function() {
     });
   });
 
+  describe("filtering", function() {
+    beforeEach(function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+    });
+
+    it("should not put ext_filter_json param in data if server side filtering isn't enabled", function() {
+
+    });
+
+    it("should track changes to filter inputs in column manager", function() {
+
+    });
+
+    it("should put filtering options in ext_filter_json parameter", function() {
+
+    });
+
+    it("should filter content correctly", function() {
+
+    });
+  });
+
 });
