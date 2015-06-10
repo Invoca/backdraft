@@ -12,7 +12,8 @@ var LocalDataTable = (function() {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", 
+          "_onColumnVisibilityChange", "_onReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -140,6 +141,8 @@ var LocalDataTable = (function() {
         fnReorderCallback: function(fromIndex, toIndex) {
           // notify that columns have been externally rearranged
           self._columnManager.columnsSwapped(fromIndex, toIndex);
+          // pass event up
+          self._onReorder();
         }
       });
     },
