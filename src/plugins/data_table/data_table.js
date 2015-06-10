@@ -293,7 +293,7 @@ var LocalDataTable = (function() {
     // Supports:
     //  * String search, with a single input box
     //  * Numeric search, with three input boxes for >, <, =
-    //  * List search, with a radio checklist
+    //  * List search, with a checklist
     _createFilterControls: function() {
       var cg = this._columnManager._configGenerator;
       var that = this;
@@ -320,15 +320,14 @@ var LocalDataTable = (function() {
               listClass = "triple"
             else if (filter.options.length > 15)
               listClass = "double";
-            // if filter type is checklist, create radio checklist
-            var radioList = '<ul>';
-            radioList += '<li id="any"><input checked class="list" id="value" type="radio" name="'+col.attr+'" value="Any"/> Any</li>';
+            // if filter type is checklist, create checklist
+            var checkList = '<ul>';
             for (var i = 0; i < filter.options.length; i++) {
-              radioList += '<li><input class="list" id="value" type="radio" name="'+col.attr+'" value="'+filter.options[i]+'" /> '+
-                  filter.options[i]+'</li>';
+              checkList += '<li><label><input class="list" id="value" type="checkbox" name="'+col.attr+'" value="'+filter.options[i]+'" /> '+
+                  filter.options[i]+'</label></li>';
             }
-            radioList += '</ul>';
-            $(this).append(radioList);
+            checkList += '</ul>';
+            $(this).append(checkList);
           }
 
           // need to manually focus on inputs because we disabled the click event for thead
@@ -337,10 +336,20 @@ var LocalDataTable = (function() {
             this.focus();
           });
           $('input', this).on('focusout change', function() {
-            if ((this.value == "") || (this.value == "Any")) {
+            if (filter.type == "list") {
+              if (this.checked) {
+                filter[this.id] = filter[this.id] || [];
+                filter[this.id].push(this.value);
+              }
+              else {
+                var index = filter[this.id].indexOf(this.value);
+                if (index > -1)
+                  filter[this.id].splice(index, 1);
+                if (filter[this.id].length == 0)
+                  filter[this.id] = null;
+              }
+            } else if (this.value == "") {
               filter[this.id] = null;
-            } else if (filter.type == "list") {
-              filter.value = [this.value];
             } else {
               filter[this.id] = this.value;
             }
@@ -370,9 +379,9 @@ var LocalDataTable = (function() {
 
           // handle hovering on wrapperDiv
           $('.DataTables_filter_wrapper', this).hover(function() {
-            $('.filterMenu', this).show();
+            $('.filterMenu', this).slideDown(200);
           }, function() {
-            $('.filterMenu', this).hide();
+            $('.filterMenu', this).slideUp(50);
           });
         }
       });
