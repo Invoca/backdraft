@@ -128,47 +128,42 @@ var ServerSideDataTable = (function() {
       });
     },
 
+    // constructs a filter object for
+    // @col: the column from column manager we're filter-string
+    // @mval: the name of the element which has the value we're filtering on
+    // @isFloat: whether or not the value we're filtering on needs to be parsed
+    //   to a float.
+    _makeFilterObj: function(col, mval, isFloat) {
+      var filterObj = {};
+      filterObj.type = col.filter.type;
+      filterObj.attr = col.attr;
+      filterObj.data_dictionary_name = col.filter.data_dictionary_name;
+      filterObj.comparison = mval;
+      if (isFloat) {
+        filterObj.value = parseFloat(col.filter[mval])
+      } else {
+        filterObj.value = col.filter[mval];
+      }
+      return filterObj;
+    },
+
+    // gets an object representing all filtering settings set in the column
+    // manager to send to the backend to retrieve a filtered dataset
     _getFilteringSettings: function() {
+      var table = this;
       var result = [];
       var cg = this._columnManager._configGenerator;
       for (var i = 0; i < cg.columnsConfig.length; i++) {
         var col = cg.columnsConfig[i];
         if ((col.filter) ) {
-          if (col.filter.value) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.value = col.filter.value;
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
-          if (col.filter.eq) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.comparison = "eq";
-            filterObj.value = parseFloat(col.filter.eq);
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
-          if (col.filter.lt) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.comparison = "lt";
-            filterObj.value = parseFloat(col.filter.lt);
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
-          if (col.filter.gt) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.comparison = "gt";
-            filterObj.value = parseFloat(col.filter.gt);
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
+          if (col.filter.value)
+            result.push(table._makeFilterObj(col, "value", false));
+          if (col.filter.eq)
+            result.push(table._makeFilterObj(col, "eq", true));
+          if (col.filter.lt)
+            result.push(table._makeFilterObj(col, "lt", true));
+          if (col.filter.gt)
+            result.push(table._makeFilterObj(col, "gt", true));
         }
       }
       return JSON.stringify(result);

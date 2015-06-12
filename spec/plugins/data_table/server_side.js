@@ -56,8 +56,8 @@ describe("DataTable Plugin", function() {
     app.view.dataTable.row("R", {
       columns : [
         { bulk : true },
-        { attr : "name", title : "Name" },
-        { attr : "date", title : "Date" },
+        { attr : "name", title : "Name", filter : { type : "string" } },
+        { attr : "date", title : "Date", filter : { type : "numeric" } },
         { title : "Non attr column"}
       ],
       renderers: {
@@ -68,7 +68,8 @@ describe("DataTable Plugin", function() {
     });
     app.view.dataTable("T", {
       rowClassName : "R",
-      serverSide : true
+      serverSide : true,
+      serverSideFiltering : true
     });
     collection = new app.Collections.Col();
 
@@ -440,19 +441,59 @@ describe("DataTable Plugin", function() {
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
     });
 
-    it("should not put ext_filter_json param in data if server side filtering isn't enabled", function() {
+    it("should have filtering info for filterable column in column manager", function() {
+      var cg = table._columnManager._configGenerator;
+      var numCols = 0;
+      var numFilters = 0;
+      for (var i = 0; i < cg.columnsConfig.length; i++) {
+        var col = cg.columnsConfig[i];
+        //console.log(JSON.stringify(col));
+        expect(col).not.toEqual(null);
+        if (col) {
+          numCols++;
+          if (col.filter)
+            numFilters++;
+        }
+      }
+      //console.log("Number of columns found in config: "+numCols);
+      //console.log("Number of columns with filters:  "+numFilters);
+      expect(numCols).toEqual(4);
+      expect(numFilters).toEqual(2);
+    });
 
+    it("shouldn't create filter inputs for unfilterable columns", function() {
+      var hasFilter = [];
+      $('thead th').each(function (index) {
+        hasFilter.push(this.getElementsByClassName('DataTables_filter_wrapper').length > 0);
+      });
+      expect(hasFilter).toEqual([false, false, false, false, false, false, false, false, true, true, false]);
     });
 
     it("should track changes to filter inputs in column manager", function() {
-
+      var cg = this._columnManager._configGenerator;
+      //var cg = table._columnManager.columnsConfig();
+      $('thead th').each(function (index) {
+        var colTitle = this.getElementsByClassName('DataTables_sort_wrapper')[0].outerText;
+        //console.log(colTitle);
+        if (this.getElementsByClassName('DataTables_filter_wrapper').length > 0) {
+          var col = cg.columnConfigByTitle.attributes[colTitle];
+          if (col.filter.type == "string") {
+            col.filter.value = "Mark";
+            console.log($(this).html())
+            $('#menu-name input').val("Scott").trigger("change");
+            console.log($('#menu-name input').val());
+            //$('#menu-name input');
+            expect(col.filter.value).toEqual("Scott");
+          }
+        }
+      });
     });
 
     it("should put filtering options in ext_filter_json parameter", function() {
 
     });
 
-    it("should filter content correctly", function() {
+    it("should filter rows", function() {
 
     });
   });

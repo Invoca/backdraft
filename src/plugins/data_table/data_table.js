@@ -12,7 +12,7 @@ var LocalDataTable = (function() {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", 
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
           "_onColumnVisibilityChange", "_onReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
@@ -201,7 +201,7 @@ var LocalDataTable = (function() {
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       this._installSortInterceptors();
-      this._createFilterControls();
+      this._setupFiltering();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences()
@@ -265,13 +265,12 @@ var LocalDataTable = (function() {
       this.trigger("change:selected", data);
     },
 
-    // dataTables does not provide a good way to programmatically disable sorting, so we:
+    // DataTables does not provide a good way to programmatically disable sorting, so we:
     // 1) remove the default sorting event handler that dataTables adds
     // 2) Create a div and put the header in it.  We need to do this so sorting doesn't conflict with filtering
     // on the click events.
     // 3) insert our own event handler on the div that stops the event if we are locked
     // 4) re-insert the dataTables sort event handler
-    // currently there's a bug where this resets when a column is moved.
     _installSortInterceptors: function() {
       var self = this;
       this.dataTable.find("thead th").each(function(index) {
@@ -292,106 +291,152 @@ var LocalDataTable = (function() {
       });
     },
 
-    // Creates the filter controls for the dataTable in thead th
-    // Supports:
-    //  * String search, with a single input box
-    //  * Numeric search, with three input boxes for >, <, =
-    //  * List search, with a checklist
-    _createFilterControls: function() {
-      var cg = this._columnManager._configGenerator;
-      var that = this;
 
-      this.dataTable.find("thead th").each(function (index) {
+    // Here we make different controls based on the filter type we're dealing with.
+    // * string filtering requires a single text input
+    // * numeric filtering requires three text inputs for greater than, less than, and
+    //   equal to.  these text inputs need to be uniquely identified so we can filter on
+    //   values entered into more than one of them
+    // * list filtering requires a list of labeled checkboxes for each filter option
+    //   these checkboxes need to be identified by the value they represent
+    // The IDs "value", "gt", "lt" and "eq" are used to determine in what element in the
+    // filter object in the column manager we store the value entered by the user
+    _generateFilteringControls: function(head, col) {
+      var filter = col.filter;
+      if (filter.type == "string") {
+        $(head).append('<input class="filter-string" id ="value" type="text" placeholder="Search ' +
+            col.title + '" />');
+      } else if (filter.type == "numeric") {
+        $(head).append('<ul> <li>&gt; <input id="gt" class="filter-numeric" type="text" /></li>' +
+            '<li>&lt; <input id="lt" class="filter-numeric" type="text"/></li>' +
+            '<li> = <input id="eq" class="filter-numeric" type="text" /></li> </ul>');
+      } else if (filter.type == "list") {
+        var checkList = '<ul>';
+        for (var i = 0; i < filter.options.length; i++) {
+          checkList += '<li><label><input class="list" id="value" type="checkbox" name="' + col.attr +
+              '" value="' + filter.options[i] + '" /> ' + filter.options[i] + '</label></li>';
+        }
+        checkList += '</ul>';
+        $(head).append(checkList);
+      }
+    },
+
+    // Here we bind events to the input controls for a particular column for filtering.
+    // This will update the column manager, and the table, when the user requests it.
+    // @head: The DOM element for the thead th we want to bind events for
+    // @col: The column from columnManager that corresponds to the thead th we're
+    //   binding events for.
+    // @table: the table we're binding events for
+    _bindFilteringEvents: function(head, col) {
+      var table = this;
+      var filter = col.filter;
+
+      // bind focus to click event because of unbinding click from thead th when
+      // installing sort interceptors
+      $('input', head).on("click", function () {
+        this.focus();
+      });
+      // update columnManager filter and ajaxUpdate dataTable when input changed
+      $('input', head).on('change', function () {
+        if (filter.type == "list") {
+          if (this.checked) {
+            filter[this.id] = filter[this.id] || [];
+            filter[this.id].push(this.value);
+          }
+          else {
+            var index = filter[this.id].indexOf(this.value);
+            if (index > -1)
+              filter[this.id].splice(index, 1);
+            if (filter[this.id].length == 0)
+              filter[this.id] = null;
+          }
+        } else if (this.value == "") {
+          filter[this.id] = null;
+        } else {
+          filter[this.id] = this.value;
+        }
+
+        table.dataTable._fnAjaxUpdate();
+      });
+    },
+
+    // 1) Creates divs for the filter menu and the filter wrapper
+    // 2) Moves generated filtering controls into generated divs
+    // 3) Binds menu showing to filter wrapper hover
+    // @head: The DOM element for the thead th we want to create filtering wrappers for
+    // @col: The column from the column manager corresponding to the column we're creating
+    //   filtering wrappers for.
+    _createFilteringWrappers: function(head, col) {
+      var filter = col.filter;
+      // create filtering wrapper div
+      var wrapperDiv = document.createElement('div');
+      wrapperDiv.className = "DataTables_filter_wrapper";
+      wrapperDiv.id = "wrapper-" + col.attr;
+      wrapperDiv.innerHTML = "Filter";
+
+      // determine how many columns we need if we're dealing with list filtering
+      var listClass = "";
+      if (filter.type == "list") {
+        if (filter.options.length > 30)
+          listClass = " triple"
+        else if (filter.options.length > 15)
+          listClass = " double"
+        else
+          listClass = " single";
+      }
+
+      // create filtering menu div
+      var filterDiv = document.createElement("div");
+      filterDiv.className = "filterMenu" + listClass;
+      filterDiv.id = "menu-" + col.attr;
+      wrapperDiv.appendChild(filterDiv);
+
+      // put filtering controls in filter div and put wrapper div in header
+      if (filter.type == "string")
+        $('input', head).appendTo(filterDiv)
+      else
+        $('ul', head).appendTo(filterDiv);
+      head.appendChild(wrapperDiv);
+
+      // handle hovering on wrapperDiv
+      $('.DataTables_filter_wrapper', head).hover(function () {
+        $('.filterMenu', head).slideDown(200);
+      }, function () {
+        $('.filterMenu', head).slideUp(50);
+      });
+    },
+
+    // Sets up filtering for the dataTable
+    _setupFiltering: function() {
+      var table = this;
+      var cg = table._columnManager._configGenerator;
+
+      // Here we find each column header object in the dataTable because
+      // each one needs filter controls if filtering is enabled for it in the
+      // column manager.
+      table.dataTable.find("thead th").each(function (index) {
+        // here we use the text in the header to get the column config by title
+        // there isn't a better way to do this currently, we should make an interface
+        // in column manager that allows us to maps the index of a column in the
+        // dataTable to the column config for that column.
         var title = this.outerText;
         var col = cg.columnConfigByTitle.attributes[title];
-        var filter = col.filter;
-        var listClass = "single";
 
-        if (filter) {
-          // if the column has a filter element, create filter controls
-          if (filter.type == "string") {
-            // if filter type is search, create input
-            $(this).append('<input class="search" id ="value" type="text" placeholder="Search ' + title + '" />');
-          } else if (filter.type == "numeric") {
-            // if filter type is numeric, create multiple labeled inputs
-            $(this).append('<ul> <li>&gt; <input id="gt" class="numeric" type="text" /></li>'+
-                '<li>&lt; <input id="lt" class="numeric" type="text"/></li>'+
-                '<li> = <input id="eq" class="numeric" type="text" /></li> </ul>');
-          } else if (filter.type == "list") {
-            // handle long lists in multiple columns
-            if (filter.options.length > 30)
-              listClass = "triple"
-            else if (filter.options.length > 15)
-              listClass = "double";
-            // if filter type is checklist, create checklist
-            var checkList = '<ul>';
-            for (var i = 0; i < filter.options.length; i++) {
-              checkList += '<li><label><input class="list" id="value" type="checkbox" name="'+col.attr+'" value="'+filter.options[i]+'" /> '+
-                  filter.options[i]+'</label></li>';
-            }
-            checkList += '</ul>';
-            $(this).append(checkList);
+        // if we found a matching column, proceed with creating filtering controls
+        if (col) {
+          // If the column is filterable, it will have a filter element in column
+          // manager.  If it isn't filterable it won't.  We only make the filter controls
+          // if there's a filter element in the column manager
+          if (col.filter) {
+            table._generateFilteringControls(this, col);
+            table._bindFilteringEvents(this, col);
+            table._createFilteringWrappers(this, col);
           }
-
-          // need to manually focus on inputs because we disabled the click event for thead
-          // when installing sort interceptors
-          $('input', this).on("click", function () {
-            this.focus();
-          });
-          $('input', this).on('focusout change', function() {
-            if (filter.type == "list") {
-              if (this.checked) {
-                filter[this.id] = filter[this.id] || [];
-                filter[this.id].push(this.value);
-              }
-              else {
-                var index = filter[this.id].indexOf(this.value);
-                if (index > -1)
-                  filter[this.id].splice(index, 1);
-                if (filter[this.id].length == 0)
-                  filter[this.id] = null;
-              }
-            } else if (this.value == "") {
-              filter[this.id] = null;
-            } else {
-              filter[this.id] = this.value;
-            }
-            that.dataTable._fnAjaxUpdate();
-          });
-
-          // create filtering wrapper div
-          var wrapperDiv = document.createElement('div');
-          wrapperDiv.className = "DataTables_filter_wrapper";
-          var wrapperID = 'wrapper-'+col.attr;
-          wrapperDiv.id = wrapperID;
-          wrapperDiv.innerHTML = 'Filter';
-
-          // create filtering menu div
-          var filterDiv = document.createElement('div');
-          filterDiv.className = "filterMenu "+listClass;
-          var filterID = 'menu-'+col.attr;
-          filterDiv.id = filterID;
-          wrapperDiv.appendChild(filterDiv);
-
-          // put filtering controls in filter div and put wrapper div in header
-          if (filter.type == "string")
-            $('input', this).appendTo(filterDiv)
-          else
-            $('ul', this).appendTo(filterDiv);
-          this.appendChild(wrapperDiv);
-
-          // handle hovering on wrapperDiv
-          $('.DataTables_filter_wrapper', this).hover(function() {
-            $('.filterMenu', this).slideDown(200);
-          }, function() {
-            $('.filterMenu', this).slideUp(50);
-          });
         }
       });
     },
 
     // events
-
     _onReorder : function() {
       this.trigger("reorder");
     },
