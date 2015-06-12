@@ -463,10 +463,10 @@ describe("DataTable Plugin", function() {
 
     it("shouldn't create filter inputs for unfilterable columns", function() {
       var hasFilter = [];
-      $('thead th').each(function (index) {
+      table.dataTable.find("thead th").each(function (index) {
         hasFilter.push(this.getElementsByClassName('DataTables_filter_wrapper').length > 0);
       });
-      expect(hasFilter).toEqual([false, false, false, false, false, false, false, false, true, true, false]);
+      expect(hasFilter).toEqual([false, true, true, false]);
     });
 
     it("should track filtering in column manager and in ext_filter_json parameter", function() {
