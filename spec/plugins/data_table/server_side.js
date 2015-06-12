@@ -469,32 +469,21 @@ describe("DataTable Plugin", function() {
       expect(hasFilter).toEqual([false, false, false, false, false, false, false, false, true, true, false]);
     });
 
-    it("should track changes to filter inputs in column manager", function() {
-      var cg = this._columnManager._configGenerator;
+    it("should track filtering in column manager and in ext_filter_json parameter", function() {
+      var cg = table.configGenerator();
       //var cg = table._columnManager.columnsConfig();
-      $('thead th').each(function (index) {
-        var colTitle = this.getElementsByClassName('DataTables_sort_wrapper')[0].outerText;
-        //console.log(colTitle);
-        if (this.getElementsByClassName('DataTables_filter_wrapper').length > 0) {
-          var col = cg.columnConfigByTitle.attributes[colTitle];
+      table.dataTable.find("thead th").each(function (index) {
+        var title = this.outerText;
+        title = title.substr(0, title.indexOf('Filter'));
+        var col = cg.columnConfigByTitle.attributes[title];
+        if (col && col.filter) {
           if (col.filter.type == "string") {
-            col.filter.value = "Mark";
-            console.log($(this).html())
-            $('#menu-name input').val("Scott").trigger("change");
-            console.log($('#menu-name input').val());
-            //$('#menu-name input');
+            $('#menu-name input', this).val("Scott").trigger("change");
             expect(col.filter.value).toEqual("Scott");
+            expect(jasmine.Ajax.requests.mostRecent().url).toMatch("ext_filter_json");
           }
         }
       });
-    });
-
-    it("should put filtering options in ext_filter_json parameter", function() {
-
-    });
-
-    it("should filter rows", function() {
-
     });
   });
 

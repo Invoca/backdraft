@@ -133,6 +133,10 @@ var LocalDataTable = (function() {
       return this._columnManager.columnsConfig();
     },
 
+    configGenerator: function() {
+      return this._columnManager._configGenerator;
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {
@@ -409,7 +413,7 @@ var LocalDataTable = (function() {
     // Sets up filtering for the dataTable
     _setupFiltering: function() {
       var table = this;
-      var cg = table._columnManager._configGenerator;
+      var cg = table.configGenerator();
 
       // Here we find each column header object in the dataTable because
       // each one needs filter controls if filtering is enabled for it in the
