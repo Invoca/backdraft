@@ -830,7 +830,7 @@ _.extend(Plugin.factory, {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", 
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
           "_onColumnVisibilityChange", "_onReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
@@ -949,10 +949,6 @@ _.extend(Plugin.factory, {
 
     columnsConfig: function() {
       return this._columnManager.columnsConfig();
-    },
-
-    configGenerator: function() {
-      return this._columnManager._configGenerator;
     },
 
     // Private APIs
@@ -1113,6 +1109,7 @@ _.extend(Plugin.factory, {
       });
     },
 
+
     // Here we make different controls based on the filter type we're dealing with.
     // * string filtering requires a single text input
     // * numeric filtering requires three text inputs for greater than, less than, and
@@ -1122,13 +1119,15 @@ _.extend(Plugin.factory, {
     //   these checkboxes need to be identified by the value they represent
     // The IDs "value", "gt", "lt" and "eq" are used to determine in what element in the
     // filter object in the column manager we store the value entered by the user
-    _generateFilteringControls: function() {
+    _generateFilteringControls: function(head, col) {
+      var filter = col.filter;
       if (filter.type == "string") {
-        $(this).append('<input class="filter-string" id ="value" type="text" placeholder="Search ' + title + '" />');
+        $(head).append('<input class="filter-string" id ="value" type="text" placeholder="Search ' +
+            col.title + '" />');
       } else if (filter.type == "numeric") {
-        $(this).append('<ul> <li>&gt; <input id="gt" class="numeric" type="text" /></li>' +
-            '<li>&lt; <input id="lt" class="numeric" type="text"/></li>' +
-            '<li> = <input id="eq" class="numeric" type="text" /></li> </ul>');
+        $(head).append('<ul> <li>&gt; <input id="gt" class="filter-numeric" type="text" /></li>' +
+            '<li>&lt; <input id="lt" class="filter-numeric" type="text"/></li>' +
+            '<li> = <input id="eq" class="filter-numeric" type="text" /></li> </ul>');
       } else if (filter.type == "list") {
         var checkList = '<ul>';
         for (var i = 0; i < filter.options.length; i++) {
@@ -1136,7 +1135,7 @@ _.extend(Plugin.factory, {
               '" value="' + filter.options[i] + '" /> ' + filter.options[i] + '</label></li>';
         }
         checkList += '</ul>';
-        $(this).append(checkList);
+        $(head).append(checkList);
       }
     },
 
@@ -1146,11 +1145,16 @@ _.extend(Plugin.factory, {
     // @col: The column from columnManager that corresponds to the thead th we're
     //   binding events for.
     // @table: the table we're binding events for
-    _bindFilteringEvents: function(head, col, table) {
+    _bindFilteringEvents: function(head, col) {
+      var table = this;
+      var filter = col.filter;
+
+      // bind focus to click event because of unbinding click from thead th when
+      // installing sort interceptors
       $('input', head).on("click", function () {
         this.focus();
       });
-      var filter = col.filter;
+      // update columnManager filter and ajaxUpdate dataTable when input changed
       $('input', head).on('change', function () {
         if (filter.type == "list") {
           if (this.checked) {
@@ -1223,7 +1227,7 @@ _.extend(Plugin.factory, {
     // Sets up filtering for the dataTable
     _setupFiltering: function() {
       var table = this;
-      var cg = table.configGenerator();
+      var cg = table._columnManager._configGenerator;
 
       // Here we find each column header object in the dataTable because
       // each one needs filter controls if filtering is enabled for it in the
@@ -1242,8 +1246,8 @@ _.extend(Plugin.factory, {
           // manager.  If it isn't filterable it won't.  We only make the filter controls
           // if there's a filter element in the column manager
           if (col.filter) {
-            table._generateFilteringControls();
-            table._bindFilteringEvents(this, col, table);
+            table._generateFilteringControls(this, col);
+            table._bindFilteringEvents(this, col);
             table._createFilteringWrappers(this, col);
           }
         }
@@ -1483,47 +1487,42 @@ _.extend(Plugin.factory, {
       });
     },
 
+    // constructs a filter object for
+    // @col: the column from column manager we're filter-string
+    // @mval: the name of the element which has the value we're filtering on
+    // @isFloat: whether or not the value we're filtering on needs to be parsed
+    //   to a float.
+    _makeFilterObj: function(col, mval, isFloat) {
+      var filterObj = {};
+      filterObj.type = col.filter.type;
+      filterObj.attr = col.attr;
+      filterObj.data_dictionary_name = col.filter.data_dictionary_name;
+      filterObj.comparison = mval;
+      if (isFloat) {
+        filterObj.value = parseFloat(col.filter[mval])
+      } else {
+        filterObj.value = col.filter[mval];
+      }
+      return filterObj;
+    },
+
+    // gets an object representing all filtering settings set in the column
+    // manager to send to the backend to retrieve a filtered dataset
     _getFilteringSettings: function() {
+      var table = this;
       var result = [];
       var cg = this._columnManager._configGenerator;
       for (var i = 0; i < cg.columnsConfig.length; i++) {
         var col = cg.columnsConfig[i];
         if ((col.filter) ) {
-          if (col.filter.value) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.value = col.filter.value;
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
-          if (col.filter.eq) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.comparison = "eq";
-            filterObj.value = parseFloat(col.filter.eq);
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
-          if (col.filter.lt) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.comparison = "lt";
-            filterObj.value = parseFloat(col.filter.lt);
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
-          if (col.filter.gt) {
-            var filterObj = {};
-            filterObj.type = col.filter.type;
-            filterObj.comparison = "gt";
-            filterObj.value = parseFloat(col.filter.gt);
-            filterObj.field = col.attr;
-            filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-            result.push(filterObj);
-          }
+          if (col.filter.value)
+            result.push(table._makeFilterObj(col, "value", false));
+          if (col.filter.eq)
+            result.push(table._makeFilterObj(col, "eq", true));
+          if (col.filter.lt)
+            result.push(table._makeFilterObj(col, "lt", true));
+          if (col.filter.gt)
+            result.push(table._makeFilterObj(col, "gt", true));
         }
       }
       return JSON.stringify(result);
