@@ -8,6 +8,24 @@ var LocalDataTable = (function() {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
+    sFilterStringTemplate : '\
+      <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" /> \
+    ',
+    sFilterNumericTemplate : '\
+      <ul>\
+        <li> &gt; <input id="gt" class="filter-numeric" type="text" /></li> \
+        <li> &lt; <input id="lt" class="filter-numeric" type="text"/></li> \
+        <li> = <input id="eq" class="filter-numeric" type="text" /></li> \
+      </ul>\
+    ',
+    sFilterListTemplate : '\
+      <li><label><input class="list" id="value" type="checkbox" name="<%= attr %>" \
+         value="<%= options %>" /> <%= options %></label></li> \
+    ',
+    filterStringTemplate : null,
+    filterNumericTemplate : null,
+    filterListTemplate : null,
+
     constructor : function(options) {
       this.options = options || {};
       // copy over certain properties from options to the table itself
@@ -50,6 +68,10 @@ var LocalDataTable = (function() {
     },
 
     render : function() {
+      this.filterStringTemplate = _.template(this.sFilterStringTemplate);
+      this.filterNumericTemplate = _.template(this.sFilterNumericTemplate);
+      this.filterListTemplate = _.template(this.sFilterListTemplate);
+
       this.$el.html(this.template);
       this._dataTableCreate();
       this._initBulkHandling();
@@ -306,20 +328,16 @@ var LocalDataTable = (function() {
     // The IDs "value", "gt", "lt" and "eq" are used to determine in what element in the
     // filter object in the column manager we store the value entered by the user
     _generateFilteringControls: function(head, col) {
+      var table = this;
       var filter = col.filter;
       if (filter.type == "string") {
-        $(head).append('<input class="filter-string" id ="value" type="text" placeholder="Search ' +
-            col.title + '" />');
+        $(head).append(table.filterStringTemplate( { title: col.title } ));
       } else if (filter.type == "numeric") {
-        $(head).append('<ul> <li>&gt; <input id="gt" class="filter-numeric" type="text" /></li>' +
-            '<li>&lt; <input id="lt" class="filter-numeric" type="text"/></li>' +
-            '<li> = <input id="eq" class="filter-numeric" type="text" /></li> </ul>');
+        $(head).append(table.filterNumericTemplate());
       } else if (filter.type == "list") {
         var checkList = '<ul>';
-        for (var i = 0; i < filter.options.length; i++) {
-          checkList += '<li><label><input class="list" id="value" type="checkbox" name="' + col.attr +
-              '" value="' + filter.options[i] + '" /> ' + filter.options[i] + '</label></li>';
-        }
+        for (var i = 0; i < filter.options.length; i++)
+          checkList += table.filterListTemplate( { attr: col.attr, options: filter.options[i] } );
         checkList += '</ul>';
         $(head).append(checkList);
       }

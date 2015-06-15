@@ -91,10 +91,7 @@ var ServerSideDataTable = (function() {
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
       var self = this;
       if (this.serverSideFiltering) {
-        var filterJson = {};
-        filterJson.name = "ext_filter_json";
-        filterJson.value = this._getFilteringSettings();
-        aoData.push(filterJson);
+        aoData.push( { name: "ext_filter_json", value: this._getFilteringSettings() } );
       }
       oSettings.jqXHR = $.ajax({
         url : sUrl,
@@ -134,11 +131,12 @@ var ServerSideDataTable = (function() {
     // @isFloat: whether or not the value we're filtering on needs to be parsed
     //   to a float.
     _makeFilterObj: function(col, mval, isFloat) {
-      var filterObj = {};
-      filterObj.type = col.filter.type;
-      filterObj.attr = col.attr;
-      filterObj.data_dictionary_name = col.filter.data_dictionary_name;
-      filterObj.comparison = mval;
+      var filterObj = {
+        type: col.filter.type,
+        attr: col.attr,
+        data_dictionary_name: col.filter.data_dictionary_name,
+        comparison: mval
+      };
       if (isFloat) {
         filterObj.value = parseFloat(col.filter[mval])
       } else {
