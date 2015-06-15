@@ -525,7 +525,7 @@ describe("DataTable Plugin", function() {
 
             // test unassignment
             $('.filterMenu #value', this).prop("checked", false).trigger("change");
-            expect(col.filter.eq).toEqual(undefined);
+            expect(col.filter.value).toEqual(null);
             // verify ajax
             expectedFilterObj = [];
             VerifyFilterAjax(expectedFilterObj);
