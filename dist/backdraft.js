@@ -3,6 +3,13 @@
   var Backdraft = {};
   Backdraft.Utils = {};
 
+  // use squiggly braces for underscore templating so we don't conflict with ruby templating
+  _.templateSettings = {
+    evaluate    : /{{([\s\S]+?)}}/g,
+    interpolate : /{{=([\s\S]+?)}}/g,
+    escape      : /{{-([\s\S]+?)}}/g
+  }
+
   Backdraft.Utils.Class = (function() {
 
   // Backbone.js class implementation
@@ -827,7 +834,7 @@ _.extend(Plugin.factory, {
     ',
 
     sFilterStringTemplate : '\
-      <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" /> \
+      <input class="filter-string" id ="value" type="text" placeholder="Search {{= title }}" /> \
     ',
     sFilterNumericTemplate : '\
       <ul>\
@@ -837,8 +844,8 @@ _.extend(Plugin.factory, {
       </ul>\
     ',
     sFilterListTemplate : '\
-      <li><label><input class="list" id="value" type="checkbox" name="<%= attr %>" \
-         value="<%= options %>" /> <%= options %></label></li> \
+      <li><label><input class="list" id="value" type="checkbox" name="{{= attr }}" \
+         value="{{= options }}" /> <%= options %></label></li> \
     ',
     filterStringTemplate : null,
     filterNumericTemplate : null,
@@ -849,7 +856,7 @@ _.extend(Plugin.factory, {
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-          "_onColumnVisibilityChange", "_onReorder");
+          "_onColumnVisibilityChange", "_onColumnReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -986,7 +993,7 @@ _.extend(Plugin.factory, {
           // notify that columns have been externally rearranged
           self._columnManager.columnsSwapped(fromIndex, toIndex);
           // pass event up
-          self._onReorder();
+          self._onColumnReorder();
         }
       });
     },
@@ -1148,11 +1155,11 @@ _.extend(Plugin.factory, {
     _generateFilteringControls: function(head, col) {
       var table = this;
       var filter = col.filter;
-      if (filter.type == "string") {
+      if (filter.type === "string") {
         $(head).append(table.filterStringTemplate( { title: col.title } ));
-      } else if (filter.type == "numeric") {
+      } else if (filter.type === "numeric") {
         $(head).append(table.filterNumericTemplate());
-      } else if (filter.type == "list") {
+      } else if ((filter.type === "list") && (filter.options)) {
         var checkList = '<ul>';
         for (var i = 0; i < filter.options.length; i++)
           checkList += table.filterListTemplate( { attr: col.attr, options: filter.options[i] } );
@@ -1178,7 +1185,7 @@ _.extend(Plugin.factory, {
       });
       // update columnManager filter and ajaxUpdate dataTable when input changed
       $('input', head).on('change', function () {
-        if (filter.type == "list") {
+        if (filter.type === "list") {
           if (this.checked) {
             filter[this.id] = filter[this.id] || [];
             filter[this.id].push(this.value);
@@ -1187,10 +1194,10 @@ _.extend(Plugin.factory, {
             var index = filter[this.id].indexOf(this.value);
             if (index > -1)
               filter[this.id].splice(index, 1);
-            if (filter[this.id].length == 0)
+            if (filter[this.id].length === 0)
               filter[this.id] = null;
           }
-        } else if (this.value == "") {
+        } else if (this.value === "") {
           filter[this.id] = null;
         } else {
           filter[this.id] = this.value;
@@ -1216,7 +1223,7 @@ _.extend(Plugin.factory, {
 
       // determine how many columns we need if we're dealing with list filtering
       var listClass = "";
-      if (filter.type == "list") {
+      if (filter.type === "list") {
         if (filter.options.length > 30)
           listClass = " triple"
         else if (filter.options.length > 15)
@@ -1232,7 +1239,7 @@ _.extend(Plugin.factory, {
       wrapperDiv.appendChild(filterDiv);
 
       // put filtering controls in filter div and put wrapper div in header
-      if (filter.type == "string")
+      if (filter.type === "string")
         $('input', head).appendTo(filterDiv)
       else
         $('ul', head).appendTo(filterDiv);
@@ -1277,7 +1284,7 @@ _.extend(Plugin.factory, {
     },
 
     // events
-    _onReorder : function() {
+    _onColumnReorder : function() {
       this.trigger("reorder");
     },
 

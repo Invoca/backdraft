@@ -478,14 +478,13 @@ describe("DataTable Plugin", function() {
 
     it("should track filtering in column manager and in ext_filter_json parameter", function() {
       var cg = table.configGenerator();
-      //var cg = table._columnManager.columnsConfig();
       var expectedFilterObj = [];
       table.dataTable.find("thead th").each(function (index) {
         var title = this.outerText;
         title = title.substr(0, title.indexOf('Filter'));
         var col = cg.columnConfigByTitle.attributes[title];
         if (col && col.filter) {
-          if (col.filter.type == "string") {
+          if (col.filter.type === "string") {
             // test assignment
             $('.filterMenu input', this).val("Scott").trigger("change");
             expect(col.filter.value).toEqual("Scott");
@@ -500,7 +499,7 @@ describe("DataTable Plugin", function() {
             expectedFilterObj = [];
             VerifyFilterAjax(expectedFilterObj);
           }
-          else if (col.filter.type == "numeric") {
+          else if (col.filter.type === "numeric") {
             // test assignment
             $('.filterMenu #eq', this).val("0.5").trigger("change");
             expect(col.filter.eq).toEqual("0.5");
@@ -515,7 +514,7 @@ describe("DataTable Plugin", function() {
             expectedFilterObj = [];
             VerifyFilterAjax(expectedFilterObj);
           }
-          else if (col.filter.type == "list") {
+          else if (col.filter.type === "list") {
             // test assignment
             $('.filterMenu #value', this).prop("checked", true).trigger("change");
             expect(col.filter.value).toEqual(["Basic", "Advanced"]);
