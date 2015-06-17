@@ -1541,7 +1541,7 @@ _.extend(Plugin.factory, {
       var cg = this._columnManager._configGenerator;
       for (var i = 0; i < cg.columnsConfig.length; i++) {
         var col = cg.columnsConfig[i];
-        if ((col.filter) ) {
+        if (col.filter) {
           if (col.filter.value)
             result.push(table._makeFilterObj(col, "value", false));
           if (col.filter.eq)
