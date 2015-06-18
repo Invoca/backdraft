@@ -111,6 +111,9 @@ Then activate the app at load time:
 </html>
 ```
 
+### Important notes
+* We're using curly braces ``{{ }}`` for underscore templating instead of angle brackets ``<% %>`` to not conflict with other templating conventions.
+
 ### Examples
 If you run `grunt`, an local server will be launched with live examples at [localhost:9873](http://localhost:9873). 
 
