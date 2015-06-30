@@ -429,8 +429,8 @@ describe("DataTable Plugin", function() {
       });
 
       function getVisibilities() {
-        return _.map(["Attr1", "Attr2", "Attr3", "Attr4"], function(title) {
-          return table.columnVisibility(title);
+        return _.map(table.columnsConfig(), function(column) {
+          return table.columnVisibility(column.title);
         });
       }
 
@@ -519,6 +519,36 @@ describe("DataTable Plugin", function() {
           table.render();
           table.columnVisibility("Attr5", false);
         }).toThrowError(/can not disable visibility when column is required/);
+      });
+
+      describe("restore visibility", function() {
+        beforeEach(function() {
+          app.Views["R"].prototype.columns = [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2", visible: false },
+            { attr : "attr3", title : "Attr3" },
+            { attr : "attr4", title : "Attr4", visible: false },
+            { attr : "attr5", title : "Attr5", visible: false }
+          ];
+        });
+
+        it("should apply saved visibility settings", function() {
+          table = new app.Views.T({ collection : collection, reportSettings: { columnAdds: ["attr2", "attr4"], columnSubtracts: ["attr1"] } });
+          table.render();
+          expect(getVisibilities()).toEqual([false, true, true, true, false]);
+        });
+
+        it("should leave visibility unchanged when not saved", function() {
+          table = new app.Views.T({ collection : collection, reportSettings: { columnAdds: [], columnSubtracts: [] } });
+          table.render();
+          expect(getVisibilities()).toEqual([true, false, true, false, false]);
+        })
+
+        it("should ignore missing columns", function() {
+          table = new app.Views.T({ collection : collection, reportSettings: { columnAdds: ["attr2", "invalid"], columnSubtracts: ["boom", "attr3"] } });
+          table.render();
+          expect(getVisibilities()).toEqual([true, true, false, false, false]);
+        })
       });
     });
 
@@ -740,6 +770,48 @@ describe("DataTable Plugin", function() {
       table.renderColumn("Attr2");
       expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
     });
+
+    describe("restore column order", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2", visible: true },
+            { attr : "attr3", title : "Attr3", visible: false },
+            { attr : "attr4", title : "Attr4", required: true },
+            { attr : "attr5", title : "Attr5", required: false },
+            { attr : "attr6", title : "Attr6", visible: false }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+      });
+
+      it("should reorder columns based on saved data", function() {
+        table = new app.Views.T({ collection : collection, reportSettings: { columnOrder: ["attr2", "attr1", "attr6", "attr5", "attr3", "attr4"] } });
+        expect(_.pluck(table.columnsConfig(), "attr")).toEqual(["attr2", "attr1", "attr6", "attr5", "attr3", "attr4"]);
+      });
+
+      it("should not move new columns around when they are not included in the saved data", function() {
+        app.Views["R"].prototype.columns = [
+          { attr : "attr1_new", title : "Attr1" },
+          { attr : "attr2", title : "Attr2", visible: true },
+          { attr : "attr3", title : "Attr3", visible: false },
+          { attr : "attr4_new", title : "Attr4", required: true },
+          { attr : "attr5", title : "Attr5", required: false },
+          { attr : "attr6", title : "Attr6", visible: false },
+          { attr : "attr7", title : "Attr7" }
+        ]
+        table = new app.Views.T({ collection : collection, reportSettings: { columnOrder: ["attr2", "attr1", "attr6", "attr5", "attr3", "attr4"] } });
+        expect(_.pluck(table.columnsConfig(), "attr")).toEqual(["attr1_new", "attr2", "attr6", "attr4_new", "attr5", "attr3", "attr7"]);
+      });
+
+      it("should leave column order unchaged when no saved data", function() {
+        table = new app.Views.T({ collection : collection, reportSettings: { } });
+        expect(_.pluck(table.columnsConfig(), "attr")).toEqual(["attr1", "attr2", "attr3", "attr4", "attr5", "attr6"]);
+      });
+    });
   });
 
   describe("sorting", function() {
@@ -803,6 +875,39 @@ describe("DataTable Plugin", function() {
 
       table = new app.Views.ByAge({ collection : collection }).render();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+    });
+
+    describe("restore sorting", function() {
+      it("should use saved sorting info", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          // zip ascending
+          sorting: [ [ 2, "asc" ] ]
+        });
+        // replace default sorting with saved one
+        table = new app.Views.ByIndex2({ collection : collection, reportSettings: { sorting: '[["age", "asc"]]' } }).render();
+        expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
+      });
+
+      it("should ignore saved sorting when column is not found", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          // zip ascending
+          sorting: [ [ 2, "asc" ] ]
+        });
+        table = new app.Views.ByIndex2({ collection : collection, reportSettings: { sorting: '[["invalid", "asc"]]' } }).render();
+        expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
+      });
+
+      it("should ignore saved sorting with invalid format", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          // zip ascending
+          sorting: [ [ 2, "asc" ] ]
+        });
+        table = new app.Views.ByIndex2({ collection : collection, reportSettings: { sorting: '"invalid","asc"' } }).render();
+        expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
+      });
     });
   });
 
@@ -950,5 +1055,45 @@ describe("DataTable Plugin", function() {
       collection.reset(data);
       expect(table.totalRecordsCount()).toEqual(99);
     })
+  });
+
+  describe("state save", function() {
+    beforeEach(function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "attr1", title : "Attr1" },
+          { attr : "attr2", title : "Attr2" },
+          { attr : "attr3", title : "Attr3", visible: false },
+          { attr : "attr4", title : "Attr4" }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      table = new app.Views.T({ collection : collection, reportSettings: { reportType: 'manage_advertiser_campaigns', updateUrl: '/users/report_settings/6' } });
+      table.render();
+    });
+
+    it("should cache the current state of settings", function() {
+      expect(table.settingsState).toEqual({
+        columnVisibility: { "attr1": true, "attr2": true, "attr3": false, "attr4": true },
+        columnOrder: ["attr1", "attr2", "attr3", "attr4"],
+        sorting: [ [ 0, 'desc', 1 ] ]
+      });
+    });
+
+    it("should save column visibility change", function() {
+      expect(jasmine.Ajax.requests.length).toEqual(0);
+      table.columnVisibility("Attr2", false);
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+
+      table.columnVisibility("Attr3", true);
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+
+      // keep default value unchanged
+      table.columnVisibility("Attr3", false);
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+    });
   });
 });

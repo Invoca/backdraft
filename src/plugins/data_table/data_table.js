@@ -54,6 +54,7 @@ var LocalDataTable = (function() {
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
+      this._cacheSettingsState();
       return this;
     },
 
@@ -350,8 +351,22 @@ var LocalDataTable = (function() {
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
-    }
+    },
 
+    _cacheSettingsState : function(state) {
+      this.settingsState = state || this._getCurrentSettingsState()
+    },
+
+    _getCurrentSettingsState: function() {
+      return {
+        columnVisibility: _.reduce(this.columnsConfig(), function(memo, column) {
+          memo[column.attr] = this.columnVisibility(column.title);
+          return memo;
+        }, {}, this),
+        columnOrder: _.map(this.columnsConfig(), function(column) { return column.attr; }),
+        sorting: this.dataTable.fnSettings().aaSorting
+      };
+    }
   }, {
 
     finalize : function(name, tableClass, views, pluginConfig, appName) {
