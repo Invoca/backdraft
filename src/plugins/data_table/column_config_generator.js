@@ -27,6 +27,10 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       }
     });
 
+    _.each(this.columnsConfig, function(column) {
+      column.visibleDefault = _.has(column, "visible") ? column.visible : true;
+    });
+
     this._applySavedState();
 
     _.each(this._determineColumnTypes(), function(columnType, index) {

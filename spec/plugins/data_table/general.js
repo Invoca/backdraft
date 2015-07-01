@@ -10,6 +10,12 @@ describe("DataTable Plugin", function() {
     }).get();
   }
 
+  function getVisibilities() {
+    return _.map(table.columnsConfig(), function(column) {
+      return table.columnVisibility(column.title);
+    });
+  }
+
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
@@ -428,12 +434,6 @@ describe("DataTable Plugin", function() {
         table.render();
       });
 
-      function getVisibilities() {
-        return _.map(table.columnsConfig(), function(column) {
-          return table.columnVisibility(column.title);
-        });
-      }
-
       function getColspanLength() {
         return parseInt(table.$(".dataTables_empty").attr("colspan"), 10);
       }
@@ -690,6 +690,10 @@ describe("DataTable Plugin", function() {
       it("should preserve the value of required if provided", function() {
         expect(columnsConfig[3].required).toEqual(true);
         expect(columnsConfig[4].required).toEqual(false);
+      });
+
+      it("should store default visibility in the columns config", function() {
+        expect(_.pluck(columnsConfig, 'visibleDefault')).toEqual([true, true, false, true, true, false]);
       });
 
       it("should throw an error if a column is not visible, but is required", function() {
@@ -1059,6 +1063,8 @@ describe("DataTable Plugin", function() {
 
   describe("state save", function() {
     beforeEach(function() {
+      jasmine.Ajax.install();
+
       app.view.dataTable.row("R", {
         columns : [
           { attr : "attr1", title : "Attr1" },
@@ -1075,25 +1081,73 @@ describe("DataTable Plugin", function() {
       table.render();
     });
 
+    afterEach(function() {
+      jasmine.Ajax.uninstall();
+    });
+
     it("should cache the current state of settings", function() {
-      expect(table.settingsState).toEqual({
+      expect(table._settingsManager.settingsState).toEqual({
         columnVisibility: { "attr1": true, "attr2": true, "attr3": false, "attr4": true },
         columnOrder: ["attr1", "attr2", "attr3", "attr4"],
         sorting: [ [ 0, 'desc', 1 ] ]
       });
     });
 
-    it("should save column visibility change", function() {
-      expect(jasmine.Ajax.requests.length).toEqual(0);
+    it("should trigger update request when changing sort order", function() {
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
+      table.dataTable.fnSort([[1, 'asc']]);
+      expect(jasmine.Ajax.requests.count()).toEqual(1);
+      expect(jasmine.Ajax.requests.mostRecent().url).toEqual('/users/report_settings/6');
+      expect(decodeURIComponent(jasmine.Ajax.requests.mostRecent().params)).toEqual('ajax=1&format=json&report_type=manage_advertiser_campaigns&sorting=[["attr2","asc"]]');
+    });
+
+    it("should not make request when order doesn't change", function() {
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
+      table.dataTable.fnSort(table.dataTable.fnSettings().aaSorting);
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
+    });
+
+    it("should trigger udpate request when changing column visibility", function() {
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
       table.columnVisibility("Attr2", false);
+      expect(jasmine.Ajax.requests.count()).toEqual(1);
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+      expect(decodeURIComponent(jasmine.Ajax.requests.mostRecent().params)).toEqual('ajax=1&format=json&report_type=manage_advertiser_campaigns&column_name=attr2&default_value=1&current_value=0');
 
       table.columnVisibility("Attr3", true);
+      expect(jasmine.Ajax.requests.count()).toEqual(2);
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+      expect(decodeURIComponent(jasmine.Ajax.requests.mostRecent().params)).toEqual('ajax=1&format=json&report_type=manage_advertiser_campaigns&column_name=attr3&default_value=0&current_value=1');
 
       // keep default value unchanged
       table.columnVisibility("Attr3", false);
+      expect(jasmine.Ajax.requests.count()).toEqual(3);
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+      expect(decodeURIComponent(jasmine.Ajax.requests.mostRecent().params)).toEqual('ajax=1&format=json&report_type=manage_advertiser_campaigns&column_name=attr3&default_value=0&current_value=0');
+    });
+
+    it("should not submit request when column visibility doesn't change", function() {
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
+      table.columnVisibility("Attr2", true);
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
+    });
+
+    it("should save column order when swapping columns", function() {
+      expect(jasmine.Ajax.requests.count()).toEqual(0);
+      table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
+      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0)
+      expect(jasmine.Ajax.requests.count()).toEqual(1);
+      expect(_.pluck(table.columnsConfig(), "attr")).toEqual(["attr4", "attr1", "attr2", "attr3"]);
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/users/report_settings/6");
+      expect(decodeURIComponent(jasmine.Ajax.requests.mostRecent().params)).toEqual('ajax=1&format=json&report_type=manage_advertiser_campaigns&column_order[]=attr4&column_order[]=attr1&column_order[]=attr2&column_order[]=attr3');
+    })
+
+    it("should restore default column visibility", function() {
+      table = new app.Views.T({ collection : collection, reportSettings: { reportType: 'manage_advertiser_campaigns', updateUrl: '/users/report_settings/6', columnAdds: ['attr3'], columnSubtracts: ['attr1'] } });
+      table.render();
+      expect(getVisibilities()).toEqual([false, true, true, true]);
+      table.restoreColumnVisibility();
+      expect(getVisibilities()).toEqual([true, true, false, true]);
     });
   });
 });

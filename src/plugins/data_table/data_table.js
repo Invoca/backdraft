@@ -19,6 +19,7 @@ var LocalDataTable = (function() {
       this._applyDefaults();
       this._columnManager = new ColumnManager(this);
       this._lockManager = new LockManager(this);
+      this._settingsManager = new SettingsManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -54,7 +55,7 @@ var LocalDataTable = (function() {
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
-      this._cacheSettingsState();
+      this.trigger("render");
       return this;
     },
 
@@ -112,7 +113,7 @@ var LocalDataTable = (function() {
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
         if (column.title) {
-          this.columnVisibility(column.title, column.visible);
+          this.columnVisibility(column.title, column.visibleDefault);
         }
       }, this);
     },
@@ -351,21 +352,6 @@ var LocalDataTable = (function() {
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
-    },
-
-    _cacheSettingsState : function(state) {
-      this.settingsState = state || this._getCurrentSettingsState()
-    },
-
-    _getCurrentSettingsState: function() {
-      return {
-        columnVisibility: _.reduce(this.columnsConfig(), function(memo, column) {
-          memo[column.attr] = this.columnVisibility(column.title);
-          return memo;
-        }, {}, this),
-        columnOrder: _.map(this.columnsConfig(), function(column) { return column.attr; }),
-        sorting: this.dataTable.fnSettings().aaSorting
-      };
     }
   }, {
 
