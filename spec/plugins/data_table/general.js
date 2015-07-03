@@ -617,6 +617,49 @@ describe("DataTable Plugin", function() {
       }).get()).toEqual(["Birthday", "Age", "Location"]);
     });
 
+    describe("custom column order", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2" },
+            { attr : "attr3", title : "Attr3" },
+            { attr : "attr4", title : "Attr4" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+      });
+
+      it("should allow to change column order", function() {
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(0);
+
+        table.columnOrder([2, 1, 3, 0]);
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
+        expect(getHeaders(table)).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(3);
+      });
+
+      it("should restore column order", function() {
+        table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
+        table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0);
+        table.dataTable.fnSettings()._colReorder.fnOrder([0, 1, 3, 2]);
+        table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 2);
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr4', 'Attr1', 'Attr3', 'Attr2']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(1);
+
+        table.restoreColumnOrder();
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
+        expect(getHeaders(table)).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(0);
+      });
+    });
+
     describe("provide an interface to access the column configuration", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {

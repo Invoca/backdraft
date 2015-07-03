@@ -42,6 +42,14 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     this.trigger("change:order");
   },
 
+  columnsReordered: function() {
+    this._configGenerator.columnsReordered();
+  },
+
+  changeSorting: function(sorting) {
+    this._configGenerator._computeSortingConfig(sorting);
+  },
+
   _initEvents: function() {
     this.visibility.on("change", function() {
       this._applyVisibilitiesToDataTable(this.visibility.changed);

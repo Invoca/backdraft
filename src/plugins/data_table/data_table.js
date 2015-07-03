@@ -118,6 +118,22 @@ var LocalDataTable = (function() {
       }, this);
     },
 
+    columnOrder: function(order) {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder(order);
+      }
+    },
+
+    restoreColumnOrder: function() {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder({ reset: true});
+      }
+    },
+
+    changeSorting: function(sorting) {
+      this._columnManager.changeSorting(sorting);
+    },
+
     lock: function(name, state) {
       if (arguments.length === 1) {
         // getter
@@ -144,6 +160,36 @@ var LocalDataTable = (function() {
           self._columnManager.columnsSwapped(fromIndex, toIndex);
         }
       });
+    },
+
+    // Changes or resets the column order.
+    // When called with no args, returns the current order.
+    // Call with { reset : true } to have it restore column order to initial configuration
+    // Provide array of indexes as first argument to have it reordered by that
+    _changeColumnOrder: function(order) {
+      var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
+      if (_.isArray(order)) {
+        this.dataTable.fnSettings()._colReorder.fnOrder(order);
+      } else if (_.has(order, 'reset') && order.reset) {
+        this.dataTable.fnSettings()._colReorder.fnReset();
+      } else {
+        return this.dataTable.fnSettings()._colReorder.fnOrder();
+      }
+
+      // restore columnsConfig order to match the underlying order from dataTable
+      var columnsConfig = this.columnsConfig();
+      var columnsConfigOrig = _.clone(columnsConfig);
+      // reset config
+      columnsConfig.splice(0, columnsConfig.length);
+      // fill in config in correct order
+      _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
+        var oldIndex = columnsOrig.indexOf(tableColumn);
+        if (oldIndex != -1) {
+          columnsConfig.push(columnsConfigOrig[oldIndex]);
+        }
+      });
+
+      this._columnManager.columnsReordered();
     },
 
     _allMatchingModels : function() {

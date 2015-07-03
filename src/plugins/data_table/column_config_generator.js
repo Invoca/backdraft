@@ -15,6 +15,10 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     this._computeColumnLookups();
   },
 
+  columnsReordered: function() {
+    this._computeColumnLookups();
+  },
+
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
     this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
@@ -55,9 +59,10 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     }, this);
   },
 
-  _computeSortingConfig: function() {
+  _computeSortingConfig: function(sorting) {
     var columnIndex, direction;
-    this.dataTableSorting = _.map(this._sortingInfo(), function(sortConfig) {
+    var sortingInfo = sorting || this.table.sorting;
+    this.dataTableSorting = _.map(sortingInfo, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 

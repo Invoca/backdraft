@@ -504,6 +504,10 @@ _.extend(Plugin.factory, {
     this._computeColumnLookups();
   },
 
+  columnsReordered: function() {
+    this._computeColumnLookups();
+  },
+
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
     this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
@@ -544,9 +548,10 @@ _.extend(Plugin.factory, {
     }, this);
   },
 
-  _computeSortingConfig: function() {
+  _computeSortingConfig: function(sorting) {
     var columnIndex, direction;
-    this.dataTableSorting = _.map(this._sortingInfo(), function(sortConfig) {
+    var sortingInfo = sorting || this.table.sorting;
+    this.dataTableSorting = _.map(sortingInfo, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
@@ -718,6 +723,14 @@ _.extend(Plugin.factory, {
   columnsSwapped: function(fromIndex, toIndex) {
     this._configGenerator.columnsSwapped(fromIndex, toIndex);
     this.trigger("change:order");
+  },
+
+  columnsReordered: function() {
+    this._configGenerator.columnsReordered();
+  },
+
+  changeSorting: function(sorting) {
+    this._configGenerator._computeSortingConfig(sorting);
   },
 
   _initEvents: function() {
@@ -1116,6 +1129,22 @@ _.extend(Plugin.factory, {
       }, this);
     },
 
+    columnOrder: function(order) {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder(order);
+      }
+    },
+
+    restoreColumnOrder: function() {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder({ reset: true});
+      }
+    },
+
+    changeSorting: function(sorting) {
+      this._columnManager.changeSorting(sorting);
+    },
+
     lock: function(name, state) {
       if (arguments.length === 1) {
         // getter
@@ -1142,6 +1171,36 @@ _.extend(Plugin.factory, {
           self._columnManager.columnsSwapped(fromIndex, toIndex);
         }
       });
+    },
+
+    // Changes or resets the column order.
+    // When called with no args, returns the current order.
+    // Call with { reset : true } to have it restore column order to initial configuration
+    // Provide array of indexes as first argument to have it reordered by that
+    _changeColumnOrder: function(order) {
+      var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
+      if (_.isArray(order)) {
+        this.dataTable.fnSettings()._colReorder.fnOrder(order);
+      } else if (_.has(order, 'reset') && order.reset) {
+        this.dataTable.fnSettings()._colReorder.fnReset();
+      } else {
+        return this.dataTable.fnSettings()._colReorder.fnOrder();
+      }
+
+      // restore columnsConfig order to match the underlying order from dataTable
+      var columnsConfig = this.columnsConfig();
+      var columnsConfigOrig = _.clone(columnsConfig);
+      // reset config
+      columnsConfig.splice(0, columnsConfig.length);
+      // fill in config in correct order
+      _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
+        var oldIndex = columnsOrig.indexOf(tableColumn);
+        if (oldIndex != -1) {
+          columnsConfig.push(columnsConfigOrig[oldIndex]);
+        }
+      });
+
+      this._columnManager.columnsReordered();
     },
 
     _allMatchingModels : function() {
