@@ -19,7 +19,6 @@ var LocalDataTable = (function() {
       this._applyDefaults();
       this._columnManager = new ColumnManager(this);
       this._lockManager = new LockManager(this);
-      this._settingsManager = new SettingsManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -97,7 +96,7 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnVisibility: function(title, state) {
+    columnVisibility: function(title, state, userInitiated) {
       if (arguments.length === 1) {
         // getter
         return this._columnManager.visibility.get(title);
@@ -113,7 +112,7 @@ var LocalDataTable = (function() {
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
         if (column.title) {
-          this.columnVisibility(column.title, column.visibleDefault);
+          this.columnVisibility(column.title, column.visible);
         }
       }, this);
     },
@@ -132,6 +131,12 @@ var LocalDataTable = (function() {
 
     changeSorting: function(sorting) {
       this._columnManager.changeSorting(sorting);
+      if (this.dataTable) {
+        var sorting = this._columnManager.dataTableSortingConfig();
+        if (!_.isEqual(this.dataTable.fnSettings().aaSorting, sorting)) {
+          this.dataTable.fnSort(sorting);
+        }
+      }
     },
 
     lock: function(name, state) {
@@ -399,6 +404,7 @@ var LocalDataTable = (function() {
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
     }
+
   }, {
 
     finalize : function(name, tableClass, views, pluginConfig, appName) {

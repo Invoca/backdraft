@@ -31,12 +31,6 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       }
     });
 
-    _.each(this.columnsConfig, function(column) {
-      column.visibleDefault = _.has(column, "visible") ? column.visible : true;
-    });
-
-    this._applySavedState();
-
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
       var definition = columnType.definition()(this.table, config);
@@ -97,97 +91,5 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
         return columnType;
       }
     });
-  },
-
-  _applySavedState: function() {
-    var reportSettings = this.table.options.reportSettings;
-    var column;
-    if (reportSettings) {
-      _.each(reportSettings.columnAdds, function(columnName) {
-        column = this._findColumnByAttr(columnName);
-        if (column) {
-          column.visible = true;
-        }
-      }, this);
-
-      _.each(reportSettings.columnSubtracts, function(columnName) {
-        column = this._findColumnByAttr(columnName);
-        if (column) {
-          column.visible = false;
-        }
-      }, this);
-
-      this._reorderColumns(reportSettings.columnOrder);
-    }
-  },
-
-  _reorderColumns: function(columnOrder) {
-    var column, columnPositions = {}, reorderedColumns = [];
-    if (columnOrder && columnOrder.length > 0) {
-      _.each(columnOrder, function(columnName, index) {
-        columnPositions[columnName] = index;
-      });
-
-      // insert columns in the specified order
-      _.each(columnOrder, function(columnName) {
-        column = this._findColumnByAttr(columnName);
-        if (column) {
-          reorderedColumns.push(column);
-        }
-      }, this);
-
-      // insert remaining columns with unspecified order
-      _.each(this.columnsConfig, function(column, index) {
-        if (columnPositions[column.attr] == undefined) {
-          reorderedColumns.splice(index, 0, column);
-        }
-      });
-
-      this.columnsConfig = reorderedColumns;
-    }
-  },
-
-  _findColumnByAttr: function(columnAttr) {
-    return _.find(this.columnsConfig, function(column) { return column.attr == columnAttr; });
-  },
-
-  _sortingInfo: function() {
-    var reportSettings = this.table.options.reportSettings, savedSorting, sortInfo = this.table.sorting;
-    if (reportSettings && reportSettings.sorting) {
-      try {
-        if (_.isString(reportSettings.sorting)) {
-          savedSorting = JSON.parse(reportSettings.sorting);
-        } else {
-          savedSorting = reportSettings.sorting;
-        }
-      } catch(e) {
-        // ignore JSON error, use default sorting
-      }
-
-      if (_.isArray(savedSorting)) {
-        var validColumns = true;
-        var columnAttrs = _.pluck(this.columnsConfig, 'attr');
-        // replace column attributes with indexes
-        savedSorting = _.map(savedSorting, function(sortColumn) {
-          if (validColumns) {
-            var colAttr = sortColumn[0];
-            var colIdx = _.indexOf(columnAttrs, colAttr);
-            if (colIdx != -1) {
-              return [colIdx, sortColumn[1]];
-            } else {
-              validColumns = false;
-            }
-          }
-          return sortColumn;
-        }, this);
-
-        if (validColumns) {
-          // valid saved sorting state, use it instead of default
-          sortInfo = savedSorting;
-        }
-      }
-    }
-
-    return sortInfo;
   }
 });

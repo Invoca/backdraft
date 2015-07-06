@@ -520,12 +520,6 @@ _.extend(Plugin.factory, {
       }
     });
 
-    _.each(this.columnsConfig, function(column) {
-      column.visibleDefault = _.has(column, "visible") ? column.visible : true;
-    });
-
-    this._applySavedState();
-
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
       var definition = columnType.definition()(this.table, config);
@@ -586,98 +580,6 @@ _.extend(Plugin.factory, {
         return columnType;
       }
     });
-  },
-
-  _applySavedState: function() {
-    var reportSettings = this.table.options.reportSettings;
-    var column;
-    if (reportSettings) {
-      _.each(reportSettings.columnAdds, function(columnName) {
-        column = this._findColumnByAttr(columnName);
-        if (column) {
-          column.visible = true;
-        }
-      }, this);
-
-      _.each(reportSettings.columnSubtracts, function(columnName) {
-        column = this._findColumnByAttr(columnName);
-        if (column) {
-          column.visible = false;
-        }
-      }, this);
-
-      this._reorderColumns(reportSettings.columnOrder);
-    }
-  },
-
-  _reorderColumns: function(columnOrder) {
-    var column, columnPositions = {}, reorderedColumns = [];
-    if (columnOrder && columnOrder.length > 0) {
-      _.each(columnOrder, function(columnName, index) {
-        columnPositions[columnName] = index;
-      });
-
-      // insert columns in the specified order
-      _.each(columnOrder, function(columnName) {
-        column = this._findColumnByAttr(columnName);
-        if (column) {
-          reorderedColumns.push(column);
-        }
-      }, this);
-
-      // insert remaining columns with unspecified order
-      _.each(this.columnsConfig, function(column, index) {
-        if (columnPositions[column.attr] == undefined) {
-          reorderedColumns.splice(index, 0, column);
-        }
-      });
-
-      this.columnsConfig = reorderedColumns;
-    }
-  },
-
-  _findColumnByAttr: function(columnAttr) {
-    return _.find(this.columnsConfig, function(column) { return column.attr == columnAttr; });
-  },
-
-  _sortingInfo: function() {
-    var reportSettings = this.table.options.reportSettings, savedSorting, sortInfo = this.table.sorting;
-    if (reportSettings && reportSettings.sorting) {
-      try {
-        if (_.isString(reportSettings.sorting)) {
-          savedSorting = JSON.parse(reportSettings.sorting);
-        } else {
-          savedSorting = reportSettings.sorting;
-        }
-      } catch(e) {
-        // ignore JSON error, use default sorting
-      }
-
-      if (_.isArray(savedSorting)) {
-        var validColumns = true;
-        var columnAttrs = _.pluck(this.columnsConfig, 'attr');
-        // replace column attributes with indexes
-        savedSorting = _.map(savedSorting, function(sortColumn) {
-          if (validColumns) {
-            var colAttr = sortColumn[0];
-            var colIdx = _.indexOf(columnAttrs, colAttr);
-            if (colIdx != -1) {
-              return [colIdx, sortColumn[1]];
-            } else {
-              validColumns = false;
-            }
-          }
-          return sortColumn;
-        }, this);
-
-        if (validColumns) {
-          // valid saved sorting state, use it instead of default
-          sortInfo = savedSorting;
-        }
-      }
-    }
-
-    return sortInfo;
   }
 });
 
@@ -794,86 +696,6 @@ _.extend(Plugin.factory, {
   }
 
 });
-  var SettingsManager = Backdraft.Utils.Class.extend({
-  initialize: function(table) {
-    this.table = table;
-    this.reportSettings = table.options.reportSettings;
-    this.table.on("render", this._onTableRender, this);
-  },
-
-  _cacheSettingsState : function(state) {
-    this.settingsState = state || this._getCurrentSettingsState();
-  },
-
-  _onTableRender: function() {
-    if (this.reportSettings && !this.settingsState) {
-      this._cacheSettingsState();
-      this.table.on("draw", this._onTableDraw, this);
-      this.table._columnManager.on("change:visibility", this._onColumnVisibilityChange, this);
-      this.table._columnManager.on("change:order", this._onColumnOrderChange, this);
-    }
-  },
-
-  _getCurrentSettingsState: function() {
-    return {
-      columnVisibility: _.reduce(this.table.columnsConfig(), function(memo, column) {
-        memo[column.attr] = this.table.columnVisibility(column.title);
-        return memo;
-      }, {}, this),
-      columnOrder: _.map(this.table.columnsConfig(), function(column) { return column.attr; }),
-      sorting: _.clone(this.table.dataTable.fnSettings().aaSorting)
-    };
-  },
-
-  _onTableDraw: function() {
-    currentSettings = this._getCurrentSettingsState();
-    if (!_.isEqual(this.settingsState.sorting, currentSettings.sorting)) {
-      var sortConfig = _.map(currentSettings.sorting, function(sortColumn) {
-        var columnIdx = sortColumn[0];
-        var column = this.table.columnsConfig()[columnIdx];
-        return [column.attr, sortColumn[1]];
-      }, this);
-      this._saveSettings({ sorting: JSON.stringify(sortConfig) }, currentSettings);
-    }
-  },
-
-  _onColumnVisibilityChange: function() {
-    currentSettings = this._getCurrentSettingsState();
-    if (!_.isEqual(this.settingsState.columnVisibility, currentSettings.columnVisibility)) {
-      var changedColumns = this.table._columnManager.visibility.changedAttributes();
-      _.each(changedColumns, function(visible, colTitle) {
-        var column = this.table._columnManager.columnConfigForTitle(colTitle);
-        var updates = {
-          column_name: column.attr,
-          default_value: column.visibleDefault == undefined || column.visibleDefault ? 1 : 0,
-          current_value: visible ? 1 : 0
-        };
-        this._saveSettings(updates, currentSettings);
-      }, this);
-    }
-  },
-
-  _onColumnOrderChange: function() {
-    currentSettings = this._getCurrentSettingsState();
-    if (!_.isEqual(this.settingsState.columnOrder, currentSettings.columnOrder)) {
-      this._saveSettings({ column_order: currentSettings.columnOrder }, currentSettings);
-    }
-  },
-
-  _saveSettings: function(settingsUpdate, currentSettings) {
-    $.ajax({
-      url  : this.reportSettings.updateUrl,
-      method: 'POST',
-      data : _.extend({
-        ajax          : 1,
-        format        : 'json',
-        report_type   : this.reportSettings.reportType
-      }, settingsUpdate)
-    });
-    this._cacheSettingsState(currentSettings);
-  }
-});
-
   var LockManager = (function() {
 
   var LOCKS = {
@@ -1030,7 +852,6 @@ _.extend(Plugin.factory, {
       this._applyDefaults();
       this._columnManager = new ColumnManager(this);
       this._lockManager = new LockManager(this);
-      this._settingsManager = new SettingsManager(this);
       LocalDataTable.__super__.constructor.apply(this, arguments);
       this.listenTo(this.collection, "add", this._onAdd);
       this.listenTo(this.collection, "remove", this._onRemove);
@@ -1108,7 +929,7 @@ _.extend(Plugin.factory, {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnVisibility: function(title, state) {
+    columnVisibility: function(title, state, userInitiated) {
       if (arguments.length === 1) {
         // getter
         return this._columnManager.visibility.get(title);
@@ -1124,7 +945,7 @@ _.extend(Plugin.factory, {
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
         if (column.title) {
-          this.columnVisibility(column.title, column.visibleDefault);
+          this.columnVisibility(column.title, column.visible);
         }
       }, this);
     },
@@ -1143,6 +964,12 @@ _.extend(Plugin.factory, {
 
     changeSorting: function(sorting) {
       this._columnManager.changeSorting(sorting);
+      if (this.dataTable) {
+        var sorting = this._columnManager.dataTableSortingConfig();
+        if (!_.isEqual(this.dataTable.fnSettings().aaSorting, sorting)) {
+          this.dataTable.fnSort(sorting);
+        }
+      }
     },
 
     lock: function(name, state) {
@@ -1410,6 +1237,7 @@ _.extend(Plugin.factory, {
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
     }
+
   }, {
 
     finalize : function(name, tableClass, views, pluginConfig, appName) {
