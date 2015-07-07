@@ -577,7 +577,7 @@ describe("DataTable Plugin", function() {
       // move the Birthday column at index 3 to in front of Name column at index 0
       // note that we need to manually trigger the drag drop callback since we aren't actually dragging in the test
       table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
-      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0)
+      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0);
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Birthday", "Name", "Age", "Location"]);
 
       // ensure that our internal title to index mappings are up to date
@@ -768,7 +768,7 @@ describe("DataTable Plugin", function() {
         { attr1: "B1", attr2: "B2", attr3: "B3", attr4: "B4" },
         { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
         { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" },
-      ])
+      ]);
       table = new app.Views.T({ collection : collection });
       table.render();
 
@@ -869,8 +869,23 @@ describe("DataTable Plugin", function() {
 
         table = new app.Views.ByIndex2({ collection : collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+        spyOn(table.dataTable, 'fnSort').and.callThrough();
         table.changeSorting([['Age', 'asc']]);
+        expect(table.dataTable.fnSort).toHaveBeenCalled();
         expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
+      });
+
+      it("should not re-sort table when sorting is unchanged", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          sorting: [ [ 2, "asc" ] ]
+        });
+
+        table = new app.Views.ByIndex2({ collection : collection }).render();
+        expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+        spyOn(table.dataTable, 'fnSort').and.callThrough();
+        table.changeSorting([ [ 2, "asc" ] ]);
+        expect(table.dataTable.fnSort).not.toHaveBeenCalled();
       });
     });
   });
@@ -917,7 +932,7 @@ describe("DataTable Plugin", function() {
     it("should work for sorting ui", function() {
       function getCells() {
         return table.$("tbody td.Name").map(function() {
-          return $(this).text()
+          return $(this).text();
         }).get();
       }
       expect(getCells()).toEqual(["C", "B", "A"]);
@@ -963,11 +978,11 @@ describe("DataTable Plugin", function() {
     });
 
     it("should work for bulk ui", function() {
-      expect(table.$(":checkbox:disabled").length).toEqual(0)
+      expect(table.$(":checkbox:disabled").length).toEqual(0);
       table.lock("bulk", true);
-      expect(table.$(":checkbox:disabled").length).toEqual(4)
+      expect(table.$(":checkbox:disabled").length).toEqual(4);
       table.lock("bulk", false);
-      expect(table.$(":checkbox:disabled").length).toEqual(0)
+      expect(table.$(":checkbox:disabled").length).toEqual(0);
     });
 
     it("should work for bulk api", function() {
@@ -988,16 +1003,16 @@ describe("DataTable Plugin", function() {
       table.lock("bulk", false);
       expect(function() {
         table.selectedModels();
-      }).not.toThrow()
+      }).not.toThrow();
       expect(function() {
         table.selectAllVisible(true);
-      }).not.toThrow()
+      }).not.toThrow();
       expect(function() {
         table.selectAllMatching();
-      }).not.toThrow()
+      }).not.toThrow();
       expect(function() {
         table.matchingCount();
-      }).not.toThrow()
+      }).not.toThrow();
     });
   });
 
@@ -1018,6 +1033,6 @@ describe("DataTable Plugin", function() {
       expect(table.totalRecordsCount()).toEqual(0);
       collection.reset(data);
       expect(table.totalRecordsCount()).toEqual(99);
-    })
+    });
   });
 });

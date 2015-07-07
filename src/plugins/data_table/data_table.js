@@ -96,7 +96,7 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnVisibility: function(title, state, userInitiated) {
+    columnVisibility: function(title, state) {
       if (arguments.length === 1) {
         // getter
         return this._columnManager.visibility.get(title);
@@ -132,8 +132,10 @@ var LocalDataTable = (function() {
     changeSorting: function(sorting) {
       this._columnManager.changeSorting(sorting);
       if (this.dataTable) {
-        var sorting = this._columnManager.dataTableSortingConfig();
-        if (!_.isEqual(this.dataTable.fnSettings().aaSorting, sorting)) {
+        var normalizeSortingColumn = function(sort) { return _.first(sort, 2); };
+        sorting = _.map(this._columnManager.dataTableSortingConfig(), normalizeSortingColumn);
+        currentSorting = _.map(this.dataTable.fnSettings().aaSorting, normalizeSortingColumn);
+        if (!_.isEqual(currentSorting, sorting)) {
           this.dataTable.fnSort(sorting);
         }
       }
@@ -253,7 +255,7 @@ var LocalDataTable = (function() {
       this._installSortInterceptors();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
-      this._columnManager.applyVisibilityPreferences()
+      this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
     },
 
@@ -287,7 +289,7 @@ var LocalDataTable = (function() {
 
     _initBulkHandling : function() {
       var bulkCheckbox = this.$el.find("th.bulk :checkbox");
-      if (!bulkCheckbox.length) return
+      if (!bulkCheckbox.length) return;
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
@@ -371,7 +373,7 @@ var LocalDataTable = (function() {
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
+      this.dataTable.fnAddData({ cid : model.cid });
       this._triggerChangeSelection();
     },
 
@@ -422,7 +424,7 @@ var LocalDataTable = (function() {
 
       tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
         $("body").trigger(appName + ":" + eventName, args);
-      }
+      };
     }
 
   });
