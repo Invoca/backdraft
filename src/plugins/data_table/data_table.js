@@ -54,6 +54,7 @@ var LocalDataTable = (function() {
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
+      this.trigger("render");
       return this;
     },
 
@@ -116,6 +117,30 @@ var LocalDataTable = (function() {
       }, this);
     },
 
+    columnOrder: function(order) {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder(order);
+      }
+    },
+
+    restoreColumnOrder: function() {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder({ reset: true});
+      }
+    },
+
+    changeSorting: function(sorting) {
+      this._columnManager.changeSorting(sorting);
+      if (this.dataTable) {
+        var normalizeSortingColumn = function(sort) { return _.first(sort, 2); };
+        sorting = _.map(this._columnManager.dataTableSortingConfig(), normalizeSortingColumn);
+        currentSorting = _.map(this.dataTable.fnSettings().aaSorting, normalizeSortingColumn);
+        if (!_.isEqual(currentSorting, sorting)) {
+          this.dataTable.fnSort(sorting);
+        }
+      }
+    },
+
     lock: function(name, state) {
       if (arguments.length === 1) {
         // getter
@@ -142,6 +167,36 @@ var LocalDataTable = (function() {
           self._columnManager.columnsSwapped(fromIndex, toIndex);
         }
       });
+    },
+
+    // Changes or resets the column order.
+    // When called with no args, returns the current order.
+    // Call with { reset : true } to have it restore column order to initial configuration
+    // Provide array of indexes as first argument to have it reordered by that
+    _changeColumnOrder: function(order) {
+      var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
+      if (_.isArray(order)) {
+        this.dataTable.fnSettings()._colReorder.fnOrder(order);
+      } else if (_.has(order, 'reset') && order.reset) {
+        this.dataTable.fnSettings()._colReorder.fnReset();
+      } else {
+        return this.dataTable.fnSettings()._colReorder.fnOrder();
+      }
+
+      // restore columnsConfig order to match the underlying order from dataTable
+      var columnsConfig = this.columnsConfig();
+      var columnsConfigOrig = _.clone(columnsConfig);
+      // reset config
+      columnsConfig.splice(0, columnsConfig.length);
+      // fill in config in correct order
+      _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
+        var oldIndex = columnsOrig.indexOf(tableColumn);
+        if (oldIndex != -1) {
+          columnsConfig.push(columnsConfigOrig[oldIndex]);
+        }
+      });
+
+      this._columnManager.columnsReordered();
     },
 
     _allMatchingModels : function() {
@@ -200,7 +255,7 @@ var LocalDataTable = (function() {
       this._installSortInterceptors();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
-      this._columnManager.applyVisibilityPreferences()
+      this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
     },
 
@@ -234,7 +289,7 @@ var LocalDataTable = (function() {
 
     _initBulkHandling : function() {
       var bulkCheckbox = this.$el.find("th.bulk :checkbox");
-      if (!bulkCheckbox.length) return
+      if (!bulkCheckbox.length) return;
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
@@ -318,7 +373,7 @@ var LocalDataTable = (function() {
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
+      this.dataTable.fnAddData({ cid : model.cid });
       this._triggerChangeSelection();
     },
 
@@ -369,7 +424,7 @@ var LocalDataTable = (function() {
 
       tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
         $("body").trigger(appName + ":" + eventName, args);
-      }
+      };
     }
 
   });
