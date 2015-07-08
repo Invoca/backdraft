@@ -81,8 +81,8 @@ var ServerSideDataTable = (function() {
 
     // dataTables callback after a draw event has occurred
     _onDraw : function() {
-      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
+      // anytime a draw occurs (pagination change, pagination size change, sorting, etc) we want
+      // to clear out any stored selectAllMatchingParams and reset the bulk select checkbox
       this.selectAllMatching(false);
       this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
       this.trigger("draw", arguments);
@@ -90,6 +90,9 @@ var ServerSideDataTable = (function() {
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
       var self = this;
+      if (this.serverSideFiltering) {
+        aoData.push( { name: "ext_filter_json", value: this._getFilteringSettings() } );
+      }
       oSettings.jqXHR = $.ajax({
         url : sUrl,
         data : aoData,
@@ -120,6 +123,48 @@ var ServerSideDataTable = (function() {
           self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
         }
       });
+    },
+
+    // constructs a filter object for
+    // @col: the column from column manager we're filter-string
+    // @mval: the name of the element which has the value we're filtering on
+    // @isFloat: whether or not the value we're filtering on needs to be parsed
+    //   to a float.
+    _makeFilterObj: function(col, mval, isFloat) {
+      var filterObj = {
+        type: col.filter.type,
+        attr: col.attr,
+        data_dictionary_name: col.filter.data_dictionary_name,
+        comparison: mval
+      };
+      if (isFloat) {
+        filterObj.value = parseFloat(col.filter[mval])
+      } else {
+        filterObj.value = col.filter[mval];
+      }
+      return filterObj;
+    },
+
+    // gets an object representing all filtering settings set in the column
+    // manager to send to the backend to retrieve a filtered dataset
+    _getFilteringSettings: function() {
+      var table = this;
+      var result = [];
+      var cg = this._columnManager._configGenerator;
+      for (var i = 0; i < cg.columnsConfig.length; i++) {
+        var col = cg.columnsConfig[i];
+        if (col.filter) {
+          if (col.filter.value)
+            result.push(table._makeFilterObj(col, "value", false));
+          if (col.filter.eq)
+            result.push(table._makeFilterObj(col, "eq", true));
+          if (col.filter.lt)
+            result.push(table._makeFilterObj(col, "lt", true));
+          if (col.filter.gt)
+            result.push(table._makeFilterObj(col, "gt", true));
+        }
+      }
+      return JSON.stringify(result);
     },
 
     _dataTableConfig : function() {

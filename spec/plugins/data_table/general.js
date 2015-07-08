@@ -66,7 +66,7 @@ describe("DataTable Plugin", function() {
       expect(app.Views.new_def.prototype.baseMethod()).toEqual("i am the new base");
     });
 
-    it("should allow rowClass to be provided as an argument instad of rowClassName", function() {
+    it("should allow rowClass to be provided as an argument instead of rowClassName", function() {
       app.view.dataTable.row("abc", {
         columns : [
           { attr : "name", title : "I came from a rowClass argument" }
@@ -388,25 +388,25 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // when nothing specified, sort asc by default
-      table.$("thead th.Name").click();
+      table.$("thead th.Name .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 0)).toEqual(["Bob", "Joe", "Zebra"]);
 
 
       // when clicking on a 'desc' specified one, sort desc by default
-      table.$("thead th.Age").click();
+      table.$("thead th.Age .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
 
       // a second click should go to 'asc'
-      table.$("thead th.Age").click();
+      table.$("thead th.Age .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
 
 
       // when clicking on a 'asc' specified one, sort asc by default
-      table.$("thead th.Zip").click();
+      table.$("thead th.Zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       // a second click should go to 'desc''
-      table.$("thead th.Zip").click();
+      table.$("thead th.Zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["90000", "33333", "10000"]);
     });
 
@@ -937,10 +937,10 @@ describe("DataTable Plugin", function() {
       }
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
-      table.$("thead th.Name").click();
+      table.$("thead th.Name .DataTables_sort_wrapper").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", false);
-      table.$("thead th.Name").click();
+      table.$("thead th.Name .DataTables_sort_wrapper").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
