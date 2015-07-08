@@ -845,11 +845,19 @@ _.extend(Plugin.factory, {
     ',
     sFilterListTemplate : '\
       <li><label><input class="list" id="value" type="checkbox" name="{{= attr }}" \
-         value="{{= options }}" /> <%= options %></label></li> \
+         value="{{= options }}" /> {{= options }}</label></li> \
+    ',
+    sActionButtonTemplate : '\
+      <button class="btn btn-primary btn-sm {{= klass}}" name="button" type="submit" title="">{{= caption}}</button>\
+    ',
+    sFilterButtonTemplate : '\
+      <div class="filter-button" data-toggle="dropdown"><span class="{{ if (active) { }}filterActive{{ } else { }}filterInactive{{ } }}"></div>\
     ',
     filterStringTemplate : null,
     filterNumericTemplate : null,
     filterListTemplate : null,
+    actionButtonTemplate : null,
+    filterButtonTemplate : null,
 
     constructor : function(options) {
       this.options = options || {};
@@ -896,6 +904,8 @@ _.extend(Plugin.factory, {
       this.filterStringTemplate = _.template(this.sFilterStringTemplate);
       this.filterNumericTemplate = _.template(this.sFilterNumericTemplate);
       this.filterListTemplate = _.template(this.sFilterListTemplate);
+      this.filterButtonTemplate = _.template(this.sFilterButtonTemplate);
+      this.actionButtonTemplate = _.template(this.sActionButtonTemplate);
 
       this.$el.html(this.template);
       this._dataTableCreate();
@@ -1153,19 +1163,20 @@ _.extend(Plugin.factory, {
     // The IDs "value", "gt", "lt" and "eq" are used to determine in what element in the
     // filter object in the column manager we store the value entered by the user
     _generateFilteringControls: function(head, col) {
-      var table = this;
       var filter = col.filter;
       if (filter.type === "string") {
-        $(head).append(table.filterStringTemplate( { title: col.title } ));
+        $(head).append(this.filterStringTemplate( { title: col.title } ));
       } else if (filter.type === "numeric") {
-        $(head).append(table.filterNumericTemplate());
+        $(head).append(this.filterNumericTemplate());
       } else if ((filter.type === "list") && (filter.options)) {
         var checkList = '<ul>';
         for (var i = 0; i < filter.options.length; i++)
-          checkList += table.filterListTemplate( { attr: col.attr, options: filter.options[i] } );
+          checkList += this.filterListTemplate( { attr: col.attr, options: filter.options[i] } );
         checkList += '</ul>';
         $(head).append(checkList);
       }
+      $(head).append(this.actionButtonTemplate( { caption: "Filter", klass: "btn-filter" } ));
+      $(head).append(this.actionButtonTemplate( { caption: "Clear", klass: "btn-clear" } ));
     },
 
     // Here we bind events to the input controls for a particular column for filtering.
@@ -1178,31 +1189,63 @@ _.extend(Plugin.factory, {
       var table = this;
       var filter = col.filter;
 
-      // bind focus to click event because of unbinding click from thead th when
-      // installing sort interceptors
-      $('input', head).on("click", function () {
+      // need to manually set focus because of how we unbound filtering events from the head
+      $('input', head).on('click', function() {
         this.focus();
       });
-      // update columnManager filter and ajaxUpdate dataTable when input changed
+
+      // update columnManager filter when input changed
       $('input', head).on('change', function () {
+        var filterIcon = $('.DataTables_filter_wrapper span', head);
         if (filter.type === "list") {
           if (this.checked) {
             filter[this.id] = filter[this.id] || [];
             filter[this.id].push(this.value);
+            filterIcon.removeClass("filterInactive");
+            filterIcon.addClass("filterActive");
           }
-          else {
+          else if (filter[this.id]) {
             var index = filter[this.id].indexOf(this.value);
             if (index > -1)
               filter[this.id].splice(index, 1);
-            if (filter[this.id].length === 0)
+            if (filter[this.id].length === 0) {
               filter[this.id] = null;
+              filterIcon.removeClass("filterActive");
+              filterIcon.addClass("filterInactive");
+            }
           }
         } else if (this.value === "") {
           filter[this.id] = null;
+          filterIcon.removeClass("filterActive");
+          filterIcon.addClass("filterInactive");
         } else {
           filter[this.id] = this.value;
+          filterIcon.removeClass("filterInactive");
+          filterIcon.addClass("filterActive");
         }
+      });
 
+      // update table when filter button clicked
+      $('.btn-filter', head).on('click', function() {
+        $("input", head).each(function() {
+          if (this.type === "text") {
+            $(this).trigger("change");
+          }
+        });
+        table.dataTable._fnAjaxUpdate();
+      });
+
+      // clear filter when clear button clicked
+      $('.btn-clear', head).on('click', function() {
+        $("input", head).each(function() {
+          if (this.type === "text") {
+            $(this).attr("value", "");
+            $(this).trigger("change");
+          } else if (this.type === "checkbox") {
+            $(this).attr("checked", false);
+            $(this).trigger("change");
+          }
+        });
         table.dataTable._fnAjaxUpdate();
       });
     },
@@ -1214,42 +1257,67 @@ _.extend(Plugin.factory, {
     // @col: The column from the column manager corresponding to the column we're creating
     //   filtering wrappers for.
     _createFilteringWrappers: function(head, col) {
+      window.activeMenu = null;
       var filter = col.filter;
+      var filterActive = filter.value || filter.eq || filter.gt || filter.lt;
       // create filtering wrapper div
       var wrapperDiv = document.createElement('div');
-      wrapperDiv.className = "DataTables_filter_wrapper";
+      wrapperDiv.className = "dropdown DataTables_filter_wrapper";
       wrapperDiv.id = "wrapper-" + col.attr;
-      wrapperDiv.innerHTML = "Filter";
+      wrapperDiv.innerHTML = this.filterButtonTemplate({ active: filterActive });
 
       // determine how many columns we need if we're dealing with list filtering
       var listClass = "";
       if (filter.type === "list") {
-        if (filter.options.length > 30)
-          listClass = " triple"
-        else if (filter.options.length > 15)
-          listClass = " double"
-        else
+        if (filter.options.length > 30) {
+          listClass = " triple";
+        } else if (filter.options.length > 15) {
+          listClass = " double";
+        } else {
           listClass = " single";
+        }
       }
 
       // create filtering menu div
       var filterDiv = document.createElement("div");
-      filterDiv.className = "filterMenu" + listClass;
+      filterDiv.className = "filterMenu dropdown-menu" + listClass;
       filterDiv.id = "menu-" + col.attr;
-      wrapperDiv.appendChild(filterDiv);
 
       // put filtering controls in filter div and put wrapper div in header
       if (filter.type === "string")
         $('input', head).appendTo(filterDiv)
       else
         $('ul', head).appendTo(filterDiv);
+      $('button', head).appendTo(filterDiv);
+      wrapperDiv.appendChild(filterDiv);
       head.appendChild(wrapperDiv);
 
-      // handle hovering on wrapperDiv
-      $('.DataTables_filter_wrapper', head).hover(function () {
-        $('.filterMenu', head).slideDown(200);
-      }, function () {
-        $('.filterMenu', head).slideUp(50);
+      // handle filter menu display
+      $(document).click(function (event) {
+        var className = event.target.classList[0];
+        if (event.target.offsetParent) {
+          var parentClassName = event.target.offsetParent.classList[0];
+        }
+        if ((window.activeMenu) && (((className !== 'filterMenu') && (parentClassName !== 'filterMenu')) || (className === 'btn'))) {
+          window.activeMenu.slideUp(100);
+          window.activeMenu = null;
+        }
+      });
+      $('.filter-button', head).click(function (event) {
+        event.stopImmediatePropagation();
+        var currentMenu = $('.filterMenu', head);
+        if ((window.activeMenu) && (window.activeMenu.is(currentMenu))) {
+          window.activeMenu.slideUp(100);
+          window.activeMenu = null;
+        } else if (window.activeMenu) {
+          window.activeMenu.slideUp(100, function () {
+            window.activeMenu = currentMenu;
+            window.activeMenu.slideDown(200);
+          });
+        } else {
+          window.activeMenu = currentMenu;
+          window.activeMenu.slideDown(200);
+        }
       });
     },
 
@@ -1396,7 +1464,7 @@ _.extend(Plugin.factory, {
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw", "exportData");
       this.serverParams({});
       this.selectAllMatching(false);
     },
@@ -1474,6 +1542,70 @@ _.extend(Plugin.factory, {
       this.selectAllMatching(false);
       this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
       this.trigger("draw", arguments);
+    },
+
+    exportData : function(sUrl) {
+      var oSettings = this.dataTable.fnSettings;
+      var aoData = this.dataTable._fnAjaxParameters( oSettings );
+      this._addServerParams( aoData );
+      this._fetchCSV( sUrl, aoData );
+    },
+
+    _fetchCSV : function (sUrl, aoData) {
+      if (this.serverSideFiltering) {
+        var filterJson = {};
+        filterJson.name = "ext_filter_json";
+        filterJson.value = this._getFilteringSettings();
+        aoData.push(filterJson);
+      }
+      $.ajax({
+        url: sUrl,
+        data : aoData,
+        dataType : "text",
+        cache : false,
+        type : this.ajaxMethod || "GET",
+        success: function(response, status, xhr) {
+          // check for a filename
+          var filename = "";
+          var disposition = xhr.getResponseHeader('Content-Disposition');
+          if (disposition && disposition.indexOf('attachment') !== -1) {
+            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            var matches = filenameRegex.exec(disposition);
+            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+          }
+
+          var type = xhr.getResponseHeader('Content-Type');
+          var blob = new Blob([response], { type: type });
+
+          if (typeof window.navigator.msSaveBlob !== 'undefined') {
+            // IE workaround for "HTML7007: One or more blob URLs were revoked by closing
+            // the blob for which they were created. These URLs will no longer resolve as
+            // the data backing the URL has been freed."
+            window.navigator.msSaveBlob(blob, filename);
+          } else {
+            var URL = window.URL || window.webkitURL;
+            var downloadUrl = URL.createObjectURL(blob);
+
+            if (filename) {
+              // use HTML5 a[download] attribute to specify filename
+              var a = document.createElement("a");
+              // safari doesn't support this yet
+              if (typeof a.download === 'undefined') {
+                window.location = downloadUrl;
+              } else {
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+              }
+            } else {
+              window.location = downloadUrl;
+            }
+
+            setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
+          }
+        }
+      })
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
