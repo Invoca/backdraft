@@ -70,6 +70,7 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("T", {
       rowClassName : "R",
       serverSide : true,
+      filteringEnabled: true,
       serverSideFiltering : true
     });
     collection = new app.Collections.Col();

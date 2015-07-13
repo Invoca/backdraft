@@ -864,7 +864,7 @@ _.extend(Plugin.factory, {
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-          "_onColumnVisibilityChange", "_onColumnReorder");
+          "_onColumnVisibilityChange", "_onColumnReorder", "doAjaxUpdate");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -1062,7 +1062,7 @@ _.extend(Plugin.factory, {
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       this._installSortInterceptors();
-      this._setupFiltering();
+      this.filteringEnabled && this._setupFiltering();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences()
@@ -1124,6 +1124,11 @@ _.extend(Plugin.factory, {
     _triggerChangeSelection: function(extraData) {
       var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
+    },
+
+    // Make an event handler from which lets us do an ajax update for the table
+    doAjaxUpdate: function() {
+      this.dataTable._fnAjaxUpdate();
     },
 
     // DataTables does not provide a good way to programmatically disable sorting, so we:
@@ -1257,7 +1262,8 @@ _.extend(Plugin.factory, {
     // @col: The column from the column manager corresponding to the column we're creating
     //   filtering wrappers for.
     _createFilteringWrappers: function(head, col) {
-      window.activeMenu = null;
+      var table = this;
+      table.activeMenu = null;
       var filter = col.filter;
       var filterActive = filter.value || filter.eq || filter.gt || filter.lt;
       // create filtering wrapper div
@@ -1298,25 +1304,25 @@ _.extend(Plugin.factory, {
         if (event.target.offsetParent) {
           var parentClassName = event.target.offsetParent.classList[0];
         }
-        if ((window.activeMenu) && (((className !== 'filterMenu') && (parentClassName !== 'filterMenu')) || (className === 'btn'))) {
-          window.activeMenu.slideUp(100);
-          window.activeMenu = null;
+        if ((table.activeMenu) && (((className !== 'filterMenu') && (parentClassName !== 'filterMenu')) || (className === 'btn'))) {
+          table.activeMenu.slideUp(100);
+          table.activeMenu = null;
         }
       });
       $('.filter-button', head).click(function (event) {
         event.stopImmediatePropagation();
         var currentMenu = $('.filterMenu', head);
-        if ((window.activeMenu) && (window.activeMenu.is(currentMenu))) {
-          window.activeMenu.slideUp(100);
-          window.activeMenu = null;
-        } else if (window.activeMenu) {
-          window.activeMenu.slideUp(100, function () {
-            window.activeMenu = currentMenu;
-            window.activeMenu.slideDown(200);
+        if ((table.activeMenu) && (table.activeMenu.is(currentMenu))) {
+          table.activeMenu.slideUp(100);
+          table.activeMenu = null;
+        } else if (table.activeMenu) {
+          table.activeMenu.slideUp(100, function () {
+            table.activeMenu = currentMenu;
+            table.activeMenu.slideDown(200);
           });
         } else {
-          window.activeMenu = currentMenu;
-          window.activeMenu.slideDown(200);
+          table.activeMenu = currentMenu;
+          table.activeMenu.slideDown(200);
         }
       });
     },
@@ -1510,7 +1516,7 @@ _.extend(Plugin.factory, {
     },
 
     _onReset : function(collection, options) {
-      if (!options.addData) throw new Error("An addData option is required to reset the collection");
+
       // clean up old data
       // note: since we have enabled server-side processing, we don't need to call
       // fnClearTable here - it is a client-side only function
@@ -1520,8 +1526,10 @@ _.extend(Plugin.factory, {
       this.cache.reset();
       this.selectionManager = new SelectionManager();
       // actually add new data
-      options.addData(cidMap(collection));
-      this._triggerChangeSelection();
+      if (options.addData) {
+        options.addData(cidMap(collection));
+        this._triggerChangeSelection();
+      }
     },
 
     // dataTables callback to allow addition of params to the ajax request
