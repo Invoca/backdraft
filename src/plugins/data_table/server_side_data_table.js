@@ -54,7 +54,7 @@ var ServerSideDataTable = (function() {
     },
 
     _onReset : function(collection, options) {
-
+      if (!options.addData) throw new Error("An addData option is required to reset the collection");
       // clean up old data
       // note: since we have enabled server-side processing, we don't need to call
       // fnClearTable here - it is a client-side only function
@@ -64,10 +64,8 @@ var ServerSideDataTable = (function() {
       this.cache.reset();
       this.selectionManager = new SelectionManager();
       // actually add new data
-      if (options.addData) {
-        options.addData(cidMap(collection));
-        this._triggerChangeSelection();
-      }
+      options.addData(cidMap(collection));
+      this._triggerChangeSelection();
     },
 
     // dataTables callback to allow addition of params to the ajax request

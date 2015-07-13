@@ -200,6 +200,7 @@ var LocalDataTable = (function() {
         paginateLengthMenu : [ 10, 25, 50, 100 ],
         paginateLength : 10,
         selectedIds : [],
+        filteringEnabled: true,
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
         reorderableColumns: true,
         objectName: {
