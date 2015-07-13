@@ -9,14 +9,14 @@ app.view.dataTable.columnType(function(columnType) {
 
   columnType.definition(function(dataTable, config) {
     return {
-      bSortable: config.sort,
-      bSearchable: false,
-      sTitle: "<input type='checkbox' />",
-      sClass : "bulk",
-      mData: function(source, type, val) {
+      orderable: config.sort,
+      searchable: false,
+      title: "<input type='checkbox' />",
+      "class" : "bulk",
+      data: function(source, type, val) {
         return dataTable.collection.get(source);
       },
-      mRender : function(data, type, full) {
+      render : function(data, type, full) {
         if (type === "sort" || type === "type") {
           return dataTable.selectionManager.has(data) ? 1 : -1;
         } else {
@@ -27,8 +27,8 @@ app.view.dataTable.columnType(function(columnType) {
   });
 
   columnType.renderer(function(cell, config) {
-    if (this.checkbox) return;
     this.checkbox = $("<input>").attr("type", "checkbox");
+    this.checkbox.prop("checked", this._bulkSate);
     cell.html(this.checkbox);
   });
 });

@@ -56,7 +56,9 @@ Backdraft.app("TableExample", function(app) {
 
     layout : "<'table-wrapper-with-footer'>t<'row'<'col-xs-4'p><'col-xs-4'r><'col-xs-4'i>>",
 
-    serverSide : true
+    serverSide : true,
+
+    sorting: [ [ "Name", "asc" ] ]
 
   });
 

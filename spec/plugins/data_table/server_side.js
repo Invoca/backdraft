@@ -5,17 +5,17 @@ describe("DataTable Plugin", function() {
   var mockResponse;
 
   function MockResponse() {
-    this.echo = 1;
+    this.draw = 1;
   }
 
   MockResponse.prototype.get = function() {
     return {
       status : 200,
       responseText : JSON.stringify({
-        sEcho: this.echo++,
-        iTotalRecords: 100,
-        iTotalDisplayRecords: 100,
-        aaData: [
+        draw: this.draw++,
+        recordsTotal: 100,
+        recordsFiltered: 100,
+        data: [
           { name: '1 - hey hey 1' },
           { name: '2 - hey hey 2' },
           { name: '3 - hey hey 3' },
@@ -35,9 +35,9 @@ describe("DataTable Plugin", function() {
     return {
       status : 200,
       responseText : JSON.stringify({
-        sEcho: this.echo++,
-        iTotalRecords: 0,
-        iTotalDisplayRecords: 0,
+        draw: this.draw++,
+        recordsTotal: 0,
+        recordsFiltered: 0,
         aaData: []
       })
     };
@@ -195,9 +195,8 @@ describe("DataTable Plugin", function() {
       // table
       expect(finishArgs[3]).toEqual(table);
       // filters
-      expect(_.isArray(finishArgs[4])).toEqual(true);
-      expect(_.pluck(finishArgs[4], "name")).toContain("sEcho");
-      expect(_.pluck(finishArgs[4], "name")).toContain("column_attrs[]");
+      expect(_.keys(finishArgs[4])).toContain("draw");
+      expect(_.keys(finishArgs[4])).toContain("column_attrs");
     });
   });
 
@@ -226,7 +225,7 @@ describe("DataTable Plugin", function() {
 
   describe("server side params", function() {
     it("should automatically include column attributes", function() {
-      var expectedAttrParams = $.param({ column_attrs : [undefined, "name", "date", undefined] });
+      var expectedAttrParams = $.param({ column_attrs : ["", "name", "date", ""] });
       table = new app.Views.T({ collection : collection });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);

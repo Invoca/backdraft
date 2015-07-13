@@ -27,20 +27,21 @@ var LocalDataTable = (function() {
 
     // apply filtering
     filter : function() {
+      var api = this.dataTable.api();
       this._lockManager.ensureUnlocked("filter");
-      this.dataTable.fnFilter.apply(this.dataTable, arguments);
+      api.search.apply(api, arguments).draw();
     },
 
     // change pagination
-    page : function() {
+    page : function(value) {
       this._lockManager.ensureUnlocked("page");
-      return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
+      return this.dataTable.api().page(value).draw(false);
     },
 
     // sort specific columns
-    sort : function() {
+    sort : function(value) {
       this._lockManager.ensureUnlocked("sort");
-      return this.dataTable.fnSort.apply(this.dataTable, arguments);
+      return this.dataTable.api().sort(value).draw();
     },
 
     selectedModels : function() {
@@ -52,7 +53,6 @@ var LocalDataTable = (function() {
       this.$el.html(this.template);
       this._dataTableCreate();
       this._initBulkHandling();
-      this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
       return this;
     },
@@ -62,9 +62,7 @@ var LocalDataTable = (function() {
       if (!config) {
         throw new Error("column not found");
       }
-      this.cache.each(function(row) {
-        row.renderColumnByConfig(config);
-      });
+      this._renderColumnByConfig(config);
     },
 
     selectAllVisible : function(state) {
@@ -82,17 +80,18 @@ var LocalDataTable = (function() {
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
       }, this);
+      this._bulkCheckboxAdjust();
       this._triggerChangeSelection();
     },
 
     matchingCount : function() {
       this._lockManager.ensureUnlocked("bulk");
-      return this.dataTable.fnSettings().aiDisplay.length;
+      return this.dataTable.api().settings()[0].aiDisplay.length;
     },
 
     totalRecordsCount: function() {
       this._lockManager.ensureUnlocked("bulk");
-      return this.dataTable.fnSettings().fnRecordsTotal();
+      return this.dataTable.api().page.info().recordsTotal;
     },
 
     columnVisibility: function(title, state) {
@@ -134,13 +133,23 @@ var LocalDataTable = (function() {
 
     // Private APIs
 
+    _renderColumnByConfig: function(config) {
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
     _enableReorderableColumns: function() {
       var self = this;
-      new $.fn.dataTable.ColReorder(this.dataTable, {
-        fnReorderCallback: function(fromIndex, toIndex) {
-          // notify that columns have been externally rearranged
-          self._columnManager.columnsSwapped(fromIndex, toIndex);
-        }
+      new $.fn.dataTable.ColReorder(this.dataTable);
+      $(this.dataTable).on("column-reorder", function(event, settings, data) {
+        self._columnManager.columnsSwapped(data.iFrom, data.iTo);
+        _.each(self.columnsConfig(), function(column) {
+          if (column.bulk || (column.title && self.columnVisibility(column.title))) {
+            self._renderColumnByConfig(column);
+          }
+        });
+        self.dataTable.api().draw(false);
       });
     },
 
@@ -150,7 +159,7 @@ var LocalDataTable = (function() {
       // matching data since some of the rows may not have been rendered yet.
       // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
       // and return the associated models
-      return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
+      return _.map(this.dataTable.api().settings()[0].aiDisplay, function(index) {
         return this.collection.at(index);
       }, this);
     },
@@ -182,8 +191,7 @@ var LocalDataTable = (function() {
     // returns row objects that have not been filtered out and are on the current page
     _visibleRowsOnCurrentPage : function() {
       // non-paginated tables will return all rows, ignoring the page param
-      var visibleRowsCurrentPageArgs = { filter : "applied", page : "current" };
-      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
+      return this.dataTable.$("tr", { page : "current" }).map(function(index, node) {
         return $(node).data("row");
       });
     },
@@ -218,18 +226,10 @@ var LocalDataTable = (function() {
     },
 
     // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
-    // note: we defer execution as the "page" and "filter" events are called before new rows are swapped in
-    // this allows our code to run after the all the new rows are inserted
     _bulkCheckboxAdjust : function() {
       var self = this;
       if (!self.bulkCheckbox) return;
-      _.defer(function() {
-        self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
-      });
-    },
-
-    _initPaginationHandling : function() {
-      this.dataTable.on("page", this._bulkCheckboxAdjust);
+      self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
     },
 
     _initBulkHandling : function() {
@@ -238,21 +238,24 @@ var LocalDataTable = (function() {
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
-      this.dataTable.on("filter", this._bulkCheckboxAdjust);
+      var self = this;
+      this.dataTable.on("search.dt", function() {
+        self.dataTable.one("draw.dt", self._bulkCheckboxAdjust);
+      });
     },
 
     _dataTableConfig : function() {
       return {
-        sDom : this.layout,
-        bDeferRender : true,
-        bPaginate : this.paginate,
-        aLengthMenu : this.paginateLengthMenu,
-        iDisplayLength : this.paginateLength,
-        bInfo : true,
-        fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.dataTableColumnsConfig(),
-        aaSorting : this._columnManager.dataTableSortingConfig(),
-        fnDrawCallback : this._onDraw
+        dom : this.layout,
+        deferRender : true,
+        paging : this.paginate,
+        lengthMenu : this.paginateLengthMenu,
+        pageLength : this.paginateLength,
+        info : true,
+        createdRow : this._onRowCreated,
+        columns : this._columnManager.dataTableColumnsConfig(),
+        order : this._columnManager.dataTableSortingConfig(),
+        drawCallback : this._onDraw
       };
     },
 
@@ -274,7 +277,7 @@ var LocalDataTable = (function() {
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
+        self.dataTable.api().order.listener($(this), index);
       });
     },
 
@@ -318,23 +321,23 @@ var LocalDataTable = (function() {
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
+      this.dataTable.api().row.add({ cid : model.cid }).draw(false);
       this._triggerChangeSelection();
     },
 
     _onRemove : function(model) {
       if (!this.dataTable) return;
       var cache = this.cache, row = cache.get(model);
-      this.dataTable.fnDeleteRow(row.el, function() {
-        cache.unset(model);
-        row.close();
-      });
+      this.dataTable.api().row(row.el).remove();
+      cache.unset(model);
+      row.close();
+      this.dataTable.api().draw(false);
       this._triggerChangeSelection();
     },
 
     _onReset : function(collection) {
       if (!this.dataTable) return;
-      this.dataTable.fnClearTable();
+      this.dataTable.api().clear().draw();
       this.cache.each(function(row) {
         row.close();
       });
@@ -348,7 +351,7 @@ var LocalDataTable = (function() {
       }, this);
 
       // add new data
-      this.dataTable.fnAddData(cidMap(collection));
+      this.dataTable.api().rows.add(cidMap(collection)).draw();
       this._triggerChangeSelection();
     }
 

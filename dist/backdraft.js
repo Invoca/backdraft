@@ -762,6 +762,7 @@ _.extend(Plugin.factory, {
     initialize: function(options) {
       this.columnsConfig = options.columnsConfig;
       this.$el.data("row", this);
+      this._bulkSate = null;
     },
 
     render : function() {
@@ -778,16 +779,16 @@ _.extend(Plugin.factory, {
     },
 
     bulkState : function(state) {
-      // TODO: throw error when no checkbox
       if (!this.checkbox) return;
 
       if (arguments.length === 1) {
         // setter
         this.checkbox.prop("checked", state);
+        this._bulkSate = state;
         this.$el.toggleClass("backdraft-selected", state);
       } else {
         // getter
-        return this.checkbox.prop("checked");
+        return this._bulkSate;
       }
     },
 
@@ -845,20 +846,21 @@ _.extend(Plugin.factory, {
 
     // apply filtering
     filter : function() {
+      var api = this.dataTable.api();
       this._lockManager.ensureUnlocked("filter");
-      this.dataTable.fnFilter.apply(this.dataTable, arguments);
+      api.search.apply(api, arguments).draw();
     },
 
     // change pagination
-    page : function() {
+    page : function(value) {
       this._lockManager.ensureUnlocked("page");
-      return this.dataTable.fnPageChange.apply(this.dataTable, arguments);
+      return this.dataTable.api().page(value).draw(false);
     },
 
     // sort specific columns
-    sort : function() {
+    sort : function(value) {
       this._lockManager.ensureUnlocked("sort");
-      return this.dataTable.fnSort.apply(this.dataTable, arguments);
+      return this.dataTable.api().sort(value).draw();
     },
 
     selectedModels : function() {
@@ -870,7 +872,6 @@ _.extend(Plugin.factory, {
       this.$el.html(this.template);
       this._dataTableCreate();
       this._initBulkHandling();
-      this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
       return this;
     },
@@ -880,9 +881,7 @@ _.extend(Plugin.factory, {
       if (!config) {
         throw new Error("column not found");
       }
-      this.cache.each(function(row) {
-        row.renderColumnByConfig(config);
-      });
+      this._renderColumnByConfig(config);
     },
 
     selectAllVisible : function(state) {
@@ -900,17 +899,18 @@ _.extend(Plugin.factory, {
       _.each(this._allMatchingModels(), function(model) {
         this._setRowSelectedState(model, this.cache.get(model), true);
       }, this);
+      this._bulkCheckboxAdjust();
       this._triggerChangeSelection();
     },
 
     matchingCount : function() {
       this._lockManager.ensureUnlocked("bulk");
-      return this.dataTable.fnSettings().aiDisplay.length;
+      return this.dataTable.api().settings()[0].aiDisplay.length;
     },
 
     totalRecordsCount: function() {
       this._lockManager.ensureUnlocked("bulk");
-      return this.dataTable.fnSettings().fnRecordsTotal();
+      return this.dataTable.api().page.info().recordsTotal;
     },
 
     columnVisibility: function(title, state) {
@@ -952,13 +952,23 @@ _.extend(Plugin.factory, {
 
     // Private APIs
 
+    _renderColumnByConfig: function(config) {
+      this.cache.each(function(row) {
+        row.renderColumnByConfig(config);
+      });
+    },
+
     _enableReorderableColumns: function() {
       var self = this;
-      new $.fn.dataTable.ColReorder(this.dataTable, {
-        fnReorderCallback: function(fromIndex, toIndex) {
-          // notify that columns have been externally rearranged
-          self._columnManager.columnsSwapped(fromIndex, toIndex);
-        }
+      new $.fn.dataTable.ColReorder(this.dataTable);
+      $(this.dataTable).on("column-reorder", function(event, settings, data) {
+        self._columnManager.columnsSwapped(data.iFrom, data.iTo);
+        _.each(self.columnsConfig(), function(column) {
+          if (column.bulk || (column.title && self.columnVisibility(column.title))) {
+            self._renderColumnByConfig(column);
+          }
+        });
+        self.dataTable.api().draw(false);
       });
     },
 
@@ -968,7 +978,7 @@ _.extend(Plugin.factory, {
       // matching data since some of the rows may not have been rendered yet.
       // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
       // and return the associated models
-      return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
+      return _.map(this.dataTable.api().settings()[0].aiDisplay, function(index) {
         return this.collection.at(index);
       }, this);
     },
@@ -1000,8 +1010,7 @@ _.extend(Plugin.factory, {
     // returns row objects that have not been filtered out and are on the current page
     _visibleRowsOnCurrentPage : function() {
       // non-paginated tables will return all rows, ignoring the page param
-      var visibleRowsCurrentPageArgs = { filter : "applied", page : "current" };
-      return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
+      return this.dataTable.$("tr", { page : "current" }).map(function(index, node) {
         return $(node).data("row");
       });
     },
@@ -1036,18 +1045,10 @@ _.extend(Plugin.factory, {
     },
 
     // when changing between pages / filters we set the header bulk checkbox state based on whether all newly visible rows are selected or not
-    // note: we defer execution as the "page" and "filter" events are called before new rows are swapped in
-    // this allows our code to run after the all the new rows are inserted
     _bulkCheckboxAdjust : function() {
       var self = this;
       if (!self.bulkCheckbox) return;
-      _.defer(function() {
-        self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
-      });
-    },
-
-    _initPaginationHandling : function() {
-      this.dataTable.on("page", this._bulkCheckboxAdjust);
+      self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
     },
 
     _initBulkHandling : function() {
@@ -1056,21 +1057,24 @@ _.extend(Plugin.factory, {
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
-      this.dataTable.on("filter", this._bulkCheckboxAdjust);
+      var self = this;
+      this.dataTable.on("search.dt", function() {
+        self.dataTable.one("draw.dt", self._bulkCheckboxAdjust);
+      });
     },
 
     _dataTableConfig : function() {
       return {
-        sDom : this.layout,
-        bDeferRender : true,
-        bPaginate : this.paginate,
-        aLengthMenu : this.paginateLengthMenu,
-        iDisplayLength : this.paginateLength,
-        bInfo : true,
-        fnCreatedRow : this._onRowCreated,
-        aoColumns : this._columnManager.dataTableColumnsConfig(),
-        aaSorting : this._columnManager.dataTableSortingConfig(),
-        fnDrawCallback : this._onDraw
+        dom : this.layout,
+        deferRender : true,
+        paging : this.paginate,
+        lengthMenu : this.paginateLengthMenu,
+        pageLength : this.paginateLength,
+        info : true,
+        createdRow : this._onRowCreated,
+        columns : this._columnManager.dataTableColumnsConfig(),
+        order : this._columnManager.dataTableSortingConfig(),
+        drawCallback : this._onDraw
       };
     },
 
@@ -1092,7 +1096,7 @@ _.extend(Plugin.factory, {
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
+        self.dataTable.api().order.listener($(this), index);
       });
     },
 
@@ -1136,23 +1140,23 @@ _.extend(Plugin.factory, {
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
+      this.dataTable.api().row.add({ cid : model.cid }).draw(false);
       this._triggerChangeSelection();
     },
 
     _onRemove : function(model) {
       if (!this.dataTable) return;
       var cache = this.cache, row = cache.get(model);
-      this.dataTable.fnDeleteRow(row.el, function() {
-        cache.unset(model);
-        row.close();
-      });
+      this.dataTable.api().row(row.el).remove();
+      cache.unset(model);
+      row.close();
+      this.dataTable.api().draw(false);
       this._triggerChangeSelection();
     },
 
     _onReset : function(collection) {
       if (!this.dataTable) return;
-      this.dataTable.fnClearTable();
+      this.dataTable.api().clear().draw();
       this.cache.each(function(row) {
         row.close();
       });
@@ -1166,7 +1170,7 @@ _.extend(Plugin.factory, {
       }, this);
 
       // add new data
-      this.dataTable.fnAddData(cidMap(collection));
+      this.dataTable.api().rows.add(cidMap(collection)).draw();
       this._triggerChangeSelection();
     }
 
@@ -1206,7 +1210,7 @@ _.extend(Plugin.factory, {
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
+      _.bindAll(this, "_onCreateAjax", "_onDraw");
       this.serverParams({});
       this.selectAllMatching(false);
     },
@@ -1217,7 +1221,7 @@ _.extend(Plugin.factory, {
 
       // setter
       if (val) {
-        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
+        if (this.dataTable.api().page.info().pages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
         if (!this._areAllVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
         // store current server params
         this._selectAllMatchingParams = this.serverParams();
@@ -1266,17 +1270,6 @@ _.extend(Plugin.factory, {
       this._triggerChangeSelection();
     },
 
-    // dataTables callback to allow addition of params to the ajax request
-    _addServerParams : function(aoData) {
-      for (var key in this._serverParams) {
-        aoData.push({ name : key, value : this._serverParams[key] });
-      }
-      // add column attribute mappings as a parameter
-      _.each(this._columnManager.columnAttrs(), function(attr) {
-        aoData.push({ name: "column_attrs[]", value: attr });
-      });
-    },
-
     // dataTables callback after a draw event has occurred
     _onDraw : function() {
       // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
@@ -1286,11 +1279,18 @@ _.extend(Plugin.factory, {
       this.trigger("draw", arguments);
     },
 
-    _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
+    _onCreateAjax : function(data, callback, settings) {
+      // set additional params for the request
+      // replace all undefined/null values with empty string or the serialization breaks
       var self = this;
-      oSettings.jqXHR = $.ajax({
-        url : sUrl,
-        data : aoData,
+      var columnAttrs = _.map(this._columnManager.columnAttrs(), function(attr) {
+          return attr || "";
+      });
+      _.extend(data, this._serverParams, { column_attrs: columnAttrs });
+
+      return $.ajax({
+        url: _.result(this.collection, "url"),
+        data : data,
         dataType : "json",
         cache : false,
         type : this.ajaxMethod || "GET",
@@ -1301,21 +1301,24 @@ _.extend(Plugin.factory, {
         success : function(json) {
           // ensure we ignore old Ajax responses
           // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
-          // what gets called by fnCallback. However, fnCallback should only be invoked after we reset the
+          // what gets called by callback. However, callback should only be invoked after we reset the
           // collection, so we must perform the check at this point as well.
-          if (_.isUndefined(json.sEcho)) return;
-          if (json.sEcho * 1 < oSettings.iDraw) return;
+          if (_.isUndefined(json.draw)) return;
+          if (json.draw * 1 < settings.draw) return;
 
-          self.collection.reset(json.aaData, {
-            addData : function(data) {
-              // calling fnCallback is what will actually cause the data to be populated
-              json.aaData = data;
-              fnCallback(json)
+          self.collection.reset(json.data, {
+            addData : function(modelCidData) {
+              // invoking callback is what will actually causes the data to be populated
+              // note the data we pass into the callback is not the raw server data, but rather the cids for
+              // indexing into the collection
+              json.data = modelCidData;
+              settings.json = json;
+              callback(json);
             }
           });
         },
         complete: function(xhr, status) {
-          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
+          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, data]);
         }
       });
     },
@@ -1324,15 +1327,13 @@ _.extend(Plugin.factory, {
       var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
       return _.extend(config, {
-        bProcessing : true,
-        bServerSide : true,
-        sAjaxSource : _.result(this.collection, "url"),
-        fnServerData : this._fetchServerData,
-        fnServerParams : this._addServerParams,
-        fnDrawCallback : this._onDraw,
-        oLanguage: {
-          sProcessing: this.processingText,
-          sEmptyTable: this.emptyText
+        processing : true,
+        serverSide : true,
+        ajax: this._onCreateAjax,
+        drawCallback : this._onDraw,
+        language: {
+          processing: this.processingText,
+          emptyTable: this.emptyText
         }
       });
     },
@@ -1379,134 +1380,228 @@ _.extend(Plugin.factory, {
 
   plugin.initializer(function(app) {
 
-    /* Set the defaults for DataTables initialisation */
-$.extend( true, $.fn.dataTable.defaults, {
-  "sDom":
+    /*! DataTables Bootstrap 3 integration
+ * Â©2011-2014 SpryMedia Ltd - datatables.net/license
+ */
+
+/**
+ * DataTables integration for Bootstrap 3. This requires Bootstrap 3 and
+ * DataTables 1.10 or newer.
+ *
+ * This file sets the defaults and adds options to DataTables to style its
+ * controls using Bootstrap. See http://datatables.net/manual/styling/bootstrap
+ * for further information.
+ */
+(function(window, document, undefined){
+
+var factory = function( $, DataTable ) {
+"use strict";
+
+
+/* Set the defaults for DataTables initialisation */
+$.extend( true, DataTable.defaults, {
+  dom:
     "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
     "t"+
     "<'row'<'col-xs-6'i><'col-xs-6'p>>",
-  "oLanguage": {
-    "sLengthMenu": "_MENU_ records per page",
-    "sInfoFiltered" : "<br/>(filtered from _MAX_ total)"
-  }
+  language: {
+    lengthMenu: "_MENU_ records per page",
+    infoFiltered: "<br/>(filtered from _MAX_ total)",
+    oPaginate: {
+      sPrevious: "&larr; ",
+      sNext: "&rarr; "
+    }
+  },
+  renderer: 'bootstrap'
 } );
 
 
 /* Default class modification */
-$.extend( $.fn.dataTableExt.oStdClasses, {
-  "sWrapper": "dataTables_wrapper form-inline",
-  "sFilterInput": "form-control input-sm",
-  "sLengthSelect": "form-control input-sm"
+$.extend( DataTable.ext.classes, {
+  sWrapper:      "dataTables_wrapper form-inline dt-bootstrap",
+  sFilterInput:  "form-control input-sm",
+  sLengthSelect: "form-control input-sm"
 } );
 
-// Integration for 1.9-
-$.fn.dataTable.defaults.sPaginationType = 'bootstrap';
 
-/* API method to get paging information */
-$.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
-{
-  return {
-    "iStart":         oSettings._iDisplayStart,
-    "iEnd":           oSettings.fnDisplayEnd(),
-    "iLength":        oSettings._iDisplayLength,
-    "iTotal":         oSettings.fnRecordsTotal(),
-    "iFilteredTotal": oSettings.fnRecordsDisplay(),
-    "iPage":          oSettings._iDisplayLength === -1 ?
-      0 : Math.ceil( oSettings._iDisplayStart / oSettings._iDisplayLength ),
-    "iTotalPages":    oSettings._iDisplayLength === -1 ?
-      0 : Math.ceil( oSettings.fnRecordsDisplay() / oSettings._iDisplayLength )
-  };
-};
+/* Bootstrap paging button renderer */
+DataTable.ext.renderer.pageButton.bootstrap = function ( settings, host, idx, buttons, page, pages ) {
+  var api     = new DataTable.Api( settings );
+  var classes = settings.oClasses;
+  var lang    = settings.oLanguage.oPaginate;
+  var btnDisplay, btnClass, counter=0;
 
-/* Bootstrap style pagination control */
-$.extend( $.fn.dataTableExt.oPagination, {
-  "bootstrap": {
-    "fnInit": function( oSettings, nPaging, fnDraw ) {
-      var oLang = oSettings.oLanguage.oPaginate;
-      var fnClickHandler = function ( e ) {
-        e.preventDefault();
-        // prevent clicks on disabled links
-        if ($(e.target).closest("li").is(".disabled")) {
-          return;
-        }
-        if ( oSettings.oApi._fnPageChange(oSettings, e.data.action) ) {
-          fnDraw( oSettings );
-        }
-      };
-
-      $(nPaging).append(
-        '<ul class="pagination pagination-sm">'+
-          '<li class="prev disabled"><a href="#">&larr; </a></li>'+
-          '<li class="next disabled"><a href="#"> &rarr; </a></li>'+
-        '</ul>'
-      );
-      var els = $('a', nPaging);
-      $(els[0]).bind( 'click.DT', { action: "previous" }, fnClickHandler );
-      $(els[1]).bind( 'click.DT', { action: "next" }, fnClickHandler );
-    },
-
-    "fnUpdate": function ( oSettings, fnDraw ) {
-      var iListLength = 5;
-      var oPaging = oSettings.oInstance.fnPagingInfo();
-      var an = oSettings.aanFeatures.p;
-      var i, ien, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
-
-      if ( oPaging.iTotalPages < iListLength) {
-        iStart = 1;
-        iEnd = oPaging.iTotalPages;
+  var attach = function( container, buttons ) {
+    var i, ien, node, button;
+    var clickHandler = function ( e ) {
+      e.preventDefault();
+      if ( !$(e.currentTarget).hasClass('disabled') ) {
+        api.page( e.data.action ).draw( false );
       }
-      else if ( oPaging.iPage <= iHalf ) {
-        iStart = 1;
-        iEnd = iListLength;
-      } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
-        iStart = oPaging.iTotalPages - iListLength + 1;
-        iEnd = oPaging.iTotalPages;
-      } else {
-        iStart = oPaging.iPage - iHalf + 1;
-        iEnd = iStart + iListLength - 1;
+    };
+
+    for ( i=0, ien=buttons.length ; i<ien ; i++ ) {
+      button = buttons[i];
+
+      if ( $.isArray( button ) ) {
+        attach( container, button );
       }
+      else {
+        btnDisplay = '';
+        btnClass = '';
 
-      for ( i=0, ien=an.length ; i<ien ; i++ ) {
-        // Remove the middle elements
-        $('li:gt(0)', an[i]).filter(':not(:last)').remove();
+        switch ( button ) {
+          case 'ellipsis':
+            btnDisplay = '&hellip;';
+            btnClass = 'disabled';
+            break;
 
-        // Add the new list items and their event handlers
-        for ( j=iStart ; j<=iEnd ; j++ ) {
-          sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
-          $('<li '+sClass+'><a href="#">'+j+'</a></li>')
-            .insertBefore( $('li:last', an[i])[0] )
-            .bind('click', function (e) {
-              e.preventDefault();
-              // EUGE - patched to make sure the "page" event is fired when numbers are clicked
-              oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
-            } );
+          case 'first':
+            btnDisplay = lang.sFirst;
+            btnClass = button + (page > 0 ?
+              '' : ' disabled');
+            break;
+
+          case 'previous':
+            btnDisplay = lang.sPrevious;
+            btnClass = button + (page > 0 ?
+              '' : ' disabled');
+            break;
+
+          case 'next':
+            btnDisplay = lang.sNext;
+            btnClass = button + (page < pages-1 ?
+              '' : ' disabled');
+            break;
+
+          case 'last':
+            btnDisplay = lang.sLast;
+            btnClass = button + (page < pages-1 ?
+              '' : ' disabled');
+            break;
+
+          default:
+            btnDisplay = button + 1;
+            btnClass = page === button ?
+              'active' : '';
+            break;
         }
 
-        // Add / remove disabled classes from the static elements
-        if ( oPaging.iPage === 0 ) {
-          $('li:first', an[i]).addClass('disabled');
-        } else {
-          $('li:first', an[i]).removeClass('disabled');
-        }
+        if ( btnDisplay ) {
+          node = $('<li>', {
+              'class': classes.sPageButton+' '+btnClass,
+              'id': idx === 0 && typeof button === 'string' ?
+                settings.sTableId +'_'+ button :
+                null
+            } )
+            .append( $('<a>', {
+                'href': '#',
+                'aria-controls': settings.sTableId,
+                'data-dt-idx': counter,
+                'tabindex': settings.iTabIndex
+              } )
+              .html( btnDisplay )
+            )
+            .appendTo( container );
 
-        if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
-          $('li:last', an[i]).addClass('disabled');
-        } else {
-          $('li:last', an[i]).removeClass('disabled');
+          settings.oApi._fnBindAction(
+            node, {action: button}, clickHandler
+          );
+
+          counter++;
         }
       }
     }
-  }
-} );
+  };
 
-    /*! ColReorder 1.1.3-dev
- * ©2010-2014 SpryMedia Ltd - datatables.net/license
+  // IE9 throws an 'unknown error' if document.activeElement is used
+  // inside an iframe or frame. 
+  var activeEl;
+
+  try {
+    // Because this approach is destroying and recreating the paging
+    // elements, focus is lost on the select button which is bad for
+    // accessibility. So we want to restore focus once the draw has
+    // completed
+    activeEl = $(document.activeElement).data('dt-idx');
+  }
+  catch (e) {}
+
+  attach(
+    $(host).empty().html('<ul class="pagination pagination-sm"/>').children('ul'),
+    buttons
+  );
+
+  if ( activeEl ) {
+    $(host).find( '[data-dt-idx='+activeEl+']' ).focus();
+  }
+};
+
+
+/*
+ * TableTools Bootstrap compatibility
+ * Required TableTools 2.1+
+ */
+if ( DataTable.TableTools ) {
+  // Set the classes that TableTools uses to something suitable for Bootstrap
+  $.extend( true, DataTable.TableTools.classes, {
+    "container": "DTTT btn-group",
+    "buttons": {
+      "normal": "btn btn-default",
+      "disabled": "disabled"
+    },
+    "collection": {
+      "container": "DTTT_dropdown dropdown-menu",
+      "buttons": {
+        "normal": "",
+        "disabled": "disabled"
+      }
+    },
+    "print": {
+      "info": "DTTT_print_info"
+    },
+    "select": {
+      "row": "active"
+    }
+  } );
+
+  // Have the collection use a bootstrap compatible drop down
+  $.extend( true, DataTable.TableTools.DEFAULTS.oTags, {
+    "collection": {
+      "container": "ul",
+      "button": "li",
+      "liner": "a"
+    }
+  } );
+}
+
+}; // /factory
+
+
+// Define as an AMD module if possible
+if ( typeof define === 'function' && define.amd ) {
+  define( ['jquery', 'datatables'], factory );
+}
+else if ( typeof exports === 'object' ) {
+    // Node/CommonJS
+    factory( require('jquery'), require('datatables') );
+}
+else if ( jQuery ) {
+  // Otherwise simply initialise as normal, stopping multiple evaluation
+  factory( jQuery, jQuery.fn.dataTable );
+}
+
+
+})(window, document);
+
+    /*! ColReorder 1.1.3
+ * Â©2010-2014 SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     ColReorder
  * @description Provide the ability to reorder columns in a DataTable
- * @version     1.1.3-dev
+ * @version     1.1.3
  * @file        dataTables.colReorder.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     www.sprymedia.co.uk/contact
@@ -1937,11 +2032,11 @@ var ColReorder = function( dt, opts )
 
     /**
      * Callback function for once the reorder has been done
-     *  @property dropcallback
+     *  @property reorderCallback
      *  @type     function
      *  @default  null
      */
-    "dropCallback": null,
+    "reorderCallback": null,
 
     /**
      * @namespace Information used for the mouse drag
@@ -2134,7 +2229,7 @@ ColReorder.prototype = {
     /* Drop callback initialisation option */
     if ( this.s.init.fnReorderCallback )
     {
-      this.s.dropCallback = this.s.init.fnReorderCallback;
+      this.s.reorderCallback = this.s.init.fnReorderCallback;
     }
 
     /* Add event handlers for the drag and drop, and also mark the original column order */
@@ -2233,13 +2328,18 @@ ColReorder.prototype = {
     /* When scrolling we need to recalculate the column sizes to allow for the shift */
     if ( this.s.dt.oScroll.sX !== "" || this.s.dt.oScroll.sY !== "" )
     {
-      this.s.dt.oInstance.fnAdjustColumnSizing();
+      this.s.dt.oInstance.fnAdjustColumnSizing( false );
     }
 
     /* Save the state */
     this.s.dt.oInstance.oApi._fnSaveState( this.s.dt );
 
     this._fnSetColumnIndexes();
+    
+    if ( this.s.reorderCallback !== null )
+    {
+      this.s.reorderCallback.call( this );
+    }
   },
 
 
@@ -2461,16 +2561,16 @@ ColReorder.prototype = {
       /* When scrolling we need to recalculate the column sizes to allow for the shift */
       if ( this.s.dt.oScroll.sX !== "" || this.s.dt.oScroll.sY !== "" )
       {
-        this.s.dt.oInstance.fnAdjustColumnSizing();
-      }
-
-      if ( this.s.dropCallback !== null )
-      {
-        this.s.dropCallback.call( this, this.s.mouse.fromIndex, this.s.mouse.toIndex );
+        this.s.dt.oInstance.fnAdjustColumnSizing( false );
       }
 
       /* Save the state */
       this.s.dt.oInstance.oApi._fnSaveState( this.s.dt );
+
+      if ( this.s.reorderCallback !== null )
+      {
+        this.s.reorderCallback.call( this );
+      }
     }
   },
 
@@ -2551,8 +2651,8 @@ ColReorder.prototype = {
     this.dom.drag = $(origTable.cloneNode(false))
       .addClass( 'DTCR_clonedTable' )
       .append(
-        origThead.cloneNode(false).appendChild(
-          origTr.cloneNode(false).appendChild(
+        $(origThead.cloneNode(false)).append(
+          $(origTr.cloneNode(false)).append(
             cloneCell[0]
           )
         )
@@ -2783,7 +2883,7 @@ ColReorder.defaults = {
  *  @type      String
  *  @default   As code
  */
-ColReorder.version = "1.1.3-dev";
+ColReorder.version = "1.1.3";
 
 
 
@@ -2918,14 +3018,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
   columnType.definition(function(dataTable, config) {
     return {
-      bSortable: config.sort,
-      bSearchable: false,
-      sTitle: "<input type='checkbox' />",
-      sClass : "bulk",
-      mData: function(source, type, val) {
+      orderable: config.sort,
+      searchable: false,
+      title: "<input type='checkbox' />",
+      "class" : "bulk",
+      data: function(source, type, val) {
         return dataTable.collection.get(source);
       },
-      mRender : function(data, type, full) {
+      render : function(data, type, full) {
         if (type === "sort" || type === "type") {
           return dataTable.selectionManager.has(data) ? 1 : -1;
         } else {
@@ -2936,8 +3036,8 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
   });
 
   columnType.renderer(function(cell, config) {
-    if (this.checkbox) return;
     this.checkbox = $("<input>").attr("type", "checkbox");
+    this.checkbox.prop("checked", this._bulkSate);
     cell.html(this.checkbox);
   });
 });
@@ -2952,15 +3052,15 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
 
   columnType.definition(function(dataTable, config) {
     return {
-      bSortable: config.sort,
-      bSearchable: config.search,
-      asSorting: config.sortDir,
-      sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
-      mData: function(source, type, val) {
+      orderable: config.sort,
+      searchable: config.search,
+      orderSequence: config.sortDir,
+      title: config.title,
+      "class" : Backdraft.Utils.toCSSClass(config.title),
+      data: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },
-      mRender : function(data, type, full) {
+      render : function(data, type, full) {
         // note data is based on the result of mData
         if (type === "display") {
           // nothing to display so that the view can provide its own UI
@@ -2977,7 +3077,7 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     if (renderer) {
       renderer.apply(this, arguments);
     } else {
-       cell.text(this.model.get(config.attr));
+      cell.text(this.model.get(config.attr));
     }
   });
 });
@@ -2998,14 +3098,14 @@ else if ( jQuery && !jQuery.fn.dataTable.ColReorder ) {
     };
 
     return {
-      bSortable: sortable,
-      bSearchable: searchable,
-      sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
-      mData: function(source, type, val) {
+      orderable: sortable,
+      searchable: searchable,
+      title: config.title,
+      "class" : Backdraft.Utils.toCSSClass(config.title),
+      data: function(source, type, val) {
         return dataTable.collection.get(source);
       },
-      mRender : function(data, type, full) {
+      render : function(data, type, full) {
         // note data is based on the result of mData
         if (type === "sort") {
           return (config.sortBy || ignore)(data);

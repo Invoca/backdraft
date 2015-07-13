@@ -557,7 +557,7 @@ describe("DataTable Plugin", function() {
       expect(reorderableSpy).not.toHaveBeenCalled();
     });
 
-    it("should keep track of columns being reordered", function() {
+    it("should keep track of columns being reordered", function(done) {
       app.view.dataTable.row("abc", {
         columns : [
           { attr: "name", title: "Name" },
@@ -574,17 +574,21 @@ describe("DataTable Plugin", function() {
       table.$el.appendTo("body");
 
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Name", "Age", "Location", "Birthday"]);
-      // move the Birthday column at index 3 to in front of Name column at index 0
-      // note that we need to manually trigger the drag drop callback since we aren't actually dragging in the test
-      table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
-      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0)
-      expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Birthday", "Name", "Age", "Location"]);
 
-      // ensure that our internal title to index mappings are up to date
-      table.columnVisibility("Name", false);
-      expect(table.$("thead th").map(function() {
-        return $(this).text();
-      }).get()).toEqual(["Birthday", "Age", "Location"]);
+      $(table.dataTable).on("column-reorder", function() {
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Birthday", "Name", "Age", "Location"]);
+
+        // ensure that our internal title to index mappings are up to date
+        table.columnVisibility("Name", false);
+        expect(table.$("thead th").map(function() {
+          return $(this).text();
+        }).get()).toEqual(["Birthday", "Age", "Location"]);
+        done();
+      });
+
+      // move the Birthday column at index 3 to in front of Name column at index 0
+      // note that we need to manually trigger the reorder callback since we aren't actually dragging in the test
+      table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
     });
 
     describe("provide an interface to access the column configuration", function() {

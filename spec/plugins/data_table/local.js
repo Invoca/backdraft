@@ -15,6 +15,17 @@ describe("DataTable Plugin", function() {
     collection = new app.Collections.Col();
   });
 
+  function loopUntil(done, func) {
+    function loop() {
+      if (!func()) {
+        setTimeout(loop, 10);
+      } else {
+        done();
+      }
+    }
+    loop();
+  }
+
   describe("local data store rendering", function() {
     describe("collection changes", function() {
       beforeEach(function() {
@@ -245,31 +256,22 @@ describe("DataTable Plugin", function() {
         table = new app.Views.T({ collection : collection });
         table.render();
         table.selectAllVisible(true);
-
-        // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("page", function() {
-          _.defer(function() {
-            expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-            done()
-          });
-        });
-
         table.page("next");
+
+        loopUntil(done, function() {
+          return table.$("th.bulk :checkbox").prop("checked") === false;
+        });
       });
 
-      it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function() {
+      it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function(done) {
         table = new app.Views.T({ collection : collection });
         table.render();
         table.selectAllVisible(true);
         table.page("next");
-        table.selectAllVisible(true);
+        table.page("previous");
 
-        // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("page", function() {
-          _.defer(function() {
-            table.page("previous");
-            expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
-          });
+        loopUntil(done, function() {
+          return table.$("th.bulk :checkbox").prop("checked") === true;
         });
       });
 
@@ -351,19 +353,12 @@ describe("DataTable Plugin", function() {
         table.render();
         table.filter("89");
         table.selectAllVisible(true);
-
         expect(table.selectedModels().length).toEqual(1);
-
-        // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("filter", function() {
-          _.defer(function() {
-            expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-            done()
-          });
-        });
-
-        // relax the filter and verify that the checkbox is not checked
         table.filter("");
+
+        loopUntil(done, function() {
+          return table.$("th.bulk :checkbox").prop("checked") === false;
+        });
       });
 
       it("should check the header bulk checkbox when a filter is applied and the result set has all rows already selected", function(done) {
@@ -375,32 +370,24 @@ describe("DataTable Plugin", function() {
         // there are 19 rows with the number "9" in them
         expect(table.selectedModels().length).toEqual(19);
 
-        // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("filter", function() {
-          _.defer(function() {
-            expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
-            done()
-          });
-        });
-
         // restrict the filter and verify that the checkbox is checked
         table.filter("89");
+
+        loopUntil(done, function() {
+          return table.$("th.bulk :checkbox").prop("checked") === true;
+        });
       });
 
       it("should uncheck the header bulk checkbox when a filter is applied and the result set is empty", function(done) {
         table = new app.Views.T({ collection : collection });
         table.render();
 
-        // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("filter", function() {
-          _.defer(function() {
-            expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-            done()
-          });
-        });
-
         // filter by something that doesn't exist and verify that the checkbox is not checked
         table.filter("not gonna find me");
+
+        loopUntil(done, function() {
+          return table.$("th.bulk :checkbox").prop("checked") === false;
+        });
       });
 
       it("should toggle the 'backdraft-selected' class on the row when a row's checkbox is toggled", function() {

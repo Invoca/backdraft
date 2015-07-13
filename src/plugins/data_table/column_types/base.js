@@ -14,14 +14,14 @@ app.view.dataTable.columnType(function(columnType) {
     };
 
     return {
-      bSortable: sortable,
-      bSearchable: searchable,
-      sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
-      mData: function(source, type, val) {
+      orderable: sortable,
+      searchable: searchable,
+      title: config.title,
+      "class" : Backdraft.Utils.toCSSClass(config.title),
+      data: function(source, type, val) {
         return dataTable.collection.get(source);
       },
-      mRender : function(data, type, full) {
+      render : function(data, type, full) {
         // note data is based on the result of mData
         if (type === "sort") {
           return (config.sortBy || ignore)(data);

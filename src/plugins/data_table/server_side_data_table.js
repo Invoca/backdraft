@@ -8,7 +8,7 @@ var ServerSideDataTable = (function() {
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
+      _.bindAll(this, "_onCreateAjax", "_onDraw");
       this.serverParams({});
       this.selectAllMatching(false);
     },
@@ -19,7 +19,7 @@ var ServerSideDataTable = (function() {
 
       // setter
       if (val) {
-        if (this.dataTable.fnPagingInfo().iTotalPages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
+        if (this.dataTable.api().page.info().pages <= 1) throw new Error("#selectAllMatching cannot be used when there are no additional paginated results");
         if (!this._areAllVisibleRowsSelected()) throw new Error("all rows must be selected before calling #selectAllMatching");
         // store current server params
         this._selectAllMatchingParams = this.serverParams();
@@ -68,17 +68,6 @@ var ServerSideDataTable = (function() {
       this._triggerChangeSelection();
     },
 
-    // dataTables callback to allow addition of params to the ajax request
-    _addServerParams : function(aoData) {
-      for (var key in this._serverParams) {
-        aoData.push({ name : key, value : this._serverParams[key] });
-      }
-      // add column attribute mappings as a parameter
-      _.each(this._columnManager.columnAttrs(), function(attr) {
-        aoData.push({ name: "column_attrs[]", value: attr });
-      });
-    },
-
     // dataTables callback after a draw event has occurred
     _onDraw : function() {
       // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
@@ -88,11 +77,18 @@ var ServerSideDataTable = (function() {
       this.trigger("draw", arguments);
     },
 
-    _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
+    _onCreateAjax : function(data, callback, settings) {
+      // set additional params for the request
+      // replace all undefined/null values with empty string or the serialization breaks
       var self = this;
-      oSettings.jqXHR = $.ajax({
-        url : sUrl,
-        data : aoData,
+      var columnAttrs = _.map(this._columnManager.columnAttrs(), function(attr) {
+          return attr || "";
+      });
+      _.extend(data, this._serverParams, { column_attrs: columnAttrs });
+
+      return $.ajax({
+        url: _.result(this.collection, "url"),
+        data : data,
         dataType : "json",
         cache : false,
         type : this.ajaxMethod || "GET",
@@ -103,21 +99,24 @@ var ServerSideDataTable = (function() {
         success : function(json) {
           // ensure we ignore old Ajax responses
           // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
-          // what gets called by fnCallback. However, fnCallback should only be invoked after we reset the
+          // what gets called by callback. However, callback should only be invoked after we reset the
           // collection, so we must perform the check at this point as well.
-          if (_.isUndefined(json.sEcho)) return;
-          if (json.sEcho * 1 < oSettings.iDraw) return;
+          if (_.isUndefined(json.draw)) return;
+          if (json.draw * 1 < settings.draw) return;
 
-          self.collection.reset(json.aaData, {
-            addData : function(data) {
-              // calling fnCallback is what will actually cause the data to be populated
-              json.aaData = data;
-              fnCallback(json)
+          self.collection.reset(json.data, {
+            addData : function(modelCidData) {
+              // invoking callback is what will actually causes the data to be populated
+              // note the data we pass into the callback is not the raw server data, but rather the cids for
+              // indexing into the collection
+              json.data = modelCidData;
+              settings.json = json;
+              callback(json);
             }
           });
         },
         complete: function(xhr, status) {
-          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
+          self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, data]);
         }
       });
     },
@@ -126,15 +125,13 @@ var ServerSideDataTable = (function() {
       var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
       return _.extend(config, {
-        bProcessing : true,
-        bServerSide : true,
-        sAjaxSource : _.result(this.collection, "url"),
-        fnServerData : this._fetchServerData,
-        fnServerParams : this._addServerParams,
-        fnDrawCallback : this._onDraw,
-        oLanguage: {
-          sProcessing: this.processingText,
-          sEmptyTable: this.emptyText
+        processing : true,
+        serverSide : true,
+        ajax: this._onCreateAjax,
+        drawCallback : this._onDraw,
+        language: {
+          processing: this.processingText,
+          emptyTable: this.emptyText
         }
       });
     },

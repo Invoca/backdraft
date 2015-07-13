@@ -9,15 +9,15 @@ app.view.dataTable.columnType(function(columnType) {
 
   columnType.definition(function(dataTable, config) {
     return {
-      bSortable: config.sort,
-      bSearchable: config.search,
-      asSorting: config.sortDir,
-      sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
-      mData: function(source, type, val) {
+      orderable: config.sort,
+      searchable: config.search,
+      orderSequence: config.sortDir,
+      title: config.title,
+      "class" : Backdraft.Utils.toCSSClass(config.title),
+      data: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },
-      mRender : function(data, type, full) {
+      render : function(data, type, full) {
         // note data is based on the result of mData
         if (type === "display") {
           // nothing to display so that the view can provide its own UI
@@ -34,7 +34,7 @@ app.view.dataTable.columnType(function(columnType) {
     if (renderer) {
       renderer.apply(this, arguments);
     } else {
-       cell.text(this.model.get(config.attr));
+      cell.text(this.model.get(config.attr));
     }
   });
 });

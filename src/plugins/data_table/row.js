@@ -6,6 +6,7 @@ var Row = (function() {
     initialize: function(options) {
       this.columnsConfig = options.columnsConfig;
       this.$el.data("row", this);
+      this._bulkSate = null;
     },
 
     render : function() {
@@ -22,16 +23,16 @@ var Row = (function() {
     },
 
     bulkState : function(state) {
-      // TODO: throw error when no checkbox
       if (!this.checkbox) return;
 
       if (arguments.length === 1) {
         // setter
         this.checkbox.prop("checked", state);
+        this._bulkSate = state;
         this.$el.toggleClass("backdraft-selected", state);
       } else {
         // getter
-        return this.checkbox.prop("checked");
+        return this._bulkSate;
       }
     },
 

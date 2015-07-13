@@ -1,11 +1,11 @@
-/*! ColReorder 1.1.3-dev
- * ©2010-2014 SpryMedia Ltd - datatables.net/license
+/*! ColReorder 1.1.3
+ * Â©2010-2014 SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     ColReorder
  * @description Provide the ability to reorder columns in a DataTable
- * @version     1.1.3-dev
+ * @version     1.1.3
  * @file        dataTables.colReorder.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     www.sprymedia.co.uk/contact
@@ -436,11 +436,11 @@ var ColReorder = function( dt, opts )
 
     /**
      * Callback function for once the reorder has been done
-     *  @property dropcallback
+     *  @property reorderCallback
      *  @type     function
      *  @default  null
      */
-    "dropCallback": null,
+    "reorderCallback": null,
 
     /**
      * @namespace Information used for the mouse drag
@@ -633,7 +633,7 @@ ColReorder.prototype = {
     /* Drop callback initialisation option */
     if ( this.s.init.fnReorderCallback )
     {
-      this.s.dropCallback = this.s.init.fnReorderCallback;
+      this.s.reorderCallback = this.s.init.fnReorderCallback;
     }
 
     /* Add event handlers for the drag and drop, and also mark the original column order */
@@ -732,13 +732,18 @@ ColReorder.prototype = {
     /* When scrolling we need to recalculate the column sizes to allow for the shift */
     if ( this.s.dt.oScroll.sX !== "" || this.s.dt.oScroll.sY !== "" )
     {
-      this.s.dt.oInstance.fnAdjustColumnSizing();
+      this.s.dt.oInstance.fnAdjustColumnSizing( false );
     }
 
     /* Save the state */
     this.s.dt.oInstance.oApi._fnSaveState( this.s.dt );
 
     this._fnSetColumnIndexes();
+    
+    if ( this.s.reorderCallback !== null )
+    {
+      this.s.reorderCallback.call( this );
+    }
   },
 
 
@@ -960,16 +965,16 @@ ColReorder.prototype = {
       /* When scrolling we need to recalculate the column sizes to allow for the shift */
       if ( this.s.dt.oScroll.sX !== "" || this.s.dt.oScroll.sY !== "" )
       {
-        this.s.dt.oInstance.fnAdjustColumnSizing();
-      }
-
-      if ( this.s.dropCallback !== null )
-      {
-        this.s.dropCallback.call( this, this.s.mouse.fromIndex, this.s.mouse.toIndex );
+        this.s.dt.oInstance.fnAdjustColumnSizing( false );
       }
 
       /* Save the state */
       this.s.dt.oInstance.oApi._fnSaveState( this.s.dt );
+
+      if ( this.s.reorderCallback !== null )
+      {
+        this.s.reorderCallback.call( this );
+      }
     }
   },
 
@@ -1050,8 +1055,8 @@ ColReorder.prototype = {
     this.dom.drag = $(origTable.cloneNode(false))
       .addClass( 'DTCR_clonedTable' )
       .append(
-        origThead.cloneNode(false).appendChild(
-          origTr.cloneNode(false).appendChild(
+        $(origThead.cloneNode(false)).append(
+          $(origTr.cloneNode(false)).append(
             cloneCell[0]
           )
         )
@@ -1282,7 +1287,7 @@ ColReorder.defaults = {
  *  @type      String
  *  @default   As code
  */
-ColReorder.version = "1.1.3-dev";
+ColReorder.version = "1.1.3";
 
 
 
