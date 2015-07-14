@@ -39,7 +39,7 @@ var LocalDataTable = (function() {
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
       _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-          "_onColumnVisibilityChange", "_onColumnReorder", "doAjaxUpdate");
+          "_onColumnVisibilityChange", "_onColumnReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -300,11 +300,6 @@ var LocalDataTable = (function() {
     _triggerChangeSelection: function(extraData) {
       var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
-    },
-
-    // Make an event handler from which lets us do an ajax update for the table
-    doAjaxUpdate: function() {
-      this.dataTable._fnAjaxUpdate();
     },
 
     // DataTables does not provide a good way to programmatically disable sorting, so we:
