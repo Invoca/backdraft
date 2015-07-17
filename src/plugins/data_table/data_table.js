@@ -426,11 +426,7 @@ var LocalDataTable = (function() {
 
       // update table when filter button clicked
       $('.btn-filter', head).on('click', function() {
-        $("input", head).each(function() {
-          if (this.type === "text") {
-            $(this).trigger("change");
-          }
-        });
+        $("input[type=text]", head).trigger("change");
         table.dataTable._fnAjaxUpdate();
       });
 
