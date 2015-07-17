@@ -8,31 +8,34 @@ var LocalDataTable = (function() {
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
 
-    sFilterStringTemplate : '\
+    filterTemplates : {
+      stringInputTemplate : '\
       <input class="filter-string" id ="value" type="text" placeholder="Search {{= title }}" /> \
-    ',
-    sFilterNumericTemplate : '\
+      ',
+      numericInputTemplate : '\
       <ul>\
         <li> &gt; <input id="gt" class="filter-numeric" type="text" /></li> \
         <li> &lt; <input id="lt" class="filter-numeric" type="text"/></li> \
         <li> = <input id="eq" class="filter-numeric" type="text" /></li> \
       </ul>\
-    ',
-    sFilterListTemplate : '\
+      ',
+      listInputTemplate : '\
       <li><label><input class="list" id="value" type="checkbox" name="{{= attr }}" \
          value="{{= options }}" /> {{= options }}</label></li> \
-    ',
-    sActionButtonTemplate : '\
-      <button class="btn btn-primary btn-sm {{= klass}}" name="button" type="submit" title="">{{= caption}}</button>\
-    ',
-    sFilterButtonTemplate : '\
+      ',
+      actionButtonTemplate : '\
+      <button class="btn btn-primary btn-sm {{= className}}" name="button" type="submit" title="">{{= caption}}</button>\
+      ',
+      toggleButtonTemplate : '\
       <div class="filter-button" data-toggle="dropdown"><span class="{{ if (active) { }}filterActive{{ } else { }}filterInactive{{ } }}"></div>\
-    ',
-    filterStringTemplate : null,
-    filterNumericTemplate : null,
-    filterListTemplate : null,
-    actionButtonTemplate : null,
-    filterButtonTemplate : null,
+      ',
+
+      stringInput : null,
+      numericInput : null,
+      listInput : null,
+      actionButton : null,
+      toggleButton : null
+    },
 
     constructor : function(options) {
       this.options = options || {};
@@ -76,11 +79,11 @@ var LocalDataTable = (function() {
     },
 
     render : function() {
-      this.filterStringTemplate = _.template(this.sFilterStringTemplate);
-      this.filterNumericTemplate = _.template(this.sFilterNumericTemplate);
-      this.filterListTemplate = _.template(this.sFilterListTemplate);
-      this.filterButtonTemplate = _.template(this.sFilterButtonTemplate);
-      this.actionButtonTemplate = _.template(this.sActionButtonTemplate);
+      this.filterTemplates.stringInput = _.template(this.filterTemplates.stringInputTemplate);
+      this.filterTemplates.numericInput = _.template(this.filterTemplates.numericInputTemplate);
+      this.filterTemplates.listInput = _.template(this.filterTemplates.listInputTemplate);
+      this.filterTemplates.actionButton = _.template(this.filterTemplates.actionButtonTemplate);
+      this.filterTemplates.toggleButton = _.template(this.filterTemplates.toggleButtonTemplate);
 
       this.$el.html(this.template);
       this._dataTableCreate();
@@ -200,7 +203,7 @@ var LocalDataTable = (function() {
         paginateLengthMenu : [ 10, 25, 50, 100 ],
         paginateLength : 10,
         selectedIds : [],
-        filteringEnabled: true,
+        filteringEnabled: false,
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
         reorderableColumns: true,
         objectName: {
@@ -341,18 +344,29 @@ var LocalDataTable = (function() {
     _generateFilteringControls: function(head, col) {
       var filter = col.filter;
       if (filter.type === "string") {
-        $(head).append(this.filterStringTemplate( { title: col.title } ));
+        $(head).append(this.filterTemplates.stringInput( { title: col.title } ));
       } else if (filter.type === "numeric") {
-        $(head).append(this.filterNumericTemplate());
+        $(head).append(this.filterTemplates.numericInput());
       } else if ((filter.type === "list") && (filter.options)) {
         var checkList = '<ul>';
         for (var i = 0; i < filter.options.length; i++)
-          checkList += this.filterListTemplate( { attr: col.attr, options: filter.options[i] } );
+          checkList += this.filterTemplates.listInput( { attr: col.attr, options: filter.options[i] } );
         checkList += '</ul>';
         $(head).append(checkList);
       }
-      $(head).append(this.actionButtonTemplate( { caption: "Filter", klass: "btn-filter" } ));
-      $(head).append(this.actionButtonTemplate( { caption: "Clear", klass: "btn-clear" } ));
+      $(head).append(this.filterTemplates.actionButton( { caption: "Filter", className: "btn-filter" } ));
+      $(head).append(this.filterTemplates.actionButton( { caption: "Clear", className: "btn-clear" } ));
+    },
+
+    // This toggles a filter icon between filters set icon and no filters set icon
+    _toggleIcon: function(icon, enabled) {
+      icon.removeClass("filterActive");
+      icon.removeClass("filterInactive");
+      if (enabled) {
+        icon.addClass("filterActive");
+      } else {
+        icon.addClass("filterInactive");
+      }
     },
 
     // Here we bind events to the input controls for a particular column for filtering.
@@ -373,29 +387,38 @@ var LocalDataTable = (function() {
       // update columnManager filter when input changed
       $('input', head).on('change', function () {
         var filterIcon = $('.DataTables_filter_wrapper span', head);
+        var filterInput = this;
+        var inputID = filterInput.id;
+        // handle list filters
         if (filter.type === "list") {
-          if (this.checked) {
-            filter[this.id] = filter[this.id] || [];
-            filter[this.id].push(this.value);
+          if (filterInput.checked) {
+            filter[inputID] = filter[inputID] || [];
+            filter[inputID].push(filterInput.value);
+            table._toggleIcon(filterIcon, true);
             filterIcon.removeClass("filterInactive");
             filterIcon.addClass("filterActive");
           }
-          else if (filter[this.id]) {
-            var index = filter[this.id].indexOf(this.value);
+          // remove filter from column manager if it is defined
+          else if (filter[inputID]) {
+            var index = filter[inputID].indexOf(filterInput.value);
             if (index > -1)
-              filter[this.id].splice(index, 1);
-            if (filter[this.id].length === 0) {
-              filter[this.id] = null;
+              filter[inputID].splice(index, 1);
+            if (filter[filterInput.id].length === 0) {
+              filter[inputID] = null;
+              table._toggleIcon(filterIcon, false);
               filterIcon.removeClass("filterActive");
               filterIcon.addClass("filterInactive");
             }
           }
-        } else if (this.value === "") {
-          filter[this.id] = null;
+        // handle standard text and numeric input filters
+        } else if (filterInput.value === "") {
+          filter[inputID] = null;
+          table._toggleIcon(filterIcon, false);
           filterIcon.removeClass("filterActive");
           filterIcon.addClass("filterInactive");
         } else {
-          filter[this.id] = this.value;
+          filter[inputID] = filterInput.value;
+          table._toggleIcon(filterIcon, true);
           filterIcon.removeClass("filterInactive");
           filterIcon.addClass("filterActive");
         }
@@ -434,14 +457,14 @@ var LocalDataTable = (function() {
     //   filtering wrappers for.
     _createFilteringWrappers: function(head, col) {
       var table = this;
-      table.activeMenu = null;
+      table.activeFilterMenu = null;
       var filter = col.filter;
-      var filterActive = filter.value || filter.eq || filter.gt || filter.lt;
+      var isFilterActive = filter.value || filter.eq || filter.gt || filter.lt;
       // create filtering wrapper div
       var wrapperDiv = document.createElement('div');
       wrapperDiv.className = "dropdown DataTables_filter_wrapper";
       wrapperDiv.id = "wrapper-" + col.attr;
-      wrapperDiv.innerHTML = this.filterButtonTemplate({ active: filterActive });
+      wrapperDiv.innerHTML = this.filterTemplates.toggleButton({ active: isFilterActive });
 
       // determine how many columns we need if we're dealing with list filtering
       var listClass = "";
@@ -471,29 +494,34 @@ var LocalDataTable = (function() {
 
       // handle filter menu display
       $(document).click(function (event) {
-        var className = event.target.classList[0];
+        var targetIsMenu = $(event.target).hasClass('filterMenu');
+        var targetIsButton = $(event.target).hasClass('btn');
+        var parentIsMenu = false;
         if (event.target.offsetParent) {
-          var parentClassName = event.target.offsetParent.classList[0];
+          parentIsMenu = $(event.target.offsetParent).hasClass('filterMenu');
         }
-        if ((table.activeMenu) && (((className !== 'filterMenu') && (parentClassName !== 'filterMenu')) || (className === 'btn'))) {
-          table.activeMenu.slideUp(100);
-          table.activeMenu = null;
+
+        var canSlideUp = table.activeFilterMenu && ( !(targetIsMenu || parentIsMenu) || targetIsButton);
+
+        if (canSlideUp) {
+          table.activeFilterMenu.slideUp(100);
+          table.activeFilterMenu = null;
         }
       });
       $('.filter-button', head).click(function (event) {
         event.stopImmediatePropagation();
-        var currentMenu = $('.filterMenu', head);
-        if ((table.activeMenu) && (table.activeMenu.is(currentMenu))) {
-          table.activeMenu.slideUp(100);
-          table.activeMenu = null;
-        } else if (table.activeMenu) {
-          table.activeMenu.slideUp(100, function () {
-            table.activeMenu = currentMenu;
-            table.activeMenu.slideDown(200);
+        var currentFilterMenu = $('.filterMenu', head);
+        if ((table.activeFilterMenu) && (table.activeFilterMenu.is(currentFilterMenu))) {
+          table.activeFilterMenu.slideUp(100);
+          table.activeFilterMenu = null;
+        } else if (table.activeFilterMenu) {
+          table.activeFilterMenu.slideUp(100, function () {
+            table.activeFilterMenu = currentFilterMenu;
+            table.activeFilterMenu.slideDown(200);
           });
         } else {
-          table.activeMenu = currentMenu;
-          table.activeMenu.slideDown(200);
+          table.activeFilterMenu = currentFilterMenu;
+          table.activeFilterMenu.slideDown(200);
         }
       });
     },
