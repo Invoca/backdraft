@@ -27,12 +27,14 @@ var LocalDataTable = (function() {
           </ul>\
         <% } else if (type === "list") { %>\
           <ul>\
-          <% _.each(filter.options, function(element, index) { %>\
-              <li><label>\
-                <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
-                <%= element %>\
-              </label></li>\
-              <% }) %>\
+            <% _.each(filter.options, function(element, index) { %>\
+              <li>\
+                <label>\
+                  <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+                  <%= element %>\
+                </label>\
+              </li>\
+            <% }) %>\
           </ul>\
         <% } %>\
         <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
