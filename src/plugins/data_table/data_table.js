@@ -2,40 +2,165 @@ var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
 
+  var DEFAULT_JST_DELIMS = {
+    evaluate    : /<%([\s\S]+?)%>/g,
+    interpolate : /<%=([\s\S]+?)%>/g,
+    escape      : /<%-([\s\S]+?)%>/g
+  };
+
+  var DataTableFilter = Base.View.extend({
+    filterTemplate : _.template('\
+      <div class="toggle-filter-button" data-toggle="dropdown">\
+        <span class="<%= filterButtonClass %>"></span>\
+      </div>\
+    ', null, DEFAULT_JST_DELIMS),
+
+    filterMenuTemplate : _.template('\
+      <div class="filterMenu dropdown-menu <%= listClass %>">\
+        <% if (type === "string") { %>\
+          <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+        <% } else if (type === "numeric") { %>\
+          <ul>\
+            <li> &gt; <input id="gt" class="filter-numeric" type="text" /></li> \
+            <li> &lt; <input id="lt" class="filter-numeric" type="text"/></li> \
+            <li> = <input id="eq" class="filter-numeric" type="text" /></li> \
+          </ul>\
+        <% } else if (type === "list") { %>\
+          <ul>\
+          <% _.each(filter.options, function(element, index) { %>\
+              <li><label>\
+                <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+                <%= element %>\
+              </label></li>\
+              <% }) %>\
+          </ul>\
+        <% } %>\
+        <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
+        <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
+      </div>\
+    ', null, DEFAULT_JST_DELIMS),
+
+    events: {
+      "click .toggle-filter-button": "_onToggleClick",
+      "click input": "_onInputClick",
+      "change input": "_onInputChange",
+      "click .btn-filter": "_onFilterClick",
+      "click .btn-clear": "_onClearClick"
+    },
+
+    initialize: function(options) {
+      this.filter = options.column.filter;
+      this.attr = options.column.attr;
+      this.title = options.column.title;
+      this.table = options.table;
+      this.head = options.head;
+      this.filterButtonClass = "filterInactive";
+    },
+
+    render: function() {
+      this.$el.html( this.filterTemplate( { filterButtonClass : this.filterButtonClass } ));
+      // build filter menu
+      this._buildFilterMenu();
+      return this;
+    },
+
+    _buildFilterMenu: function() {
+      // handle listClass
+      var listClass = "";
+      if (this.filter.type === "list") {
+        if (this.filter.options.length > 30) {
+          listClass = " triple";
+        } else if (this.filter.options.length > 15) {
+          listClass = " double";
+        } else {
+          listClass = " single";
+        }
+      }
+
+      // append filter menu to filter wrapper
+      this.$el.append(
+        this.filterMenuTemplate({
+          filter: this.filter,
+          title: this.title,
+          type: this.filter.type,
+          attr: this.attr,
+          listClass: listClass
+        })
+      );
+    },
+
+    _onToggleClick: function(event) {
+      var table = this.table;
+      event.stopImmediatePropagation();
+      var currentFilterMenu = $('.filterMenu', this.$el);
+      if ((table.activeFilterMenu) && (table.activeFilterMenu.is(currentFilterMenu))) {
+        table.activeFilterMenu.slideUp(100);
+        table.activeFilterMenu = null;
+      } else if (table.activeFilterMenu) {
+        table.activeFilterMenu.slideUp(100, function () {
+          table.activeFilterMenu = currentFilterMenu;
+          table.activeFilterMenu.slideDown(200);
+        });
+      } else {
+        table.activeFilterMenu = currentFilterMenu;
+        table.activeFilterMenu.slideDown(200);
+      }
+    },
+
+    _onInputClick: function(event) {
+      event.target.focus();
+      event.stopImmediatePropagation();
+    },
+
+    _onFilterClick: function() {
+      $("input[type=text]", this.head).trigger("change");
+      this.table.dataTable._fnAjaxUpdate();
+    },
+
+    _onClearClick: function() {
+      $("input[type=text]", this.head).attr("value", "");
+      $("input[type=checkbox]", this.head).attr("checked", false);
+      $("input", this.head).trigger("change");
+      this.table.dataTable._fnAjaxUpdate();
+    },
+
+    _onInputChange: function(event) {
+      var filterIcon = $("span", this.$el);
+      var filterInput = event.target;
+      var inputID = filterInput.id;
+      // handle list filters
+      if (this.filter.type === "list") {
+        if (filterInput.checked) {
+          this.filter[inputID] = this.filter[inputID] || [];
+          this.filter[inputID].push(filterInput.value);
+          this.table._toggleIcon(filterIcon, true);
+        }
+        // remove filter from column manager if it is defined
+        else if (this.filter[inputID]) {
+          var index = this.filter[inputID].indexOf(filterInput.value);
+          if (index > -1)
+            this.filter[inputID].splice(index, 1);
+          if (this.filter[filterInput.id].length === 0) {
+            this.filter[inputID] = null;
+            this.table._toggleIcon(filterIcon, false);
+          }
+        }
+        // handle standard text and numeric input filters
+      } else if (filterInput.value === "") {
+        this.filter[inputID] = null;
+        this.table._toggleIcon(filterIcon, false);
+      } else {
+        this.filter[inputID] = filterInput.value;
+        this.table._toggleIcon(filterIcon, true);
+      }
+    }
+  });
+
   var LocalDataTable = Base.View.extend({
 
     template : '\
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
-
-    filterTemplates : {
-      stringInputTemplate : '\
-      <input class="filter-string" id ="value" type="text" placeholder="Search {{= title }}" /> \
-      ',
-      numericInputTemplate : '\
-      <ul>\
-        <li> &gt; <input id="gt" class="filter-numeric" type="text" /></li> \
-        <li> &lt; <input id="lt" class="filter-numeric" type="text"/></li> \
-        <li> = <input id="eq" class="filter-numeric" type="text" /></li> \
-      </ul>\
-      ',
-      listInputTemplate : '\
-      <li><label><input class="list" id="value" type="checkbox" name="{{= attr }}" \
-         value="{{= options }}" /> {{= options }}</label></li> \
-      ',
-      actionButtonTemplate : '\
-      <button class="btn btn-primary btn-sm {{= className}}" name="button" type="submit" title="">{{= caption}}</button>\
-      ',
-      toggleButtonTemplate : '\
-      <div class="filter-button" data-toggle="dropdown"><span class="{{ if (active) { }}filterActive{{ } else { }}filterInactive{{ } }}"></div>\
-      ',
-
-      stringInput : null,
-      numericInput : null,
-      listInput : null,
-      actionButton : null,
-      toggleButton : null
-    },
 
     constructor : function(options) {
       this.options = options || {};
@@ -79,12 +204,6 @@ var LocalDataTable = (function() {
     },
 
     render : function() {
-      this.filterTemplates.stringInput = _.template(this.filterTemplates.stringInputTemplate);
-      this.filterTemplates.numericInput = _.template(this.filterTemplates.numericInputTemplate);
-      this.filterTemplates.listInput = _.template(this.filterTemplates.listInputTemplate);
-      this.filterTemplates.actionButton = _.template(this.filterTemplates.actionButtonTemplate);
-      this.filterTemplates.toggleButton = _.template(this.filterTemplates.toggleButtonTemplate);
-
       this.$el.html(this.template);
       this._dataTableCreate();
       this._initBulkHandling();
@@ -331,33 +450,6 @@ var LocalDataTable = (function() {
       });
     },
 
-
-    // Here we make different controls based on the filter type we're dealing with.
-    // * string filtering requires a single text input
-    // * numeric filtering requires three text inputs for greater than, less than, and
-    //   equal to.  these text inputs need to be uniquely identified so we can filter on
-    //   values entered into more than one of them
-    // * list filtering requires a list of labeled checkboxes for each filter option
-    //   these checkboxes need to be identified by the value they represent
-    // The IDs "value", "gt", "lt" and "eq" are used to determine in what element in the
-    // filter object in the column manager we store the value entered by the user
-    _generateFilteringControls: function(head, col) {
-      var filter = col.filter;
-      if (filter.type === "string") {
-        $(head).append(this.filterTemplates.stringInput( { title: col.title } ));
-      } else if (filter.type === "numeric") {
-        $(head).append(this.filterTemplates.numericInput());
-      } else if ((filter.type === "list") && (filter.options)) {
-        var checkList = '<ul>';
-        for (var i = 0; i < filter.options.length; i++)
-          checkList += this.filterTemplates.listInput( { attr: col.attr, options: filter.options[i] } );
-        checkList += '</ul>';
-        $(head).append(checkList);
-      }
-      $(head).append(this.filterTemplates.actionButton( { caption: "Filter", className: "btn-filter" } ));
-      $(head).append(this.filterTemplates.actionButton( { caption: "Clear", className: "btn-clear" } ));
-    },
-
     // This toggles a filter icon between filters set icon and no filters set icon
     _toggleIcon: function(icon, enabled) {
       icon.removeClass("filterActive");
@@ -369,126 +461,12 @@ var LocalDataTable = (function() {
       }
     },
 
-    // Here we bind events to the input controls for a particular column for filtering.
-    // This will update the column manager, and the table, when the user requests it.
-    // @head: The DOM element for the thead th we want to bind events for
-    // @col: The column from columnManager that corresponds to the thead th we're
-    //   binding events for.
-    // @table: the table we're binding events for
-    _bindFilteringEvents: function(head, col) {
+    // Sets up filtering for the dataTable
+    _setupFiltering: function() {
       var table = this;
-      var filter = col.filter;
+      var cg = table.configGenerator();
 
-      // need to manually set focus because of how we unbound filtering events from the head
-      $('input', head).on('click', function() {
-        this.focus();
-      });
-
-      // update columnManager filter when input changed
-      $('input', head).on('change', function () {
-        var filterIcon = $('.DataTables_filter_wrapper span', head);
-        var filterInput = this;
-        var inputID = filterInput.id;
-        // handle list filters
-        if (filter.type === "list") {
-          if (filterInput.checked) {
-            filter[inputID] = filter[inputID] || [];
-            filter[inputID].push(filterInput.value);
-            table._toggleIcon(filterIcon, true);
-            filterIcon.removeClass("filterInactive");
-            filterIcon.addClass("filterActive");
-          }
-          // remove filter from column manager if it is defined
-          else if (filter[inputID]) {
-            var index = filter[inputID].indexOf(filterInput.value);
-            if (index > -1)
-              filter[inputID].splice(index, 1);
-            if (filter[filterInput.id].length === 0) {
-              filter[inputID] = null;
-              table._toggleIcon(filterIcon, false);
-              filterIcon.removeClass("filterActive");
-              filterIcon.addClass("filterInactive");
-            }
-          }
-        // handle standard text and numeric input filters
-        } else if (filterInput.value === "") {
-          filter[inputID] = null;
-          table._toggleIcon(filterIcon, false);
-          filterIcon.removeClass("filterActive");
-          filterIcon.addClass("filterInactive");
-        } else {
-          filter[inputID] = filterInput.value;
-          table._toggleIcon(filterIcon, true);
-          filterIcon.removeClass("filterInactive");
-          filterIcon.addClass("filterActive");
-        }
-      });
-
-      // update table when filter button clicked
-      $('.btn-filter', head).on('click', function() {
-        $("input[type=text]", head).trigger("change");
-        table.dataTable._fnAjaxUpdate();
-      });
-
-      // clear filter when clear button clicked
-      $('.btn-clear', head).on('click', function() {
-        $("input", head).each(function() {
-          if (this.type === "text") {
-            $(this).attr("value", "");
-            $(this).trigger("change");
-          } else if (this.type === "checkbox") {
-            $(this).attr("checked", false);
-            $(this).trigger("change");
-          }
-        });
-        table.dataTable._fnAjaxUpdate();
-      });
-    },
-
-    // 1) Creates divs for the filter menu and the filter wrapper
-    // 2) Moves generated filtering controls into generated divs
-    // 3) Binds menu showing to filter wrapper hover
-    // @head: The DOM element for the thead th we want to create filtering wrappers for
-    // @col: The column from the column manager corresponding to the column we're creating
-    //   filtering wrappers for.
-    _createFilteringWrappers: function(head, col) {
-      var table = this;
-      table.activeFilterMenu = null;
-      var filter = col.filter;
-      var isFilterActive = filter.value || filter.eq || filter.gt || filter.lt;
-      // create filtering wrapper div
-      var wrapperDiv = document.createElement('div');
-      wrapperDiv.className = "dropdown DataTables_filter_wrapper";
-      wrapperDiv.id = "wrapper-" + col.attr;
-      wrapperDiv.innerHTML = this.filterTemplates.toggleButton({ active: isFilterActive });
-
-      // determine how many columns we need if we're dealing with list filtering
-      var listClass = "";
-      if (filter.type === "list") {
-        if (filter.options.length > 30) {
-          listClass = " triple";
-        } else if (filter.options.length > 15) {
-          listClass = " double";
-        } else {
-          listClass = " single";
-        }
-      }
-
-      // create filtering menu div
-      var filterDiv = document.createElement("div");
-      filterDiv.className = "filterMenu dropdown-menu" + listClass;
-      filterDiv.id = "menu-" + col.attr;
-
-      // put filtering controls in filter div and put wrapper div in header
-      if (filter.type === "string")
-        $('input', head).appendTo(filterDiv)
-      else
-        $('ul', head).appendTo(filterDiv);
-      $('button', head).appendTo(filterDiv);
-      wrapperDiv.appendChild(filterDiv);
-      head.appendChild(wrapperDiv);
-
-      // handle filter menu display
+      // Close active filter menu if user clicks on document
       $(document).click(function (event) {
         var targetIsMenu = $(event.target).hasClass('filterMenu');
         var targetIsButton = $(event.target).hasClass('btn');
@@ -498,55 +476,29 @@ var LocalDataTable = (function() {
         }
 
         var canSlideUp = table.activeFilterMenu && ( !(targetIsMenu || parentIsMenu) || targetIsButton);
-
         if (canSlideUp) {
           table.activeFilterMenu.slideUp(100);
           table.activeFilterMenu = null;
         }
       });
-      $('.filter-button', head).click(function (event) {
-        event.stopImmediatePropagation();
-        var currentFilterMenu = $('.filterMenu', head);
-        if ((table.activeFilterMenu) && (table.activeFilterMenu.is(currentFilterMenu))) {
-          table.activeFilterMenu.slideUp(100);
-          table.activeFilterMenu = null;
-        } else if (table.activeFilterMenu) {
-          table.activeFilterMenu.slideUp(100, function () {
-            table.activeFilterMenu = currentFilterMenu;
-            table.activeFilterMenu.slideDown(200);
-          });
-        } else {
-          table.activeFilterMenu = currentFilterMenu;
-          table.activeFilterMenu.slideDown(200);
-        }
-      });
-    },
 
-    // Sets up filtering for the dataTable
-    _setupFiltering: function() {
-      var table = this;
-      var cg = table.configGenerator();
-
-      // Here we find each column header object in the dataTable because
-      // each one needs filter controls if filtering is enabled for it in the
-      // column manager.
+      // We make a filter for each column header
       table.dataTable.find("thead th").each(function (index) {
         // here we use the text in the header to get the column config by title
-        // there isn't a better way to do this currently, we should make an interface
-        // in column manager that allows us to maps the index of a column in the
-        // dataTable to the column config for that column.
+        // there isn't a better way to do this currently
         var title = this.outerText;
         var col = cg.columnConfigByTitle.attributes[title];
 
-        // if we found a matching column, proceed with creating filtering controls
         if (col) {
-          // If the column is filterable, it will have a filter element in column
-          // manager.  If it isn't filterable it won't.  We only make the filter controls
-          // if there's a filter element in the column manager
+          // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table._generateFilteringControls(this, col);
-            table._bindFilteringEvents(this, col);
-            table._createFilteringWrappers(this, col);
+            table.child("filter-"+col.attr, new DataTableFilter({
+              column: col,
+              table: table,
+              head: this,
+              className: "dropdown DataTables_filter_wrapper"
+            }));
+            $(this).append(table.child("filter-"+col.attr).render().$el);
           }
         }
       });
