@@ -17,15 +17,15 @@ var LocalDataTable = (function() {
 
     filterMenuTemplate : _.template('\
       <div class="filterMenu dropdown-menu <%= listClass %>">\
-        <% if (type === "string") { %>\
+        <% if (filter.type === "string") { %>\
           <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
-        <% } else if (type === "numeric") { %>\
+        <% } else if (filter.type === "numeric") { %>\
           <ul>\
             <li> &gt; <input id="gt" class="filter-numeric" type="text" /></li> \
             <li> &lt; <input id="lt" class="filter-numeric" type="text"/></li> \
             <li> = <input id="eq" class="filter-numeric" type="text" /></li> \
           </ul>\
-        <% } else if (type === "list") { %>\
+        <% } else if (filter.type === "list") { %>\
           <ul>\
             <% _.each(filter.options, function(element, index) { %>\
               <li>\
@@ -84,7 +84,6 @@ var LocalDataTable = (function() {
         this.filterMenuTemplate({
           filter: this.filter,
           title: this.title,
-          type: this.filter.type,
           attr: this.attr,
           listClass: listClass
         })
@@ -120,7 +119,7 @@ var LocalDataTable = (function() {
     },
 
     _onClearClick: function() {
-      $("input[type=text]", this.head).attr("value", "");
+      $("input[type=text]", this.head).val("");
       $("input[type=checkbox]", this.head).attr("checked", false);
       $("input", this.head).trigger("change");
       this.table.dataTable._fnAjaxUpdate();
