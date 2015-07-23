@@ -1537,7 +1537,8 @@ _.extend(Plugin.factory, {
         filterJson.value = this._getFilteringSettings();
         aoData.push(filterJson);
       }
-      $.ajax({
+      window.location = sUrl;
+      /*$.ajax({
         url: sUrl,
         data : aoData,
         dataType : "text",
@@ -1584,7 +1585,7 @@ _.extend(Plugin.factory, {
             setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
           }
         }
-      })
+      })*/
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
