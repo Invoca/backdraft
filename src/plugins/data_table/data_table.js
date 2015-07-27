@@ -18,19 +18,19 @@ var LocalDataTable = (function() {
     filterMenuTemplate : _.template('\
       <div class="filterMenu dropdown-menu <%= listClass %>">\
         <% if (filter.type === "string") { %>\
-          <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+          <input class="filter-string" data-filter-value-name="value" type="text" placeholder="Search <%= title %>" />\
         <% } else if (filter.type === "numeric") { %>\
           <ul>\
-            <li> &gt; <input id="gt" class="filter-numeric" type="text" /></li> \
-            <li> &lt; <input id="lt" class="filter-numeric" type="text"/></li> \
-            <li> = <input id="eq" class="filter-numeric" type="text" /></li> \
+            <li> &gt; <input data-filter-value-name="gt" class="filter-numeric filter-greater-than" type="text" /></li> \
+            <li> &lt; <input data-filter-value-name="lt" class="filter-numeric filter-less-than" type="text"/></li> \
+            <li> = <input data-filter-value-name="eq" class="filter-numeric filter-equal-to" type="text" /></li> \
           </ul>\
         <% } else if (filter.type === "list") { %>\
           <ul>\
             <% _.each(filter.options, function(element, index) { %>\
               <li>\
                 <label>\
-                  <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+                  <input class="list" data-filter-value-name="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
                   <%= element %>\
                 </label>\
               </li>\
@@ -128,30 +128,30 @@ var LocalDataTable = (function() {
     _onInputChange: function(event) {
       var filterIcon = $("span", this.$el);
       var filterInput = event.target;
-      var inputID = filterInput.id;
+      var filterValueName = $(filterInput).attr("data-filter-value-name");
       // handle list filters
       if (this.filter.type === "list") {
         if (filterInput.checked) {
-          this.filter[inputID] = this.filter[inputID] || [];
-          this.filter[inputID].push(filterInput.value);
+          this.filter[filterValueName] = this.filter[filterValueName] || [];
+          this.filter[filterValueName].push(filterInput.value);
           this.table._toggleIcon(filterIcon, true);
         }
         // remove filter from column manager if it is defined
-        else if (this.filter[inputID]) {
-          var index = this.filter[inputID].indexOf(filterInput.value);
+        else if (this.filter[filterValueName]) {
+          var index = this.filter[filterValueName].indexOf(filterInput.value);
           if (index > -1)
-            this.filter[inputID].splice(index, 1);
-          if (this.filter[filterInput.id].length === 0) {
-            this.filter[inputID] = null;
+            this.filter[filterValueName].splice(index, 1);
+          if (this.filter[filterValueName].length === 0) {
+            this.filter[filterValueName] = null;
             this.table._toggleIcon(filterIcon, false);
           }
         }
         // handle standard text and numeric input filters
       } else if (filterInput.value === "") {
-        this.filter[inputID] = null;
+        this.filter[filterValueName] = null;
         this.table._toggleIcon(filterIcon, false);
       } else {
-        this.filter[inputID] = filterInput.value;
+        this.filter[filterValueName] = filterInput.value;
         this.table._toggleIcon(filterIcon, true);
       }
     }
