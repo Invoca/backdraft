@@ -506,7 +506,7 @@ describe("DataTable Plugin", function() {
             }
             else if (col.filter.type === "numeric") {
               // test assignment
-              $('.filterMenu .filter-equal-to', this).val("0.5").trigger("change");
+              $('.filterMenu .filter-numeric-equal', this).val("0.5").trigger("change");
               expect(col.filter.eq).toEqual("0.5");
               // verify ajax
               filterButton.trigger("click");
@@ -514,7 +514,7 @@ describe("DataTable Plugin", function() {
               VerifyFilterAjax(expectedFilterObj);
 
               // test unassignment
-              $('.filterMenu .filter-equal-to', this).val("").trigger("change");
+              $('.filterMenu .filter-numeric-equal', this).val("").trigger("change");
               expect(col.filter.eq).toEqual(null);
               // verify ajax
               filterButton.trigger("click");
@@ -558,9 +558,9 @@ describe("DataTable Plugin", function() {
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
             else if (col.filter.type === "numeric") {
-              $(".filterMenu .filter-greater-than", this).val("3").trigger("change");
+              $(".filterMenu .filter-numeric-greater", this).val("3").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
-              $(".filterMenu .filter-greater-than", this).val("").trigger("change");
+              $(".filterMenu .filter-numeric-greater", this).val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
             else if (col.filter.type === "list") {
@@ -649,9 +649,9 @@ describe("DataTable Plugin", function() {
               expect($(".filterMenu input", this).val()).toEqual("");
             }
             else if (col.filter.type === "numeric") {
-              $(".filterMenu .filter-equal-to", this).val("3").trigger("change");
+              $(".filterMenu .filter-numeric-less", this).val("3").trigger("change");
               $(".btn-clear", this).click();
-              expect($(".filterMenu .filter-equal-to", this).val()).toEqual("");
+              expect($(".filterMenu .filter-numeric-less", this).val()).toEqual("");
             }
             else if (col.filter.type === "list") {
               $(".filterMenu input", this).prop("checked", true).trigger("change");

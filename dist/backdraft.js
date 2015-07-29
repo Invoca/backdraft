@@ -833,35 +833,149 @@ _.extend(Plugin.factory, {
     escape      : /<%-([\s\S]+?)%>/g
   };
 
+  var DataTableFilterMenu = Base.View.extend({
+    menuTemplate : _.template(''), // to be overridden by subclasses
+
+    initialize: function(options) {
+      this.filter = options.column.filter;
+      this.attr = options.column.attr;
+      this.title = options.column.title;
+      this.parentView = options.parentView;
+    },
+
+    events: {
+      "click input": "_onInputClick",
+      "change input": "_onInputChange"
+    },
+
+    render: function() {
+      this.beforeRender();
+
+      this.$el.html(this.menuTemplate({
+        filter: this.filter,
+        attr: this.attr,
+        title: this.title,
+        parentView: this.parentView
+      }));
+
+      this.afterRender();
+      return this;
+    },
+
+    beforeRender: function() {
+      // to be optionally implemented by subclasses
+    },
+
+    afterRender: function() {
+      // to be optionally implemented by subclasses
+    },
+
+    _onInputClick: function(event) {
+      event.target.focus();
+      event.stopImmediatePropagation();
+    },
+
+    _onInputChange: function(event) {
+      // to be implemented by subclasses
+    }
+  });
+
+  var StringFilterMenu = DataTableFilterMenu.extend({
+    menuTemplate : _.template('\
+      <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+    ', null, DEFAULT_JST_DELIMS),
+
+    _onInputChange: function(event) {
+      var filterInput = event.target;
+      if (filterInput.value === "") {
+        this.filter.value = null;
+        this.parentView._toggleIcon(false);
+      } else {
+        this.filter.value = filterInput.value;
+        this.parentView._toggleIcon(true);
+      }
+    }
+  });
+
+  var NumericFilterMenu = DataTableFilterMenu.extend({
+    tagName: "ul",
+
+    menuTemplate : _.template('\
+      <li> &gt; <input data-numeric-filter-name="gt" class="filter-numeric filter-numeric-greater" type="text" /></li> \
+      <li> &lt; <input data-numeric-filter-name="lt" class="filter-numeric filter-numeric-less" type="text"/></li> \
+      <li> = <input data-numeric-filter-name="eq" class="filter-numeric filter-numeric-equal" type="text" /></li> \
+    ', null, DEFAULT_JST_DELIMS),
+
+    _onInputChange: function(event) {
+      var filterInput = event.target;
+      var numericValueName = $(filterInput).attr("data-numeric-filter-name");
+      if (filterInput.value === "") {
+        this.filter[numericValueName] = null;
+        if (!this.filter["gt"] && !this.filter["lt"] && !this.filter["eq"]) {
+          this.parentView._toggleIcon(false);
+        }
+      } else {
+        this.filter[numericValueName] = filterInput.value;
+        this.parentView._toggleIcon(true);
+      }
+    }
+  });
+
+  var ListFilterMenu = DataTableFilterMenu.extend({
+    tagName: "ul",
+
+    menuTemplate : _.template('\
+      <% _.each(filter.options, function(element, index) { %>\
+        <li>\
+          <label>\
+            <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+            <%= element %>\
+          </label>\
+        </li>\
+      <% }) %>\
+    ', null, DEFAULT_JST_DELIMS),
+
+    afterRender: function() {
+      var listClass;
+
+      if (this.filter.options.length > 30) {
+        listClass = "triple";
+      } else if (this.filter.options.length > 15) {
+        listClass = "double";
+      } else {
+        listClass = "single";
+      }
+
+      this.$el.addClass(listClass);
+    },
+
+    _onInputChange: function(event) {
+      var filterInput = event.target;
+      if (filterInput.checked) {
+        this.filter.value = this.filter.value || [];
+        this.filter.value.push(filterInput.value);
+        this.parentView._toggleIcon(true);
+      }
+      // remove filter from column manager if it is defined
+      else if (this.filter.value) {
+        var index = this.filter.value.indexOf(filterInput.value);
+        if (index > -1) {
+          this.filter.value.splice(index, 1);
+        }
+        if (this.filter.value.length === 0) {
+          this.filter.value = null;
+          this.parentView._toggleIcon(false);
+        }
+      }
+    }
+  });
+
   var DataTableFilter = Base.View.extend({
-    filterTemplate : _.template('\
+    template : _.template('\
       <div class="toggle-filter-button" data-toggle="dropdown">\
         <span class="<%= filterButtonClass %>"></span>\
       </div>\
-    ', null, DEFAULT_JST_DELIMS),
-
-    filterMenuTemplate : _.template('\
-      <div class="filterMenu dropdown-menu <%= listClass %>">\
-        <% if (filter.type === "string") { %>\
-          <input class="filter-string" data-filter-value-name="value" type="text" placeholder="Search <%= title %>" />\
-        <% } else if (filter.type === "numeric") { %>\
-          <ul>\
-            <li> &gt; <input data-filter-value-name="gt" class="filter-numeric filter-greater-than" type="text" /></li> \
-            <li> &lt; <input data-filter-value-name="lt" class="filter-numeric filter-less-than" type="text"/></li> \
-            <li> = <input data-filter-value-name="eq" class="filter-numeric filter-equal-to" type="text" /></li> \
-          </ul>\
-        <% } else if (filter.type === "list") { %>\
-          <ul>\
-            <% _.each(filter.options, function(element, index) { %>\
-              <li>\
-                <label>\
-                  <input class="list" data-filter-value-name="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
-                  <%= element %>\
-                </label>\
-              </li>\
-            <% }) %>\
-          </ul>\
-        <% } %>\
+      <div class="filterMenu dropdown-menu">\
         <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
         <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
       </div>\
@@ -869,8 +983,6 @@ _.extend(Plugin.factory, {
 
     events: {
       "click .toggle-filter-button": "_onToggleClick",
-      "click input": "_onInputClick",
-      "change input": "_onInputChange",
       "click .btn-filter": "_onFilterClick",
       "click .btn-clear": "_onClearClick"
     },
@@ -882,37 +994,43 @@ _.extend(Plugin.factory, {
       this.table = options.table;
       this.head = options.head;
       this.filterButtonClass = "filterInactive";
+
+      // decide which filter view based on type, here
+      var filterMenu = null;
+      switch (this.filter.type) {
+        case 'string':
+          filterMenu = new StringFilterMenu({column: options.column, parentView: this});
+          break;
+        case 'numeric':
+          filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
+          break;
+        case 'list':
+          filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+          break;
+      }
+
+      // add as a child (backdraft thing just to keep bookkeeping on subviews)
+      this.child("filter-menu", filterMenu);
     },
 
     render: function() {
-      this.$el.html( this.filterTemplate( { filterButtonClass : this.filterButtonClass } ));
-      // build filter menu
-      this._buildFilterMenu();
+      this.$el.html(this.template({
+        filterButtonClass : this.filterButtonClass
+      }));
+
+      $(".filterMenu", this.$el).prepend(this.child("filter-menu").render().$el);
       return this;
     },
 
-    _buildFilterMenu: function() {
-      // handle listClass
-      var listClass = "";
-      if (this.filter.type === "list") {
-        if (this.filter.options.length > 30) {
-          listClass = " triple";
-        } else if (this.filter.options.length > 15) {
-          listClass = " double";
-        } else {
-          listClass = " single";
-        }
+    _toggleIcon: function(enabled) {
+      var icon = $("span", this.$el);
+      icon.removeClass("filterActive");
+      icon.removeClass("filterInactive");
+      if (enabled) {
+        icon.addClass("filterActive");
+      } else {
+        icon.addClass("filterInactive");
       }
-
-      // append filter menu to filter wrapper
-      this.$el.append(
-        this.filterMenuTemplate({
-          filter: this.filter,
-          title: this.title,
-          attr: this.attr,
-          listClass: listClass
-        })
-      );
     },
 
     _onToggleClick: function(event) {
@@ -933,11 +1051,6 @@ _.extend(Plugin.factory, {
       }
     },
 
-    _onInputClick: function(event) {
-      event.target.focus();
-      event.stopImmediatePropagation();
-    },
-
     _onFilterClick: function() {
       $("input[type=text]", this.head).trigger("change");
       this.table.dataTable._fnAjaxUpdate();
@@ -948,37 +1061,6 @@ _.extend(Plugin.factory, {
       $("input[type=checkbox]", this.head).attr("checked", false);
       $("input", this.head).trigger("change");
       this.table.dataTable._fnAjaxUpdate();
-    },
-
-    _onInputChange: function(event) {
-      var filterIcon = $("span", this.$el);
-      var filterInput = event.target;
-      var filterValueName = $(filterInput).attr("data-filter-value-name");
-      // handle list filters
-      if (this.filter.type === "list") {
-        if (filterInput.checked) {
-          this.filter[filterValueName] = this.filter[filterValueName] || [];
-          this.filter[filterValueName].push(filterInput.value);
-          this.table._toggleIcon(filterIcon, true);
-        }
-        // remove filter from column manager if it is defined
-        else if (this.filter[filterValueName]) {
-          var index = this.filter[filterValueName].indexOf(filterInput.value);
-          if (index > -1)
-            this.filter[filterValueName].splice(index, 1);
-          if (this.filter[filterValueName].length === 0) {
-            this.filter[filterValueName] = null;
-            this.table._toggleIcon(filterIcon, false);
-          }
-        }
-        // handle standard text and numeric input filters
-      } else if (filterInput.value === "") {
-        this.filter[filterValueName] = null;
-        this.table._toggleIcon(filterIcon, false);
-      } else {
-        this.filter[filterValueName] = filterInput.value;
-        this.table._toggleIcon(filterIcon, true);
-      }
     }
   });
 
@@ -1260,6 +1342,7 @@ _.extend(Plugin.factory, {
       var self = this;
       this.dataTable.find("thead th").each(function(index) {
         $(this).off("click.DT");
+        $(this).off("keypress.DT");
         // put the header text in a div
         var nDiv = document.createElement('div');
         nDiv.className = "DataTables_sort_wrapper";
@@ -1274,17 +1357,6 @@ _.extend(Plugin.factory, {
         // default sort handler for column with index
         self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
       });
-    },
-
-    // This toggles a filter icon between filters set icon and no filters set icon
-    _toggleIcon: function(icon, enabled) {
-      icon.removeClass("filterActive");
-      icon.removeClass("filterInactive");
-      if (enabled) {
-        icon.addClass("filterActive");
-      } else {
-        icon.addClass("filterInactive");
-      }
     },
 
     // Sets up filtering for the dataTable
