@@ -1609,8 +1609,11 @@ _.extend(Plugin.factory, {
         filterJson.value = this._getFilteringSettings();
         aoData.push(filterJson);
       }
-      window.location = sUrl;
-      /*$.ajax({
+      // window.location = sUrl;
+      // We want to be able to just set window.location, but we can't yet because backdraft doesn't do anything
+      // with url parameters yet and we lack some infrastructure for performing this operation.
+      // For now we'll use a ajax post with a custom built object url as implemented below.
+      $.ajax({
         url: sUrl,
         data : aoData,
         dataType : "text",
@@ -1657,7 +1660,7 @@ _.extend(Plugin.factory, {
             setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
           }
         }
-      })*/
+      })
     },
 
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
