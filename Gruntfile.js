@@ -33,7 +33,7 @@ module.exports = function(grunt) {
           vendor : [
             "vendor/json2.js",
             "vendor/jquery-1.10.2.js",
-            "vendor/underscore-1.6.0.js",
+            "vendor/underscore-1.8.3.js",
             "vendor/backbone-1.1.2.js",
             "vendor/jquery.dataTables-1.9.4.js",
             "vendor/mock-ajax.js"
