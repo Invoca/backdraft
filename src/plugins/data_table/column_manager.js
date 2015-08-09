@@ -38,7 +38,16 @@ var ColumnManager = Backdraft.Utils.Class.extend({
   },
 
   columnsSwapped: function(fromIndex, toIndex) {
-    return this._configGenerator.columnsSwapped(fromIndex, toIndex);
+    this._configGenerator.columnsSwapped(fromIndex, toIndex);
+    this.trigger("change:order");
+  },
+
+  columnsReordered: function() {
+    this._configGenerator.columnsReordered();
+  },
+
+  changeSorting: function(sorting) {
+    this._configGenerator._computeSortingConfig(sorting);
   },
 
   _initEvents: function() {

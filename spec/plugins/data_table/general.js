@@ -66,7 +66,7 @@ describe("DataTable Plugin", function() {
       expect(app.Views.new_def.prototype.baseMethod()).toEqual("i am the new base");
     });
 
-    it("should allow rowClass to be provided as an argument instad of rowClassName", function() {
+    it("should allow rowClass to be provided as an argument instead of rowClassName", function() {
       app.view.dataTable.row("abc", {
         columns : [
           { attr : "name", title : "I came from a rowClass argument" }
@@ -388,25 +388,25 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // when nothing specified, sort asc by default
-      table.$("thead th.Name").click();
+      table.$("thead th.Name .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 0)).toEqual(["Bob", "Joe", "Zebra"]);
 
 
       // when clicking on a 'desc' specified one, sort desc by default
-      table.$("thead th.Age").click();
+      table.$("thead th.Age .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
 
       // a second click should go to 'asc'
-      table.$("thead th.Age").click();
+      table.$("thead th.Age .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
 
 
       // when clicking on a 'asc' specified one, sort asc by default
-      table.$("thead th.Zip").click();
+      table.$("thead th.Zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       // a second click should go to 'desc''
-      table.$("thead th.Zip").click();
+      table.$("thead th.Zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["90000", "33333", "10000"]);
     });
 
@@ -429,8 +429,8 @@ describe("DataTable Plugin", function() {
       });
 
       function getVisibilities() {
-        return _.map(["Attr1", "Attr2", "Attr3", "Attr4"], function(title) {
-          return table.columnVisibility(title);
+        return _.map(table.columnsConfig(), function(column) {
+          return table.columnVisibility(column.title);
         });
       }
 
@@ -577,7 +577,7 @@ describe("DataTable Plugin", function() {
       // move the Birthday column at index 3 to in front of Name column at index 0
       // note that we need to manually trigger the drag drop callback since we aren't actually dragging in the test
       table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
-      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0)
+      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0);
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Birthday", "Name", "Age", "Location"]);
 
       // ensure that our internal title to index mappings are up to date
@@ -585,6 +585,49 @@ describe("DataTable Plugin", function() {
       expect(table.$("thead th").map(function() {
         return $(this).text();
       }).get()).toEqual(["Birthday", "Age", "Location"]);
+    });
+
+    describe("custom column order", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2" },
+            { attr : "attr3", title : "Attr3" },
+            { attr : "attr4", title : "Attr4" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+      });
+
+      it("should allow to change column order", function() {
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(0);
+
+        table.columnOrder([2, 1, 3, 0]);
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
+        expect(getHeaders(table)).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(3);
+      });
+
+      it("should restore column order", function() {
+        table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
+        table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0);
+        table.dataTable.fnSettings()._colReorder.fnOrder([0, 1, 3, 2]);
+        table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 2);
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr4', 'Attr1', 'Attr3', 'Attr2']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(1);
+
+        table.restoreColumnOrder();
+        expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
+        expect(getHeaders(table)).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
+        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(0);
+      });
     });
 
     describe("provide an interface to access the column configuration", function() {
@@ -725,7 +768,7 @@ describe("DataTable Plugin", function() {
         { attr1: "B1", attr2: "B2", attr3: "B3", attr4: "B4" },
         { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
         { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" },
-      ])
+      ]);
       table = new app.Views.T({ collection : collection });
       table.render();
 
@@ -804,6 +847,47 @@ describe("DataTable Plugin", function() {
       table = new app.Views.ByAge({ collection : collection }).render();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
+
+    describe("change sorting", function() {
+      it("should allow to change sorting before table is rendered", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          sorting: [ [ 2, "asc" ] ]
+        });
+
+        table = new app.Views.ByIndex2({ collection : collection });
+        table.changeSorting([['Age', 'asc']]);
+        table.render();
+        expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
+      });
+
+      it("should allow to change sorting after table is rendered", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          sorting: [ [ 2, "asc" ] ]
+        });
+
+        table = new app.Views.ByIndex2({ collection : collection }).render();
+        expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+        spyOn(table.dataTable, 'fnSort').and.callThrough();
+        table.changeSorting([['Age', 'asc']]);
+        expect(table.dataTable.fnSort).toHaveBeenCalled();
+        expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
+      });
+
+      it("should not re-sort table when sorting is unchanged", function() {
+        app.view.dataTable("ByIndex2", {
+          rowClassName : "R",
+          sorting: [ [ 2, "asc" ] ]
+        });
+
+        table = new app.Views.ByIndex2({ collection : collection }).render();
+        expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
+        spyOn(table.dataTable, 'fnSort').and.callThrough();
+        table.changeSorting([ [ 2, "asc" ] ]);
+        expect(table.dataTable.fnSort).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe("locking/unlocking controls", function() {
@@ -848,15 +932,15 @@ describe("DataTable Plugin", function() {
     it("should work for sorting ui", function() {
       function getCells() {
         return table.$("tbody td.Name").map(function() {
-          return $(this).text()
+          return $(this).text();
         }).get();
       }
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
-      table.$("thead th.Name").click();
+      table.$("thead th.Name .DataTables_sort_wrapper").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", false);
-      table.$("thead th.Name").click();
+      table.$("thead th.Name .DataTables_sort_wrapper").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
@@ -894,11 +978,11 @@ describe("DataTable Plugin", function() {
     });
 
     it("should work for bulk ui", function() {
-      expect(table.$(":checkbox:disabled").length).toEqual(0)
+      expect(table.$(":checkbox:disabled").length).toEqual(0);
       table.lock("bulk", true);
-      expect(table.$(":checkbox:disabled").length).toEqual(4)
+      expect(table.$(":checkbox:disabled").length).toEqual(4);
       table.lock("bulk", false);
-      expect(table.$(":checkbox:disabled").length).toEqual(0)
+      expect(table.$(":checkbox:disabled").length).toEqual(0);
     });
 
     it("should work for bulk api", function() {
@@ -919,16 +1003,16 @@ describe("DataTable Plugin", function() {
       table.lock("bulk", false);
       expect(function() {
         table.selectedModels();
-      }).not.toThrow()
+      }).not.toThrow();
       expect(function() {
         table.selectAllVisible(true);
-      }).not.toThrow()
+      }).not.toThrow();
       expect(function() {
         table.selectAllMatching();
-      }).not.toThrow()
+      }).not.toThrow();
       expect(function() {
         table.matchingCount();
-      }).not.toThrow()
+      }).not.toThrow();
     });
   });
 
@@ -949,6 +1033,6 @@ describe("DataTable Plugin", function() {
       expect(table.totalRecordsCount()).toEqual(0);
       collection.reset(data);
       expect(table.totalRecordsCount()).toEqual(99);
-    })
+    });
   });
 });

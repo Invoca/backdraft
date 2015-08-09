@@ -12,7 +12,8 @@ var LocalDataTable = (function() {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
+          "_onColumnVisibilityChange", "_onColumnReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -54,6 +55,7 @@ var LocalDataTable = (function() {
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
+      this.trigger("render");
       return this;
     },
 
@@ -116,6 +118,30 @@ var LocalDataTable = (function() {
       }, this);
     },
 
+    columnOrder: function(order) {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder(order);
+      }
+    },
+
+    restoreColumnOrder: function() {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder({ reset: true});
+      }
+    },
+
+    changeSorting: function(sorting) {
+      this._columnManager.changeSorting(sorting);
+      if (this.dataTable) {
+        var normalizeSortingColumn = function(sort) { return _.first(sort, 2); };
+        sorting = _.map(this._columnManager.dataTableSortingConfig(), normalizeSortingColumn);
+        currentSorting = _.map(this.dataTable.fnSettings().aaSorting, normalizeSortingColumn);
+        if (!_.isEqual(currentSorting, sorting)) {
+          this.dataTable.fnSort(sorting);
+        }
+      }
+    },
+
     lock: function(name, state) {
       if (arguments.length === 1) {
         // getter
@@ -132,6 +158,10 @@ var LocalDataTable = (function() {
       return this._columnManager.columnsConfig();
     },
 
+    configGenerator: function() {
+      return this._columnManager._configGenerator;
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {
@@ -140,15 +170,47 @@ var LocalDataTable = (function() {
         fnReorderCallback: function(fromIndex, toIndex) {
           // notify that columns have been externally rearranged
           self._columnManager.columnsSwapped(fromIndex, toIndex);
+          // pass event up
+          self._onColumnReorder();
         }
       });
+    },
+
+    // Changes or resets the column order.
+    // When called with no args, returns the current order.
+    // Call with { reset : true } to have it restore column order to initial configuration
+    // Provide array of indexes as first argument to have it reordered by that
+    _changeColumnOrder: function(order) {
+      var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
+      if (_.isArray(order)) {
+        this.dataTable.fnSettings()._colReorder.fnOrder(order);
+      } else if (_.has(order, 'reset') && order.reset) {
+        this.dataTable.fnSettings()._colReorder.fnReset();
+      } else {
+        return this.dataTable.fnSettings()._colReorder.fnOrder();
+      }
+
+      // restore columnsConfig order to match the underlying order from dataTable
+      var columnsConfig = this.columnsConfig();
+      var columnsConfigOrig = _.clone(columnsConfig);
+      // reset config
+      columnsConfig.splice(0, columnsConfig.length);
+      // fill in config in correct order
+      _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
+        var oldIndex = columnsOrig.indexOf(tableColumn);
+        if (oldIndex != -1) {
+          columnsConfig.push(columnsConfigOrig[oldIndex]);
+        }
+      });
+
+      this._columnManager.columnsReordered();
     },
 
     _allMatchingModels : function() {
       // returns all models matching the current filter criteria, regardless of pagination
       // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
       // matching data since some of the rows may not have been rendered yet.
-      // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
+      // here we use the the aiDisplay property to get indicies of the data matching the current filtering
       // and return the associated models
       return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
         return this.collection.at(index);
@@ -161,6 +223,7 @@ var LocalDataTable = (function() {
         paginateLengthMenu : [ 10, 25, 50, 100 ],
         paginateLength : 10,
         selectedIds : [],
+        filteringEnabled: false,
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
         reorderableColumns: true,
         objectName: {
@@ -198,9 +261,10 @@ var LocalDataTable = (function() {
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       this._installSortInterceptors();
+      this.filteringEnabled && this._setupFiltering();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
-      this._columnManager.applyVisibilityPreferences()
+      this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
     },
 
@@ -234,7 +298,7 @@ var LocalDataTable = (function() {
 
     _initBulkHandling : function() {
       var bulkCheckbox = this.$el.find("th.bulk :checkbox");
-      if (!bulkCheckbox.length) return
+      if (!bulkCheckbox.length) return;
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
@@ -261,24 +325,80 @@ var LocalDataTable = (function() {
       this.trigger("change:selected", data);
     },
 
+    // DataTables does not provide a good way to programmatically disable sorting, so we:
+    // 1) remove the default sorting event handler that dataTables adds
+    // 2) Create a div and put the header in it.  We need to do this so sorting doesn't conflict with filtering
+    // on the click events.
+    // 3) insert our own event handler on the div that stops the event if we are locked
+    // 4) re-insert the dataTables sort event handler
     _installSortInterceptors: function() {
-      // dataTables does not provide a good way to programmatically disable sorting, so we:
-      // 1) remove the default sorting event handler that dataTables adds
-      // 2) insert our own that stops the event if we are locked
-      // 3) re-insert the dataTables sort event handler
       var self = this;
       this.dataTable.find("thead th").each(function(index) {
-        $(this).off("click.DT").on("click", function(event) {
+        $(this).off("click.DT");
+        $(this).off("keypress.DT");
+        // put the header text in a div
+        var nDiv = document.createElement('div');
+        nDiv.className = "DataTables_sort_wrapper";
+        $(this).contents().appendTo(nDiv);
+        this.appendChild(nDiv);
+        // handle clicking on div as sorting
+        $('.DataTables_sort_wrapper', this).on("click", function(event) {
           if (self.lock("sort")) {
             event.stopImmediatePropagation();
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
+        self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
+      });
+    },
+
+    // Sets up filtering for the dataTable
+    _setupFiltering: function() {
+      var table = this;
+      var cg = table.configGenerator();
+
+      // Close active filter menu if user clicks on document
+      $(document).click(function (event) {
+        var targetIsMenu = $(event.target).hasClass('filterMenu');
+        var targetIsButton = $(event.target).hasClass('btn');
+        var parentIsMenu = false;
+        if (event.target.offsetParent) {
+          parentIsMenu = $(event.target.offsetParent).hasClass('filterMenu');
+        }
+
+        var canSlideUp = table.activeFilterMenu && ( !(targetIsMenu || parentIsMenu) || targetIsButton);
+        if (canSlideUp) {
+          table.activeFilterMenu.slideUp(100);
+          table.activeFilterMenu = null;
+        }
+      });
+
+      // We make a filter for each column header
+      table.dataTable.find("thead th").each(function (index) {
+        // here we use the text in the header to get the column config by title
+        // there isn't a better way to do this currently
+        var title = this.outerText;
+        var col = cg.columnConfigByTitle.attributes[title];
+
+        if (col) {
+          // We only make the filter controls if there's a filter element in the column manager
+          if (col.filter) {
+            table.child("filter-"+col.attr, new DataTableFilter({
+              column: col,
+              table: table,
+              head: this,
+              className: "dropdown DataTables_filter_wrapper"
+            }));
+            $(this).append(table.child("filter-"+col.attr).render().$el);
+          }
+        }
       });
     },
 
     // events
+    _onColumnReorder : function() {
+      this.trigger("reorder");
+    },
 
     _onDraw : function() {
       this.trigger("draw", arguments);
@@ -318,7 +438,7 @@ var LocalDataTable = (function() {
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
+      this.dataTable.fnAddData({ cid : model.cid });
       this._triggerChangeSelection();
     },
 
@@ -369,7 +489,7 @@ var LocalDataTable = (function() {
 
       tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
         $("body").trigger(appName + ":" + eventName, args);
-      }
+      };
     }
 
   });

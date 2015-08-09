@@ -7,7 +7,7 @@ First, define a new Backdraft app and what plugins it will use:
 
 ```javascript
 Backdraft.app("TableExample", {
-  plugins : [ "DataTable"],
+  plugins : ["DataTable"],
 
   activate : function($el) {
     this.mainRouter = new this.Routers.Main({ $el : $el });
@@ -68,7 +68,7 @@ Backdraft.app("TableExample", function(app) {
 
 Now create the view that pulls all the pieces together:
 
-```
+```javascript
 // views/index.js
 Backdraft.app("TableExample", function(app) {
   app.view("Index", {
@@ -111,6 +111,9 @@ Then activate the app at load time:
 </html>
 ```
 
+### Important notes
+* We're using curly braces ``{{ }}`` for underscore templating instead of angle brackets ``<% %>`` to not conflict with other templating conventions.
+
 ### Examples
 If you run `grunt`, an local server will be launched with live examples at [localhost:9873](http://localhost:9873). 
 
@@ -148,11 +151,13 @@ See all available commands with:
 
 ### Contributing
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+If you'd like to contribute a feature or bugfix: Thanks! To make sure your change has a high chance of being included, please read the following guidelines:
 
-## License
-[MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE).
+1. Post a [pull request](https://github.com/invoca/backdraft/compare/).
+2. Please add tests. We will not accept any patch that is not tested. (It's rare when explicit tests aren't needed.) Please see existing tests for examples and structure.
+
+Thank you to all [the contributors](https://github.com/invoca/backdraft/contributors)!
+
+License
+-------
+Backdraft is Copyright © 2014-2015 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.

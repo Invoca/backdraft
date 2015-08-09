@@ -56,8 +56,9 @@ describe("DataTable Plugin", function() {
     app.view.dataTable.row("R", {
       columns : [
         { bulk : true },
-        { attr : "name", title : "Name" },
-        { attr : "date", title : "Date" },
+        { attr : "name", title : "Name", filter : { type : "string" } },
+        { attr : "cost", title : "Cost", filter : { type : "numeric" } },
+        { attr : "type", title : "Type", filter : { type : "list", options: ["Basic", "Advanced"] } },
         { title : "Non attr column"}
       ],
       renderers: {
@@ -69,7 +70,9 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("T", {
       rowClassName : "R",
       serverSide : true,
-      sorting : [['Name', 'desc']]
+      sorting : [['Name', 'desc']],
+      filteringEnabled: true,
+      serverSideFiltering : true
     });
 
     app.view.dataTable("TSimple", {
@@ -235,7 +238,7 @@ describe("DataTable Plugin", function() {
 
   describe("server side params", function() {
     it("should automatically include column attributes", function() {
-      var expectedAttrParams = $.param({ column_attrs : [undefined, "name", "date", undefined] });
+      var expectedAttrParams = $.param({ column_attrs : [undefined, "name", "cost", "type", undefined] });
       table = new app.Views.T({ collection : collection });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);
@@ -292,6 +295,18 @@ describe("DataTable Plugin", function() {
       table.render();
 
       expect(jasmine.Ajax.requests.mostRecent().method).toEqual("POST");
+    });
+
+    it("should default to GET when an AJAX method is not specified", function() {
+      app.view.dataTable("AjaxMethodTestTable", {
+        rowClassName: "R",
+        serverSide: true
+      });
+
+      table = new app.Views.AjaxMethodTestTable({collection: collection});
+      table.render();
+
+      expect(jasmine.Ajax.requests.mostRecent().method).toEqual("GET");
     });
 
     it("should pass paging and sort in ajax params", function() {
@@ -455,6 +470,235 @@ describe("DataTable Plugin", function() {
 
     bulkSelectionTests("changing page size", function(table) {
       table.$(".dataTables_length select").val(25).change();
+    });
+  });
+
+  describe("filtering", function() {
+    beforeEach(function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+    });
+
+    function VerifyFilterAjax(filterObj) {
+      var url = jasmine.Ajax.requests.mostRecent().url;
+      var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
+      expect(url).toMatch("ext_filter_json="+expectedFilterJson);
+    }
+
+    it("should have an object for each filterable column in the column manager "+
+        "which describes the filter to be applied", function() {
+      var cg = table._columnManager._configGenerator;
+      // should be 4 columns
+      expect(cg.columnsConfig.length).toEqual(5);
+      // filter should be undefined for unfilterable columns, not undefined for
+      // filterable ones
+      expect(cg.columnsConfig[0].filter).toEqual(undefined);
+      expect(cg.columnsConfig[1].filter).not.toEqual(undefined);
+      expect(cg.columnsConfig[2].filter).not.toEqual(undefined);
+      expect(cg.columnsConfig[3].filter).not.toEqual(undefined);
+      expect(cg.columnsConfig[4].filter).toEqual(undefined);
+      // expect filter type to be string for column 1 and numeric for column 2
+      // see global beforeEach ~line 46
+      expect(cg.columnsConfig[1].filter.type).toEqual("string");
+      expect(cg.columnsConfig[2].filter.type).toEqual("numeric");
+      expect(cg.columnsConfig[3].filter.type).toEqual("list");
+      expect(cg.columnsConfig[3].filter.options).toEqual(["Basic", "Advanced"]);
+    });
+
+    it("shouldn't create filter inputs for unfilterable columns", function() {
+      var hasFilter = [];
+      table.dataTable.find("thead th").each(function (index) {
+        hasFilter.push(this.getElementsByClassName('DataTables_filter_wrapper').length > 0);
+      });
+      expect(hasFilter).toEqual([false, true, true, true, false]);
+    });
+
+    it("should track filtering in column manager and in ext_filter_json parameter", function() {
+      var cg = table.configGenerator();
+      var expectedFilterObj = [];
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            var filterButton = $(".btn-filter", this);
+            if (col.filter.type === "string") {
+              // test assignment
+              $('.filterMenu input', this).val("Scott").trigger("change");
+              expect(col.filter.value).toEqual("Scott");
+              // verify ajax
+              filterButton.trigger("click");
+              expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
+              VerifyFilterAjax(expectedFilterObj);
+
+              // test unassignment
+              $('.filterMenu input', this).val("").trigger("change");
+              expect(col.filter.value).toEqual(null);
+              // verify ajax
+              filterButton.trigger("click");
+              expectedFilterObj = [];
+              VerifyFilterAjax(expectedFilterObj);
+            }
+            else if (col.filter.type === "numeric") {
+              // test assignment
+              $('.filterMenu .filter-numeric-equal', this).val("0.5").trigger("change");
+              expect(col.filter.eq).toEqual("0.5");
+              // verify ajax
+              filterButton.trigger("click");
+              expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
+              VerifyFilterAjax(expectedFilterObj);
+
+              // test unassignment
+              $('.filterMenu .filter-numeric-equal', this).val("").trigger("change");
+              expect(col.filter.eq).toEqual(null);
+              // verify ajax
+              filterButton.trigger("click");
+              expectedFilterObj = [];
+              VerifyFilterAjax(expectedFilterObj);
+            }
+            else if (col.filter.type === "list") {
+              // test assignment
+              $('.filterMenu input', this).prop("checked", true).trigger("change");
+              expect(col.filter.value).toEqual(["Basic", "Advanced"]);
+              // verify ajax
+              filterButton.trigger("click");
+              expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
+              VerifyFilterAjax(expectedFilterObj);
+
+              // test unassignment
+              $('.filterMenu input', this).prop("checked", false).trigger("change");
+              expect(col.filter.value).toEqual(null);
+              // verify ajax
+              filterButton.trigger("click");
+              expectedFilterObj = [];
+              VerifyFilterAjax(expectedFilterObj);
+            }
+          }
+        }
+      });
+    });
+
+    it("should enable the filterActive icon when filters are set, disable when cleared", function() {
+      var cg = table.configGenerator();
+      table.dataTable.find("thead th").each(function () {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".filterMenu input", this).val("Test").trigger("change");
+              expect($("span", this).attr("class")).toEqual("filterActive");
+              $(".filterMenu input", this).val("").trigger("change");
+              expect($("span", this).attr("class")).toEqual("filterInactive");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".filterMenu .filter-numeric-greater", this).val("3").trigger("change");
+              expect($("span", this).attr("class")).toEqual("filterActive");
+              $(".filterMenu .filter-numeric-greater", this).val("").trigger("change");
+              expect($("span", this).attr("class")).toEqual("filterInactive");
+            }
+            else if (col.filter.type === "list") {
+              $(".filterMenu input", this).prop("checked", true).trigger("change");
+              expect($("span", this).attr("class")).toEqual("filterActive");
+              $(".filterMenu input", this).prop("checked", false).trigger("change");
+              expect($("span", this).attr("class")).toEqual("filterInactive");
+            }
+          }
+        }
+      });
+    });
+
+    it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
+      var cg = table.configGenerator();
+      table.dataTable.find("thead th").each(function () {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            expect($(".filterMenu", this).is(":hidden"));
+            $("span", this).trigger("click");
+            expect($(".filterMenu", this).is(":visible"));
+            $("span", this).trigger("click");
+            expect($(".filterMenu", this).is(":hidden"));
+          }
+        }
+      });
+    });
+
+    it("should close the activeFilterMenu when the user clicks out of it", function() {
+      var cg = table.configGenerator();
+      table.dataTable.find("thead th").each(function () {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            expect($(".filterMenu", this).is(":hidden"));
+            $("span", this).trigger("click");
+            expect($(".filterMenu", this).is(":visible"));
+            $("document").trigger("click");
+            expect($(".filterMenu", this).is(":hidden"));
+          }
+        }
+      });
+    });
+
+    it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
+      var cg = table.configGenerator();
+      var lastFilterMenu;
+      var currentFilterMenu;
+      table.dataTable.find("thead th").each(function () {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (currentFilterMenu) {
+              lastFilterMenu = currentFilterMenu;
+            }
+            currentFilterMenu = $(".filterMenu", this);
+            expect(currentFilterMenu.is(":hidden"));
+            $("span", this).trigger("click");
+            expect(currentFilterMenu.is(":visible"));
+            if (lastFilterMenu) {
+              expect(lastFilterMenu.is(":hidden"));
+            }
+          }
+        }
+      });
+    });
+
+    it("should clear the filters when the clear button is clicked", function() {
+      var cg = table.configGenerator();
+      table.dataTable.find("thead th").each(function () {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".filterMenu input", this).val("Test").trigger("change");
+              $(".btn-clear", this).click();
+              expect($(".filterMenu input", this).val()).toEqual("");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".filterMenu .filter-numeric-less", this).val("3").trigger("change");
+              $(".btn-clear", this).click();
+              expect($(".filterMenu .filter-numeric-less", this).val()).toEqual("");
+            }
+            else if (col.filter.type === "list") {
+              $(".filterMenu input", this).prop("checked", true).trigger("change");
+              $(".btn-clear", this).click();
+              $(".filterMenu input", this).prop("checked", false).trigger("change");
+              expect($(".filterMenu input", this).prop("checked")).toEqual(false);
+            }
+          }
+        }
+      });
     });
   });
 

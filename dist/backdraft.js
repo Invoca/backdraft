@@ -3,6 +3,13 @@
   var Backdraft = {};
   Backdraft.Utils = {};
 
+  // use squiggly braces for underscore templating so we don't conflict with ruby templating
+  _.templateSettings = {
+    evaluate    : /{{([\s\S]+?)}}/g,
+    interpolate : /{{=([\s\S]+?)}}/g,
+    escape      : /{{-([\s\S]+?)}}/g
+  }
+
   Backdraft.Utils.Class = (function() {
 
   // Backbone.js class implementation
@@ -504,6 +511,10 @@ _.extend(Plugin.factory, {
     this._computeColumnLookups();
   },
 
+  columnsReordered: function() {
+    this._computeColumnLookups();
+  },
+
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
     this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
@@ -538,9 +549,10 @@ _.extend(Plugin.factory, {
     }, this);
   },
 
-  _computeSortingConfig: function() {
+  _computeSortingConfig: function(sorting) {
     var columnIndex, direction;
-    this.dataTableSorting = _.map(this.table.sorting, function(sortConfig) {
+    var sortingInfo = sorting || this.table.sorting;
+    this.dataTableSorting = _.map(sortingInfo, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
@@ -577,6 +589,7 @@ _.extend(Plugin.factory, {
     });
   }
 });
+
   var ColumnManager = Backdraft.Utils.Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
@@ -617,7 +630,16 @@ _.extend(Plugin.factory, {
   },
 
   columnsSwapped: function(fromIndex, toIndex) {
-    return this._configGenerator.columnsSwapped(fromIndex, toIndex);
+    this._configGenerator.columnsSwapped(fromIndex, toIndex);
+    this.trigger("change:order");
+  },
+
+  columnsReordered: function() {
+    this._configGenerator.columnsReordered();
+  },
+
+  changeSorting: function(sorting) {
+    this._configGenerator._computeSortingConfig(sorting);
   },
 
   _initEvents: function() {
@@ -754,6 +776,246 @@ _.extend(Plugin.factory, {
   }
 });
 
+  var DataTableFilter = (function(options) {
+  var Base = Backdraft.plugin("Base");
+
+  var DEFAULT_JST_DELIMS = {
+    evaluate: /<%([\s\S]+?)%>/g,
+    interpolate: /<%=([\s\S]+?)%>/g,
+    escape: /<%-([\s\S]+?)%>/g
+  };
+
+  var DataTableFilterMenu = Base.View.extend({
+    menuTemplate: _.template(''), // to be overridden by subclasses
+
+    initialize: function (options) {
+      this.filter = options.column.filter;
+      this.attr = options.column.attr;
+      this.title = options.column.title;
+      this.parentView = options.parentView;
+    },
+
+    events: {
+      "click input": "_onInputClick",
+      "change input": "_onInputChange"
+    },
+
+    render: function () {
+      this.beforeRender();
+
+      this.$el.html(this.menuTemplate({
+        filter: this.filter,
+        attr: this.attr,
+        title: this.title,
+        parentView: this.parentView
+      }));
+
+      this.afterRender();
+      return this;
+    },
+
+    beforeRender: function () {
+      // to be optionally implemented by subclasses
+    },
+
+    afterRender: function () {
+      // to be optionally implemented by subclasses
+    },
+
+    _onInputClick: function (event) {
+      event.target.focus();
+      event.stopImmediatePropagation();
+    },
+
+    _onInputChange: function (event) {
+      // to be implemented by subclasses
+    }
+  });
+
+  var StringFilterMenu = DataTableFilterMenu.extend({
+    menuTemplate: _.template('\
+        <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+      ', null, DEFAULT_JST_DELIMS),
+
+    _onInputChange: function (event) {
+      var filterInput = event.target;
+      if (filterInput.value === "") {
+        this.filter.value = null;
+        this.parentView._toggleIcon(false);
+      } else {
+        this.filter.value = filterInput.value;
+        this.parentView._toggleIcon(true);
+      }
+    }
+  });
+
+  var NumericFilterMenu = DataTableFilterMenu.extend({
+    tagName: "ul",
+
+    menuTemplate: _.template('\
+        <li> &gt; <input data-numeric-filter-name="gt" class="filter-numeric filter-numeric-greater" type="text" /></li> \
+        <li> &lt; <input data-numeric-filter-name="lt" class="filter-numeric filter-numeric-less" type="text"/></li> \
+        <li> = <input data-numeric-filter-name="eq" class="filter-numeric filter-numeric-equal" type="text" /></li> \
+      ', null, DEFAULT_JST_DELIMS),
+
+    _onInputChange: function (event) {
+      var filterInput = event.target;
+      var numericValueName = $(filterInput).attr("data-numeric-filter-name");
+      if (filterInput.value === "") {
+        this.filter[numericValueName] = null;
+        this.parentView._toggleIcon(false);
+      } else {
+        this.filter[numericValueName] = filterInput.value;
+        this.parentView._toggleIcon(true);
+      }
+    }
+  });
+
+  var ListFilterMenu = DataTableFilterMenu.extend({
+    tagName: "ul",
+
+    menuTemplate: _.template('\
+        <% _.each(filter.options, function(element, index) { %>\
+          <li>\
+            <label>\
+              <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+              <%= element %>\
+            </label>\
+          </li>\
+        <% }) %>\
+      ', null, DEFAULT_JST_DELIMS),
+
+    afterRender: function () {
+      var listClass;
+
+      if (this.filter.options.length > 30) {
+        listClass = "triple";
+      } else if (this.filter.options.length > 15) {
+        listClass = "double";
+      } else {
+        listClass = "single";
+      }
+
+      this.$el.addClass(listClass);
+    },
+
+    _onInputChange: function (event) {
+      var filterInput = event.target;
+      if (filterInput.checked) {
+        this.filter.value = this.filter.value || [];
+        this.filter.value.push(filterInput.value);
+        this.parentView._toggleIcon(true);
+      }
+      // remove filter from column manager if it is defined
+      else if (this.filter.value) {
+        var index = this.filter.value.indexOf(filterInput.value);
+        if (index > -1) {
+          this.filter.value.splice(index, 1);
+        }
+        if (this.filter.value.length === 0) {
+          this.filter.value = null;
+          this.parentView._toggleIcon(false);
+        }
+      }
+    }
+  });
+
+  var DataTableFilter = Base.View.extend({
+    template: _.template('\
+        <div class="toggle-filter-button" data-toggle="dropdown">\
+          <span class="<%= filterButtonClass %>"></span>\
+        </div>\
+        <div class="filterMenu dropdown-menu">\
+          <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
+          <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
+        </div>\
+      ', null, DEFAULT_JST_DELIMS),
+
+    events: {
+      "click .toggle-filter-button": "_onToggleClick",
+      "click .btn-filter": "_onFilterClick",
+      "click .btn-clear": "_onClearClick"
+    },
+
+    initialize: function (options) {
+      this.filter = options.column.filter;
+      this.attr = options.column.attr;
+      this.title = options.column.title;
+      this.table = options.table;
+      this.head = options.head;
+      this.filterButtonClass = "filterInactive";
+
+      // decide which filter view based on type, here
+      var filterMenu = null;
+      switch (this.filter.type) {
+        case 'string':
+          filterMenu = new StringFilterMenu({column: options.column, parentView: this});
+          break;
+        case 'numeric':
+          filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
+          break;
+        case 'list':
+          filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+          break;
+      }
+
+      // add as a child (backdraft thing just to keep bookkeeping on subviews)
+      this.child("filter-menu", filterMenu);
+    },
+
+    render: function () {
+      this.$el.html(this.template({
+        filterButtonClass: this.filterButtonClass
+      }));
+
+      $(".filterMenu", this.$el).prepend(this.child("filter-menu").render().$el);
+      return this;
+    },
+
+    _toggleIcon: function (enabled) {
+      var icon = $("span", this.$el);
+      icon.removeClass("filterActive");
+      icon.removeClass("filterInactive");
+      if (enabled) {
+        icon.addClass("filterActive");
+      } else {
+        icon.addClass("filterInactive");
+      }
+    },
+
+    _onToggleClick: function (event) {
+      var table = this.table;
+      event.stopImmediatePropagation();
+      var currentFilterMenu = $('.filterMenu', this.$el);
+      if ((table.activeFilterMenu) && (table.activeFilterMenu.is(currentFilterMenu))) {
+        table.activeFilterMenu.slideUp(100);
+        table.activeFilterMenu = null;
+      } else if (table.activeFilterMenu) {
+        table.activeFilterMenu.slideUp(100, function () {
+          table.activeFilterMenu = currentFilterMenu;
+          table.activeFilterMenu.slideDown(200);
+        });
+      } else {
+        table.activeFilterMenu = currentFilterMenu;
+        table.activeFilterMenu.slideDown(200);
+      }
+    },
+
+    _onFilterClick: function () {
+      $("input[type=text]", this.head).trigger("change");
+      this.table.dataTable._fnAjaxUpdate();
+    },
+
+    _onClearClick: function () {
+      $("input[type=text]", this.head).val("");
+      $("input[type=checkbox]", this.head).attr("checked", false);
+      $("input", this.head).trigger("change");
+      this.table.dataTable._fnAjaxUpdate();
+    }
+  });
+
+  return new DataTableFilter(options);
+});
   var Row = (function() {
 
   var Base = Backdraft.plugin("Base");
@@ -830,7 +1092,8 @@ _.extend(Plugin.factory, {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
+          "_onColumnVisibilityChange", "_onColumnReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -872,6 +1135,7 @@ _.extend(Plugin.factory, {
       this._initBulkHandling();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
+      this.trigger("render");
       return this;
     },
 
@@ -934,6 +1198,30 @@ _.extend(Plugin.factory, {
       }, this);
     },
 
+    columnOrder: function(order) {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder(order);
+      }
+    },
+
+    restoreColumnOrder: function() {
+      if (this.reorderableColumns) {
+        this._changeColumnOrder({ reset: true});
+      }
+    },
+
+    changeSorting: function(sorting) {
+      this._columnManager.changeSorting(sorting);
+      if (this.dataTable) {
+        var normalizeSortingColumn = function(sort) { return _.first(sort, 2); };
+        sorting = _.map(this._columnManager.dataTableSortingConfig(), normalizeSortingColumn);
+        currentSorting = _.map(this.dataTable.fnSettings().aaSorting, normalizeSortingColumn);
+        if (!_.isEqual(currentSorting, sorting)) {
+          this.dataTable.fnSort(sorting);
+        }
+      }
+    },
+
     lock: function(name, state) {
       if (arguments.length === 1) {
         // getter
@@ -950,6 +1238,10 @@ _.extend(Plugin.factory, {
       return this._columnManager.columnsConfig();
     },
 
+    configGenerator: function() {
+      return this._columnManager._configGenerator;
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {
@@ -958,15 +1250,47 @@ _.extend(Plugin.factory, {
         fnReorderCallback: function(fromIndex, toIndex) {
           // notify that columns have been externally rearranged
           self._columnManager.columnsSwapped(fromIndex, toIndex);
+          // pass event up
+          self._onColumnReorder();
         }
       });
+    },
+
+    // Changes or resets the column order.
+    // When called with no args, returns the current order.
+    // Call with { reset : true } to have it restore column order to initial configuration
+    // Provide array of indexes as first argument to have it reordered by that
+    _changeColumnOrder: function(order) {
+      var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
+      if (_.isArray(order)) {
+        this.dataTable.fnSettings()._colReorder.fnOrder(order);
+      } else if (_.has(order, 'reset') && order.reset) {
+        this.dataTable.fnSettings()._colReorder.fnReset();
+      } else {
+        return this.dataTable.fnSettings()._colReorder.fnOrder();
+      }
+
+      // restore columnsConfig order to match the underlying order from dataTable
+      var columnsConfig = this.columnsConfig();
+      var columnsConfigOrig = _.clone(columnsConfig);
+      // reset config
+      columnsConfig.splice(0, columnsConfig.length);
+      // fill in config in correct order
+      _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
+        var oldIndex = columnsOrig.indexOf(tableColumn);
+        if (oldIndex != -1) {
+          columnsConfig.push(columnsConfigOrig[oldIndex]);
+        }
+      });
+
+      this._columnManager.columnsReordered();
     },
 
     _allMatchingModels : function() {
       // returns all models matching the current filter criteria, regardless of pagination
       // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
       // matching data since some of the rows may not have been rendered yet.
-      // here we use the the aiDisplay property to get indecies of the data matching the currenting filtering
+      // here we use the the aiDisplay property to get indicies of the data matching the current filtering
       // and return the associated models
       return _.map(this.dataTable.fnSettings().aiDisplay, function(index) {
         return this.collection.at(index);
@@ -979,6 +1303,7 @@ _.extend(Plugin.factory, {
         paginateLengthMenu : [ 10, 25, 50, 100 ],
         paginateLength : 10,
         selectedIds : [],
+        filteringEnabled: false,
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
         reorderableColumns: true,
         objectName: {
@@ -1016,9 +1341,10 @@ _.extend(Plugin.factory, {
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
       this._installSortInterceptors();
+      this.filteringEnabled && this._setupFiltering();
       this.reorderableColumns && this._enableReorderableColumns();
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
-      this._columnManager.applyVisibilityPreferences()
+      this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
     },
 
@@ -1052,7 +1378,7 @@ _.extend(Plugin.factory, {
 
     _initBulkHandling : function() {
       var bulkCheckbox = this.$el.find("th.bulk :checkbox");
-      if (!bulkCheckbox.length) return
+      if (!bulkCheckbox.length) return;
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
       this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
@@ -1079,24 +1405,80 @@ _.extend(Plugin.factory, {
       this.trigger("change:selected", data);
     },
 
+    // DataTables does not provide a good way to programmatically disable sorting, so we:
+    // 1) remove the default sorting event handler that dataTables adds
+    // 2) Create a div and put the header in it.  We need to do this so sorting doesn't conflict with filtering
+    // on the click events.
+    // 3) insert our own event handler on the div that stops the event if we are locked
+    // 4) re-insert the dataTables sort event handler
     _installSortInterceptors: function() {
-      // dataTables does not provide a good way to programmatically disable sorting, so we:
-      // 1) remove the default sorting event handler that dataTables adds
-      // 2) insert our own that stops the event if we are locked
-      // 3) re-insert the dataTables sort event handler
       var self = this;
       this.dataTable.find("thead th").each(function(index) {
-        $(this).off("click.DT").on("click", function(event) {
+        $(this).off("click.DT");
+        $(this).off("keypress.DT");
+        // put the header text in a div
+        var nDiv = document.createElement('div');
+        nDiv.className = "DataTables_sort_wrapper";
+        $(this).contents().appendTo(nDiv);
+        this.appendChild(nDiv);
+        // handle clicking on div as sorting
+        $('.DataTables_sort_wrapper', this).on("click", function(event) {
           if (self.lock("sort")) {
             event.stopImmediatePropagation();
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
+        self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
+      });
+    },
+
+    // Sets up filtering for the dataTable
+    _setupFiltering: function() {
+      var table = this;
+      var cg = table.configGenerator();
+
+      // Close active filter menu if user clicks on document
+      $(document).click(function (event) {
+        var targetIsMenu = $(event.target).hasClass('filterMenu');
+        var targetIsButton = $(event.target).hasClass('btn');
+        var parentIsMenu = false;
+        if (event.target.offsetParent) {
+          parentIsMenu = $(event.target.offsetParent).hasClass('filterMenu');
+        }
+
+        var canSlideUp = table.activeFilterMenu && ( !(targetIsMenu || parentIsMenu) || targetIsButton);
+        if (canSlideUp) {
+          table.activeFilterMenu.slideUp(100);
+          table.activeFilterMenu = null;
+        }
+      });
+
+      // We make a filter for each column header
+      table.dataTable.find("thead th").each(function (index) {
+        // here we use the text in the header to get the column config by title
+        // there isn't a better way to do this currently
+        var title = this.outerText;
+        var col = cg.columnConfigByTitle.attributes[title];
+
+        if (col) {
+          // We only make the filter controls if there's a filter element in the column manager
+          if (col.filter) {
+            table.child("filter-"+col.attr, new DataTableFilter({
+              column: col,
+              table: table,
+              head: this,
+              className: "dropdown DataTables_filter_wrapper"
+            }));
+            $(this).append(table.child("filter-"+col.attr).render().$el);
+          }
+        }
       });
     },
 
     // events
+    _onColumnReorder : function() {
+      this.trigger("reorder");
+    },
 
     _onDraw : function() {
       this.trigger("draw", arguments);
@@ -1136,7 +1518,7 @@ _.extend(Plugin.factory, {
 
     _onAdd : function(model) {
       if (!this.dataTable) return;
-      this.dataTable.fnAddData({ cid : model.cid })
+      this.dataTable.fnAddData({ cid : model.cid });
       this._triggerChangeSelection();
     },
 
@@ -1187,7 +1569,7 @@ _.extend(Plugin.factory, {
 
       tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
         $("body").trigger(appName + ":" + eventName, args);
-      }
+      };
     }
 
   });
@@ -1206,7 +1588,7 @@ _.extend(Plugin.factory, {
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
       if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
       if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
-      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw");
+      _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw", "exportData");
       this.serverParams({});
       this.selectAllMatching(false);
     },
@@ -1315,15 +1697,86 @@ _.extend(Plugin.factory, {
 
     // dataTables callback after a draw event has occurred
     _onDraw : function() {
-      // anytime a draw occurrs (pagination change, pagination size change, sorting, etc) we want
-      // to clear out any stored selectAllMatchingParams and reset the bulk select checbox
+      // anytime a draw occurs (pagination change, pagination size change, sorting, etc) we want
+      // to clear out any stored selectAllMatchingParams and reset the bulk select checkbox
       this.selectAllMatching(false);
       this.bulkCheckbox && this.bulkCheckbox.prop("checked", false);
       this.trigger("draw", arguments);
     },
 
+    exportData : function(sUrl) {
+      var oSettings = this.dataTable.fnSettings;
+      var aoData = this.dataTable._fnAjaxParameters( oSettings );
+      this._addServerParams( aoData );
+      this._fetchCSV( sUrl, aoData );
+    },
+
+    _fetchCSV : function (sUrl, aoData) {
+      if (this.serverSideFiltering) {
+        var filterJson = {};
+        filterJson.name = "ext_filter_json";
+        filterJson.value = this._getFilteringSettings();
+        aoData.push(filterJson);
+      }
+      // window.location = sUrl;
+      // We want to be able to just set window.location, but we can't yet because backdraft doesn't do anything
+      // with url parameters yet and we lack some infrastructure for performing this operation.
+      // For now we'll use a ajax post with a custom built object url as implemented below.
+      $.ajax({
+        url: sUrl,
+        data : aoData,
+        dataType : "text",
+        cache : false,
+        type : this.ajaxMethod || "GET",
+        success: function(response, status, xhr) {
+          // check for a filename
+          var filename = "";
+          var disposition = xhr.getResponseHeader('Content-Disposition');
+          if (disposition && disposition.indexOf('attachment') !== -1) {
+            var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            var matches = filenameRegex.exec(disposition);
+            if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+          }
+
+          var type = xhr.getResponseHeader('Content-Type');
+          var blob = new Blob([response], { type: type });
+
+          if (typeof window.navigator.msSaveBlob !== 'undefined') {
+            // IE workaround for "HTML7007: One or more blob URLs were revoked by closing
+            // the blob for which they were created. These URLs will no longer resolve as
+            // the data backing the URL has been freed."
+            window.navigator.msSaveBlob(blob, filename);
+          } else {
+            var URL = window.URL || window.webkitURL;
+            var downloadUrl = URL.createObjectURL(blob);
+
+            if (filename) {
+              // use HTML5 a[download] attribute to specify filename
+              var a = document.createElement("a");
+              // safari doesn't support this yet
+              if (typeof a.download === 'undefined') {
+                window.location = downloadUrl;
+              } else {
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+              }
+            } else {
+              window.location = downloadUrl;
+            }
+
+            setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
+          }
+        }
+      })
+    },
+
     _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
       var self = this;
+      if (this.serverSideFiltering) {
+        aoData.push( { name: "ext_filter_json", value: this._getFilteringSettings() } );
+      }
       oSettings.jqXHR = $.ajax({
         url : sUrl,
         data : aoData,
@@ -1354,6 +1807,48 @@ _.extend(Plugin.factory, {
           self._triggerGlobalEvent("ajax-finish.backdraft", [xhr, status, self, aoData]);
         }
       });
+    },
+
+    // constructs a filter object for
+    // @col: the column from column manager we're filter-string
+    // @mval: the name of the element which has the value we're filtering on
+    // @isFloat: whether or not the value we're filtering on needs to be parsed
+    //   to a float.
+    _makeFilterObj: function(col, mval, isFloat) {
+      var filterObj = {
+        type: col.filter.type,
+        attr: col.attr,
+        data_dictionary_name: col.filter.data_dictionary_name,
+        comparison: mval
+      };
+      if (isFloat) {
+        filterObj.value = parseFloat(col.filter[mval])
+      } else {
+        filterObj.value = col.filter[mval];
+      }
+      return filterObj;
+    },
+
+    // gets an object representing all filtering settings set in the column
+    // manager to send to the backend to retrieve a filtered dataset
+    _getFilteringSettings: function() {
+      var table = this;
+      var result = [];
+      var cg = this._columnManager._configGenerator;
+      for (var i = 0; i < cg.columnsConfig.length; i++) {
+        var col = cg.columnsConfig[i];
+        if (col.filter) {
+          if (col.filter.value)
+            result.push(table._makeFilterObj(col, "value", false));
+          if (col.filter.eq)
+            result.push(table._makeFilterObj(col, "eq", true));
+          if (col.filter.lt)
+            result.push(table._makeFilterObj(col, "lt", true));
+          if (col.filter.gt)
+            result.push(table._makeFilterObj(col, "gt", true));
+        }
+      }
+      return JSON.stringify(result);
     },
 
     _dataTableConfig : function() {
