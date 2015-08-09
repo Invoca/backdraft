@@ -70,13 +70,49 @@ var ServerSideDataTable = (function() {
 
     // dataTables callback to allow addition of params to the ajax request
     _addServerParams : function(aoData) {
+      if (this.simpleParams) {
+        var sortBy, sortDir, limit, start, requestId;
+
+        var indexOfSortedColumn = this._getDataTableParam(aoData, "iSortCol_0");
+
+        if (indexOfSortedColumn) {
+          sortBy = this._columnManager.columnAttrs()[indexOfSortedColumn];
+          sortDir = this._getDataTableParam(aoData, "sSortDir_0");
+        }
+
+        limit = this._getDataTableParam(aoData, "iDisplayLength");
+        start = this._getDataTableParam(aoData, "iDisplayStart");
+        requestId = this._getDataTableParam(aoData, "sEcho");
+
+        // clear out existing array (but keeping reference to existing object)
+        aoData.splice(0, aoData.length);
+
+        aoData.push({ name: "sort_by",    value: sortBy });
+        aoData.push({ name: "sort_dir",   value: sortDir });
+        aoData.push({ name: "limit",      value: limit });
+        aoData.push({ name: "start",      value: start });
+        aoData.push({ name: "request_id", value: requestId });
+      } else {
+        // add column attribute mappings as a parameter
+        _.each(this._columnManager.columnAttrs(), function (attr) {
+          aoData.push({name: "column_attrs[]", value: attr});
+        });
+      }
+
+      // add additional static params specified for this table
       for (var key in this._serverParams) {
         aoData.push({ name : key, value : this._serverParams[key] });
       }
-      // add column attribute mappings as a parameter
-      _.each(this._columnManager.columnAttrs(), function(attr) {
-        aoData.push({ name: "column_attrs[]", value: attr });
-      });
+    },
+
+    _getDataTableParam : function(data, key) {
+      var obj = data[_.findIndex(data, { name: key })];
+
+      if (obj) {
+        return obj.value;
+      } else {
+        return null;
+      }
     },
 
     // dataTables callback after a draw event has occurred

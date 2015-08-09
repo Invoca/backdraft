@@ -68,8 +68,17 @@ describe("DataTable Plugin", function() {
     });
     app.view.dataTable("T", {
       rowClassName : "R",
-      serverSide : true
+      serverSide : true,
+      sorting : [['Name', 'desc']]
     });
+
+    app.view.dataTable("TSimple", {
+      rowClassName : "R",
+      serverSide : true,
+      sorting : [['Name', 'desc']],
+      simpleParams : true
+    });
+
     collection = new app.Collections.Col();
 
     jasmine.Ajax.install();
@@ -283,6 +292,34 @@ describe("DataTable Plugin", function() {
       table.render();
 
       expect(jasmine.Ajax.requests.mostRecent().method).toEqual("POST");
+    });
+
+    it("should pass paging and sort in ajax params", function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      table.serverParams({ monkey : "chicken" });
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("iSortCol_0=1");
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sSortDir_0=desc");
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sEcho=2");
+
+      expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sort_by");
+      expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sort_dir");
+      expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("request_id");
+    });
+
+    it("should pass simpler paging and sort param names when in simple_params mode", function() {
+      table = new app.Views.TSimple({ collection : collection });
+      table.render();
+
+      table.serverParams({ monkey : "chicken" });
+      expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
+      expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
+      expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
+
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sort_by=name");
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sort_dir=desc");
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("request_id=2");
     });
   });
 
