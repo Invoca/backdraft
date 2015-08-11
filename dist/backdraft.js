@@ -1653,25 +1653,25 @@ _.extend(Plugin.factory, {
       if (this.simpleParams) {
         var sortBy, sortDir, limit, start, requestId;
 
-        var indexOfSortedColumn = this._getDataTableParam(aoData, "iSortCol_0");
+        var indexOfSortedColumn = this._getDataTableParamIfExists(aoData, "iSortCol_0");
 
-        if (indexOfSortedColumn) {
+        if (indexOfSortedColumn !== null) {
           sortBy = this._columnManager.columnAttrs()[indexOfSortedColumn];
-          sortDir = this._getDataTableParam(aoData, "sSortDir_0");
+          sortDir = this._getDataTableParamIfExists(aoData, "sSortDir_0");
         }
 
-        limit = this._getDataTableParam(aoData, "iDisplayLength");
-        start = this._getDataTableParam(aoData, "iDisplayStart");
-        requestId = this._getDataTableParam(aoData, "sEcho");
+        limit = this._getDataTableParamIfExists(aoData, "iDisplayLength");
+        start = this._getDataTableParamIfExists(aoData, "iDisplayStart");
+        requestId = this._getDataTableParamIfExists(aoData, "sEcho");
 
         // clear out existing array (but keeping reference to existing object)
         aoData.splice(0, aoData.length);
 
-        aoData.push({ name: "sort_by",    value: sortBy });
-        aoData.push({ name: "sort_dir",   value: sortDir });
-        aoData.push({ name: "limit",      value: limit });
-        aoData.push({ name: "start",      value: start });
-        aoData.push({ name: "request_id", value: requestId });
+        this._addDataTableParamIfExists(aoData, "sort_by",    sortBy);
+        this._addDataTableParamIfExists(aoData, "sort_dir",   sortDir);
+        this._addDataTableParamIfExists(aoData, "limit",      limit);
+        this._addDataTableParamIfExists(aoData, "start",      start);
+        this._addDataTableParamIfExists(aoData, "request_id", requestId);
       } else {
         // add column attribute mappings as a parameter
         _.each(this._columnManager.columnAttrs(), function (attr) {
@@ -1685,13 +1685,19 @@ _.extend(Plugin.factory, {
       }
     },
 
-    _getDataTableParam : function(data, key) {
+    _getDataTableParamIfExists : function(data, key) {
       var obj = data[_.findIndex(data, { name: key })];
 
       if (obj) {
         return obj.value;
       } else {
         return null;
+      }
+    },
+
+    _addDataTableParamIfExists : function(data, key, value) {
+      if (value) {
+        return data.push({ name: key, value: value });
       }
     },
 
@@ -1788,6 +1794,12 @@ _.extend(Plugin.factory, {
           self._triggerGlobalEvent("ajax-start.backdraft", [xhr, self]);
         },
         success : function(json) {
+          json.sEcho                = json.requestId || json.draw || json.sEcho;
+          json.aaData               = json.data      || json.aaData;
+          json.iTotalRecords        = json.hasOwnProperty('recordsTotal') ? json.recordsTotal : json.iTotalRecords;
+          json.iTotalDisplayRecords = json.hasOwnProperty('recordsFiltered') ? json.recordsFiltered :
+                                        (json.hasOwnProperty('iTotalDisplayRecords') ? json.iTotalDisplayRecords : json.iTotalRecords);
+
           // ensure we ignore old Ajax responses
           // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
           // what gets called by fnCallback. However, fnCallback should only be invoked after we reset the
