@@ -43,6 +43,20 @@ describe("DataTable Plugin", function() {
     };
   };
 
+  function spyOnDataTableAjaxResponse(table) {
+    var callbackSpy = jasmine.createSpy("callbackSpy");
+    var originalFetchServerData = table._fetchServerData;
+
+    spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
+      // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
+      originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
+    });
+
+    spyOn(table.collection, 'reset').and.callThrough();
+
+    return callbackSpy;
+  }
+
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
@@ -319,16 +333,11 @@ describe("DataTable Plugin", function() {
     it("should handle DT 1.10 param for sEcho (draw) for ajax response", function() {
       table = new app.Views.T({ collection : collection });
 
-      var callbackSpy = jasmine.createSpy("callbackSpy");
-      var originalFetchServerData = table._fetchServerData;
-
-      spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
-        // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
-        originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
-      });
-
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
+
       table.render();
+
       jasmine.Ajax.requests.mostRecent().response({
         status : 200,
         responseText : JSON.stringify({
@@ -350,16 +359,11 @@ describe("DataTable Plugin", function() {
     it("should handle generic API param for sEcho (requestId) for ajax response", function() {
       table = new app.Views.T({ collection : collection });
 
-      var callbackSpy = jasmine.createSpy("callbackSpy");
-      var originalFetchServerData = table._fetchServerData;
-
-      spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
-        // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
-        originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
-      });
-
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
+
       table.render();
+
       jasmine.Ajax.requests.mostRecent().response({
         status : 200,
         responseText : JSON.stringify({
@@ -381,18 +385,11 @@ describe("DataTable Plugin", function() {
     it("should handle generic API param for total records and data for ajax response", function() {
       table = new app.Views.T({ collection : collection });
 
-      var callbackSpy = jasmine.createSpy("callbackSpy");
-      var originalFetchServerData = table._fetchServerData;
-
-      spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
-        // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
-        originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
-      });
-
-      spyOn(table.collection, 'reset').and.callThrough();
-
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
+
       table.render();
+
       jasmine.Ajax.requests.mostRecent().response({
         status : 200,
         responseText : JSON.stringify({
@@ -419,16 +416,11 @@ describe("DataTable Plugin", function() {
     it("should handle generic API param for total records when 0 in ajax response", function() {
       table = new app.Views.T({ collection : collection });
 
-      var callbackSpy = jasmine.createSpy("callbackSpy");
-      var originalFetchServerData = table._fetchServerData;
-
-      spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
-        // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
-        originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
-      });
-
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
+
       table.render();
+
       jasmine.Ajax.requests.mostRecent().response({
         status : 200,
         responseText : JSON.stringify({
