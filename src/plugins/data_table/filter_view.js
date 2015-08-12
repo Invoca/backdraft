@@ -107,20 +107,6 @@ var DataTableFilter = (function(options) {
         <% }) %>\
       ', null, DEFAULT_JST_DELIMS),
 
-    afterRender: function () {
-      var listClass;
-
-      if (this.filter.options.length > 30) {
-        listClass = "triple";
-      } else if (this.filter.options.length > 15) {
-        listClass = "double";
-      } else {
-        listClass = "single";
-      }
-
-      this.$el.addClass(listClass);
-    },
-
     _onInputChange: function (event) {
       var filterInput = event.target;
       if (filterInput.checked) {
@@ -147,7 +133,7 @@ var DataTableFilter = (function(options) {
         <div class="toggle-filter-button" data-toggle="dropdown">\
           <span class="<%= filterButtonClass %>"></span>\
         </div>\
-        <div class="filterMenu dropdown-menu">\
+        <div class="filterMenu dropdown-menu <%= listClass %>">\
           <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
           <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
         </div>\
@@ -166,6 +152,7 @@ var DataTableFilter = (function(options) {
       this.table = options.table;
       this.head = options.head;
       this.filterButtonClass = "filterInactive";
+      this.listClass = "single";
 
       // decide which filter view based on type, here
       var filterMenu = null;
@@ -178,6 +165,11 @@ var DataTableFilter = (function(options) {
           break;
         case 'list':
           filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+          if (this.filter.options.length > 30) {
+            this.listClass = "triple";
+          } else if (this.filter.options.length > 15) {
+            this.listClass = "double";
+          }
           break;
       }
 
@@ -187,7 +179,8 @@ var DataTableFilter = (function(options) {
 
     render: function () {
       this.$el.html(this.template({
-        filterButtonClass: this.filterButtonClass
+        filterButtonClass: this.filterButtonClass,
+        listClass: this.listClass
       }));
 
       $(".filterMenu", this.$el).prepend(this.child("filter-menu").render().$el);
