@@ -43,6 +43,20 @@ describe("DataTable Plugin", function() {
     };
   };
 
+  function spyOnDataTableAjaxResponse(table) {
+    var callbackSpy = jasmine.createSpy("callbackSpy");
+    var originalFetchServerData = table._fetchServerData;
+
+    spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
+      // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
+      originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
+    });
+
+    spyOn(table.collection, 'reset').and.callThrough();
+
+    return callbackSpy;
+  }
+
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
@@ -70,9 +84,25 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("T", {
       rowClassName : "R",
       serverSide : true,
+      sorting : [['Name', 'desc']],
       filteringEnabled: true,
       serverSideFiltering : true
     });
+
+    app.view.dataTable.row("RSimple", {
+      columns : [
+        { attr : "cost", title : "Cost", filter : { type : "numeric" } },
+        { attr : "name", title : "Name", filter : { type : "string" } }
+      ]
+    });
+
+    app.view.dataTable("TSimple", {
+      rowClassName : "RSimple",
+      serverSide : true,
+      sorting : [['Name', 'desc']],
+      simpleParams : true
+    });
+
     collection = new app.Collections.Col();
 
     jasmine.Ajax.install();
@@ -290,14 +320,215 @@ describe("DataTable Plugin", function() {
 
     it("should default to GET when an AJAX method is not specified", function() {
       app.view.dataTable("AjaxMethodTestTable", {
-        rowClassName : "R",
-        serverSide : true,
+        rowClassName: "R",
+        serverSide: true
       });
 
-      table = new app.Views.AjaxMethodTestTable({ collection : collection });
+      table = new app.Views.AjaxMethodTestTable({collection: collection});
       table.render();
 
       expect(jasmine.Ajax.requests.mostRecent().method).toEqual("GET");
+    });
+
+    it("should handle DT 1.10 param for sEcho (draw) for ajax response", function() {
+      table = new app.Views.T({ collection : collection });
+
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
+      expect(callbackSpy).not.toHaveBeenCalled();
+
+      table.render();
+
+      jasmine.Ajax.requests.mostRecent().response({
+        status : 200,
+        responseText : JSON.stringify({
+          draw: '33',
+          iTotalRecords: 0,
+          iTotalDisplayRecords: 0,
+          aaData: []
+        })
+      });
+
+      expect(callbackSpy).toHaveBeenCalled();
+
+      var ajaxUpdateArgs = callbackSpy.calls.argsFor(0);
+
+      // data params filters
+      expect(ajaxUpdateArgs[0].sEcho).toEqual("33");
+    });
+
+    it("should handle generic API param for sEcho (requestId) for ajax response", function() {
+      table = new app.Views.T({ collection : collection });
+
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
+      expect(callbackSpy).not.toHaveBeenCalled();
+
+      table.render();
+
+      jasmine.Ajax.requests.mostRecent().response({
+        status : 200,
+        responseText : JSON.stringify({
+          requestId: '33',
+          iTotalRecords: 0,
+          iTotalDisplayRecords: 0,
+          aaData: []
+        })
+      });
+
+      expect(callbackSpy).toHaveBeenCalled();
+
+      var ajaxUpdateArgs = callbackSpy.calls.argsFor(0);
+
+      // data params filters
+      expect(ajaxUpdateArgs[0].sEcho).toEqual("33");
+    });
+
+    it("should handle generic API param for total records and data for ajax response", function() {
+      table = new app.Views.T({ collection : collection });
+
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
+      expect(callbackSpy).not.toHaveBeenCalled();
+
+      table.render();
+
+      jasmine.Ajax.requests.mostRecent().response({
+        status : 200,
+        responseText : JSON.stringify({
+          requestId: '33',
+          recordsTotal: 2,
+          recordsFiltered: 1,
+          data: [{ name : 'bar' }]
+        })
+      });
+
+      expect(callbackSpy).toHaveBeenCalled();
+
+      var ajaxUpdateArgs = callbackSpy.calls.argsFor(0);
+
+      // data params filters
+      expect(ajaxUpdateArgs[0].sEcho).toEqual("33");
+      expect(ajaxUpdateArgs[0].iTotalRecords).toEqual(2);
+      expect(ajaxUpdateArgs[0].iTotalDisplayRecords).toEqual(1);
+
+      // testing the aaData is mapped (need to spy the collection.reset since it then modifies the aaData param internally)
+      expect(table.collection.reset.calls.argsFor(0)[0]).toEqual([{ name : 'bar' }]);
+    });
+
+    it("should handle generic API param for total records when 0 in ajax response", function() {
+      table = new app.Views.T({ collection : collection });
+
+      var callbackSpy = spyOnDataTableAjaxResponse(table);
+      expect(callbackSpy).not.toHaveBeenCalled();
+
+      table.render();
+
+      jasmine.Ajax.requests.mostRecent().response({
+        status : 200,
+        responseText : JSON.stringify({
+          requestId: '33',
+          recordsTotal: 0,
+          data: []
+        })
+      });
+
+      expect(callbackSpy).toHaveBeenCalled();
+
+      var ajaxUpdateArgs = callbackSpy.calls.argsFor(0);
+
+      // data params filters
+      expect(ajaxUpdateArgs[0].sEcho).toEqual("33");
+      expect(ajaxUpdateArgs[0].iTotalRecords).toEqual(0);
+      expect(ajaxUpdateArgs[0].iTotalDisplayRecords).toEqual(0);
+    });
+
+    describe("when in simple_params mode", function() {
+      it("should pass simpler paging and sort param names", function() {
+        table = new app.Views.TSimple({collection: collection});
+        table.render();
+
+        table.serverParams({monkey: "chicken"});
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
+
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sort_by=name");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sort_dir=desc");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("request_id=2");
+      });
+
+      it("should handle no sort param and not pass sort dir either", function() {
+        table = new app.Views.TSimple({collection: collection});
+
+        var originalAddServerParams = table._addServerParams;
+
+        spyOn(table, '_addServerParams').and.callFake(function (aoData) {
+          // pass in same array object but emptied out, to simulate no existing sort params
+          aoData.splice(0, aoData.length);
+          aoData.push({name: "sEcho", value: "3"});
+          originalAddServerParams.call(this, aoData);
+        });
+
+        table.render();
+
+        table.serverParams({monkey: "chicken"});
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
+
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sort_by");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sort_dir");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("request_id=3");
+      });
+
+      it("should handle when no sort param is found but sort dir did exist (and not send either param)", function() {
+        table = new app.Views.TSimple({collection: collection});
+
+        var originalAddServerParams = table._addServerParams;
+
+        spyOn(table, '_addServerParams').and.callFake(function (aoData) {
+          // pass in same array object but emptied out, to simulate no existing sort params
+          aoData.splice(0, aoData.length);
+          aoData.push({name: "sEcho", value: "3"});
+          aoData.push({name: "sSortDir_0", value: "desc"});
+          originalAddServerParams.call(this, aoData);
+        });
+
+        table.render();
+
+        table.serverParams({monkey: "chicken"});
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
+
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sort_by");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sort_dir");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("request_id=3");
+      });
+
+      it("should handle when sort param is index 0 and not treat as false", function() {
+        table = new app.Views.TSimple({collection: collection});
+
+        var originalAddServerParams = table._addServerParams;
+
+        spyOn(table, '_addServerParams').and.callFake(function (aoData) {
+          // pass in same array object but emptied out first
+          aoData.splice(0, aoData.length);
+          aoData.push({ name: "sEcho", value: "3" });
+          aoData.push({ name: "iSortCol_0", value: 0 });
+          aoData.push({ name: "sSortDir_0", value: "desc" });
+          originalAddServerParams.call(this, aoData);
+        });
+
+        table.render();
+
+        table.serverParams({monkey: "chicken"});
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
+        expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
+
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sort_by=cost");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("sort_dir=desc");
+        expect(jasmine.Ajax.requests.mostRecent().url).toMatch("request_id=3");
+      });
     });
   });
 
