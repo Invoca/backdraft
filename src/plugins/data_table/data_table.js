@@ -342,13 +342,13 @@ var LocalDataTable = (function() {
         $(this).contents().appendTo(nDiv);
         this.appendChild(nDiv);
         // handle clicking on div as sorting
-        $('.DataTables_sort_wrapper', this).on("click", function(event) {
+        $(this).on("click", function(event) {
           if (self.lock("sort")) {
             event.stopImmediatePropagation();
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
+        self.dataTable.fnSortListener($(this), index);
       });
     },
 
@@ -377,7 +377,7 @@ var LocalDataTable = (function() {
       table.dataTable.find("thead th").each(function (index) {
         // here we use the text in the header to get the column config by title
         // there isn't a better way to do this currently
-        var title = this.outerText;
+        var title = this.textContent || this.innerText;
         var col = cg.columnConfigByTitle.attributes[title];
 
         if (col) {
