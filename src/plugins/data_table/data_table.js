@@ -377,7 +377,6 @@ var LocalDataTable = (function() {
       table.dataTable.find("thead th").each(function (index) {
         // here we use the text in the header to get the column config by title
         // there isn't a better way to do this currently
-        debugger;
         var title = this.textContent || this.innerText;
         var col = cg.columnConfigByTitle.attributes[title];
 
