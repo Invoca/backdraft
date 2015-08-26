@@ -1457,7 +1457,7 @@ _.extend(Plugin.factory, {
       table.dataTable.find("thead th").each(function (index) {
         // here we use the text in the header to get the column config by title
         // there isn't a better way to do this currently
-        var title = this.outerText;
+        var title = this.textContent;
         var col = cg.columnConfigByTitle.attributes[title];
 
         if (col) {
