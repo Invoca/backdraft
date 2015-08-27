@@ -1422,13 +1422,13 @@ _.extend(Plugin.factory, {
         $(this).contents().appendTo(nDiv);
         this.appendChild(nDiv);
         // handle clicking on div as sorting
-        $(this).on("click", function(event) {
+        $('.DataTables_sort_wrapper', this).on("click", function(event) {
           if (self.lock("sort")) {
             event.stopImmediatePropagation();
           }
         });
         // default sort handler for column with index
-        self.dataTable.fnSortListener($(this), index);
+        self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
       });
     },
 
