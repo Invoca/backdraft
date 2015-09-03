@@ -149,9 +149,12 @@ var ServerSideDataTable = (function() {
       }
     },
 
-    _goToWindowLocation : function(url) {
-      if (url) {
-        window.location = url;
+    _goToWindowLocation : function(sUrl) {
+      if (sUrl) {
+        window.location = sUrl;
+      }
+      else {
+        throw new Error("sUrl must be defined when _goToWindowLocation is called");
       }
     },
 

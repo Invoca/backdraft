@@ -918,5 +918,11 @@ describe("DataTable Plugin", function() {
         expect(function(){ table._fetchCSV("/fake_url"); } ).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
       });
     });
+
+    describe("_goToWindowLocation", function () {
+      it("should throw error when sUrl is not defined", function () {
+        expect(function(){ table._goToWindowLocation(); } ).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
+      });
+    });
   });
 });
