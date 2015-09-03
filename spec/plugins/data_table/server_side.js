@@ -894,6 +894,29 @@ describe("DataTable Plugin", function() {
         }
       });
     });
-  });
+    
+    describe("_fetchCSV", function () {
+      it("should have correct filters in parameters", function () {
+        expect(table.serverSideFiltering).toEqual(true);
 
+        // Set one column filter value so that the request contains filtering settings
+        var cg = table._columnManager._configGenerator;
+        var col = cg.columnsConfig[0];
+        col.filter = {value: "filter_by_this_value"};
+
+        // Set dummy URL
+        var csv_url = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
+
+        spyOn(table, "_goToWindowLocation").and.callFake(function(){});
+        table._fetchCSV(csv_url);
+        expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
+      });
+
+      it("should throw error when serverSideFiltering is not enabled", function () {
+        table.serverSideFiltering = false;
+        expect(table.serverSideFiltering).toEqual(false);
+        expect(function(){ table._fetchCSV("/fake_url"); } ).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
+      });
+    });
+  });
 });
