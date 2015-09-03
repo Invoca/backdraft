@@ -894,9 +894,9 @@ describe("DataTable Plugin", function() {
         }
       });
     });
-    
+
     describe("_fetchCSV", function () {
-      it("should have correct filters in parameters", function () {
+      it("should append current filter parameters to the URL when requesting a CSV export", function () {
         expect(table.serverSideFiltering).toEqual(true);
 
         // Set one column filter value so that the request contains filtering settings
