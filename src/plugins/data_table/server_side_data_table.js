@@ -134,7 +134,7 @@ var ServerSideDataTable = (function() {
       var oSettings = this.dataTable.fnSettings;
       var aoData = this.dataTable._fnAjaxParameters( oSettings );
       this._addServerParams( aoData );
-      this._fetchCSV( sUrl, aoData );
+      this._fetchCSV(sUrl);
     },
 
     _fetchCSV : function (sUrl) {

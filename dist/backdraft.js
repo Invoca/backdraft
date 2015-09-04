@@ -1714,7 +1714,7 @@ _.extend(Plugin.factory, {
       var oSettings = this.dataTable.fnSettings;
       var aoData = this.dataTable._fnAjaxParameters( oSettings );
       this._addServerParams( aoData );
-      this._fetchCSV( sUrl, aoData );
+      this._fetchCSV(sUrl);
     },
 
     _fetchCSV : function (sUrl) {
@@ -1729,9 +1729,12 @@ _.extend(Plugin.factory, {
       }
     },
 
-    _goToWindowLocation : function(url) {
-      if (url) {
-        window.location = url;
+    _goToWindowLocation : function(sUrl) {
+      if (sUrl) {
+        window.location = sUrl;
+      }
+      else {
+        throw new Error("sUrl must be defined when _goToWindowLocation is called");
       }
     },
 
