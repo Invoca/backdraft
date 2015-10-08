@@ -1,8 +1,9 @@
 /*
  * File:        ColReorderWithResize-1.1.0-dev2.js
  *
+ * Based on (with minor changes):
  * https://github.com/jhubble/ColReorderWithResize/blob/0aebd15b89debe9d52efe5c6b29c07703c025e3d/media/js/ColReorderWithResize.js
- * 
+ *
  * Version:     1.1.0-dev2 (based on commit 2a6de4e884 done on Feb 22, 2013)
  * CVS:         $Id$
  * Description: Allow columns to be reordered in a DataTable
@@ -257,18 +258,7 @@
    * @param {object} opts ColReorder options
    */
   var ColReorder = function (dt, opts) {
-    $(dt.nTableWrapper).width($(dt.nTable).width());
-    // make sure the headers are the same width as the rest of table
-    dt.aoDrawCallback.push({
-      "fn": function ( oSettings ) {
-        $(oSettings.nTableWrapper).width($(oSettings.nTable).width());
-      },
-      "sName": "Resize headers"
-    });
     var oDTSettings;
-    // Set the table to minimum size so that it doesn't stretch too far
-    $(dt.nTable).width("10px");
-
 
     // @todo - This should really be a static method offered by DataTables
     if (dt.fnSettings) {
@@ -429,11 +419,18 @@
       /**
        * Resize the table when columns are resized
        * @property bResizeTable
-       * @type     bolean
+       * @type     boolean
        * @default  true
        */
       "bResizeTable": true,
 
+      /**
+       * Resize the table when columns are resized
+       * @property bResizeTable
+       * @type     boolean
+       * @default  false
+       */
+      "bResizeTableWrapper": true,
 
       /**
        * Callback called after each time the table is resized
@@ -454,7 +451,7 @@
        *  after the headers are allocated their full space. In this case, you can manually add the css
        *  in fnHeaderCallback and set bAddFixed to false here)
        * @property bAddFixed
-       * @type     bolean
+       * @type     boolean
        * @default  true
        */
       "bAddFixed": true
@@ -503,8 +500,22 @@
     ColReorder.aoInstances.push(this);
 
 
+    if (this.s.bResizeTableWrapper) {
+      $(this.s.dt.nTableWrapper).width($(this.s.dt.nTable).width());
+
+      // make sure the headers are the same width as the rest of table
+      oDTSettings.aoDrawCallback.push({
+        "fn": function ( oSettings ) {
+          $(oSettings.nTableWrapper).width($(oSettings.nTable).width());
+        },
+        "sName": "Resize headers"
+      });
+    }
+
     // fix the width and add table layout fixed.
     if (this.s.bAddFixed) {
+      // Set the table to minimum size so that it doesn't stretch too far
+      $(this.s.dt.nTable).width("10px");
       $(this.s.dt.nTable).width($(this.s.dt.nTable).width()).css('table-layout','fixed');
     }
     return this;
@@ -699,6 +710,10 @@
 
       if (typeof this.s.init.bResizeTable != 'undefined') {
         this.s.bResizeTable = this.s.init.bResizeTable;
+      }
+
+      if (typeof this.s.init.bResizeTableWrapper != 'undefined') {
+        this.s.bResizeTableWrapper = this.s.init.bResizeTableWrapper;
       }
 
       if (typeof this.s.init.bAddFixed != 'undefined') {
@@ -1376,7 +1391,9 @@
           }
         }
 
-        $(this.s.dt.nTableWrapper).width($(this.s.dt.nTable).width());
+        if (this.s.bResizeTableWrapper) {
+          $(this.s.dt.nTableWrapper).width($(this.s.dt.nTable).width());
+        }
 
         //Save the state
         this.s.dt.oInstance.oApi._fnSaveState(this.s.dt);

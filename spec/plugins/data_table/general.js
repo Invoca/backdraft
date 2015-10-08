@@ -557,13 +557,57 @@ describe("DataTable Plugin", function() {
       expect(reorderableSpy).not.toHaveBeenCalled();
     });
 
+    it("should default column resize to off", function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+
+      app.view.dataTable("def", {
+        rowClassName : "abc"
+      });
+
+      var table = new app.Views.def({ collection : collection }).render();
+
+      expect(table.resizableColumns).toEqual(false, "Table resizableColumns default");
+      expect(table._colReorder.s.allowResize).toEqual(false, "ColReorder allowResize");
+      expect(table._colReorder.s.allowReorder).toEqual(true, "ColReorder allowReorder");
+    });
+
+    it("should allow columns to be resized with flag", function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        resizableColumns : true
+      });
+
+      var table = new app.Views.def({ collection : collection }).render();
+
+      expect(table.resizableColumns).toEqual(true, "Table resizableColumns default");
+      expect(table._colReorder.s.allowResize).toEqual(true, "ColReorder allowResize");
+      expect(table._colReorder.s.allowReorder).toEqual(true, "ColReorder allowReorder");
+
+      // these should set to off as they cause display issues
+      expect(table._colReorder.s.bAddFixed).toEqual(false, "ColReorder bAddFixed");
+      expect(table._colReorder.s.bResizeTableWrapper).toEqual(false, "ColReorder bResizeTableWrapper");
+      expect(table._colReorder.s.allowHeaderDoubleClick).toEqual(false, "ColReorder allowHeaderDoubleClick");
+    });
+
     it("should keep track of columns being reordered", function() {
       app.view.dataTable.row("abc", {
         columns : [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" },
           { attr: "location", title: "Location" },
-          { attr: "bday", title: "Birthday" },
+          { attr: "bday", title: "Birthday" }
         ]
       });
       app.view.dataTable("def", {
@@ -576,8 +620,8 @@ describe("DataTable Plugin", function() {
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Name", "Age", "Location", "Birthday"]);
       // move the Birthday column at index 3 to in front of Name column at index 0
       // note that we need to manually trigger the drag drop callback since we aren't actually dragging in the test
-      table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
-      table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0);
+      table._colReorder.fnOrder([3, 0, 1, 2]);
+      table._colReorder.s.dropCallback(3, 0);
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Birthday", "Name", "Age", "Location"]);
 
       // ensure that our internal title to index mappings are up to date
@@ -616,10 +660,10 @@ describe("DataTable Plugin", function() {
       });
 
       it("should restore column order", function() {
-        table.dataTable.fnSettings()._colReorder.fnOrder([3, 0, 1, 2]);
-        table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 0);
-        table.dataTable.fnSettings()._colReorder.fnOrder([0, 1, 3, 2]);
-        table.dataTable.fnSettings()._colReorder.s.dropCallback(3, 2);
+        table._colReorder.fnOrder([3, 0, 1, 2]);
+        table._colReorder.s.dropCallback(3, 0);
+        table._colReorder.fnOrder([0, 1, 3, 2]);
+        table._colReorder.s.dropCallback(3, 2);
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr4', 'Attr1', 'Attr3', 'Attr2']);
         expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(1);
 

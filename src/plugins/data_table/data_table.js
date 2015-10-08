@@ -166,13 +166,17 @@ var LocalDataTable = (function() {
 
     _enableReorderableColumns: function() {
       var self = this;
-      new $.fn.dataTable.ColReorder(this.dataTable, {
+      self._colReorder = new $.fn.dataTable.ColReorder(this.dataTable, {
         fnReorderCallback: function(fromIndex, toIndex) {
           // notify that columns have been externally rearranged
           self._columnManager.columnsSwapped(fromIndex, toIndex);
           // pass event up
           self._onColumnReorder();
-        }
+        },
+        bAddFixed: false,
+        bResizeTableWrapper: false,
+        allowHeaderDoubleClick: false,
+        allowResize: self.resizableColumns
       });
     },
 
@@ -183,11 +187,11 @@ var LocalDataTable = (function() {
     _changeColumnOrder: function(order) {
       var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
       if (_.isArray(order)) {
-        this.dataTable.fnSettings()._colReorder.fnOrder(order);
+        this._colReorder.fnOrder(order);
       } else if (_.has(order, 'reset') && order.reset) {
-        this.dataTable.fnSettings()._colReorder.fnReset();
+        this._colReorder.fnReset();
       } else {
-        return this.dataTable.fnSettings()._colReorder.fnOrder();
+        return this._colReorder.fnOrder();
       }
 
       // restore columnsConfig order to match the underlying order from dataTable
@@ -226,6 +230,7 @@ var LocalDataTable = (function() {
         filteringEnabled: false,
         layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
         reorderableColumns: true,
+        resizableColumns: false,
         objectName: {
           singular: "row",
           plural: "rows"

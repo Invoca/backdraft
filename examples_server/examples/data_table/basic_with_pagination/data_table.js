@@ -52,7 +52,9 @@ Backdraft.app("TableExample", function(app) {
 
     rowClassName : "BookRow",
 
-    layout : "t<'row'<'col-xs-4'p><'col-xs-4'l><'col-xs-4'i>>"
+    layout : "t<'row'<'col-xs-4'p><'col-xs-4'l><'col-xs-4'i>>",
+
+    resizableColumns: true
 
   });
 
