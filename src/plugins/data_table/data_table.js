@@ -172,7 +172,10 @@ var LocalDataTable = (function() {
           self._columnManager.columnsSwapped(fromIndex, toIndex);
           // pass event up
           self._onColumnReorder();
-        }
+        },
+        // iFixedColumns configures how many columns should be unmovable starting from left
+        // if the first column is the bulk column we make it unmovable
+        iFixedColumns: this.$el.find("th:first.bulk :checkbox").length
       });
     },
 
