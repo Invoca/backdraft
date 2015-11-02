@@ -316,7 +316,10 @@ var LocalDataTable = (function() {
         fnCreatedRow : this._onRowCreated,
         aoColumns : this._columnManager.dataTableColumnsConfig(),
         aaSorting : this._columnManager.dataTableSortingConfig(),
-        fnDrawCallback : this._onDraw
+        fnDrawCallback : this._onDraw,
+        oLanguage: {
+          sEmptyTable: this.emptyText
+        }
       };
     },
 
