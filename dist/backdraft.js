@@ -1396,7 +1396,10 @@ _.extend(Plugin.factory, {
         fnCreatedRow : this._onRowCreated,
         aoColumns : this._columnManager.dataTableColumnsConfig(),
         aaSorting : this._columnManager.dataTableSortingConfig(),
-        fnDrawCallback : this._onDraw
+        fnDrawCallback : this._onDraw,
+        oLanguage: {
+          sEmptyTable: this.emptyText
+        }
       };
     },
 
@@ -1826,7 +1829,7 @@ _.extend(Plugin.factory, {
     _dataTableConfig : function() {
       var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
-      return _.extend(config, {
+      return $.extend(true, config, {
         bProcessing : true,
         bServerSide : true,
         sAjaxSource : _.result(this.collection, "url"),
@@ -1834,8 +1837,7 @@ _.extend(Plugin.factory, {
         fnServerParams : this._addServerParams,
         fnDrawCallback : this._onDraw,
         oLanguage: {
-          sProcessing: this.processingText,
-          sEmptyTable: this.emptyText
+          sProcessing: this.processingText
         }
       });
     },
