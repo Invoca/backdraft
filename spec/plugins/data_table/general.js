@@ -152,8 +152,10 @@ describe("DataTable Plugin", function() {
 
     describe("bulk", function() {
       beforeEach(function() {
+        collection.add({ name : "Name" });
         app.view.dataTable.row("R", {
           columns : [
+            { attr : "name", title : "Name" },
             { bulk : true }
           ]
         });
@@ -165,7 +167,7 @@ describe("DataTable Plugin", function() {
         table.render();
       });
 
-      it("should insert a checkbox", function() {
+      it("should insert a checkbox as first column", function() {
         collection.add({});
         expect(table.$("tbody tr td:first :checkbox").length).toEqual(1);
       });

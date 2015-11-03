@@ -31,6 +31,11 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       }
     });
 
+    // make the bulk column the first one if present
+    this.columnsConfig = _.sortBy(this.columnsConfig, function (columnConfig) {
+      return !columnConfig.bulk;
+    });
+
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
       var definition = columnType.definition()(this.table, config);
