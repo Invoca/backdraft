@@ -355,8 +355,6 @@ var LocalDataTable = (function() {
             event.stopImmediatePropagation();
           }
         });
-        // default sort handler for column with index
-        self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
       });
     },
 
