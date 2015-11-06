@@ -527,6 +527,11 @@ _.extend(Plugin.factory, {
       }
     });
 
+    // make the bulk column the first one if present
+    this.columnsConfig = _.sortBy(this.columnsConfig, function (columnConfig) {
+      return !columnConfig.bulk;
+    });
+
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
       var definition = columnType.definition()(this.table, config);
@@ -1083,6 +1088,8 @@ _.extend(Plugin.factory, {
   var Base = Backdraft.plugin("Base");
 
   var LocalDataTable = Base.View.extend({
+    BULK_COLUMN_HEADER_CHECKBOX_SELECTOR : "th:first.bulk :checkbox",
+    BULK_COLUMN_CHECKBOXES_SELECTOR : "td:first-child.bulk :checkbox",
 
     template : '\
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
@@ -1257,6 +1264,9 @@ _.extend(Plugin.factory, {
         bResizeTableWrapper: false,
         allowHeaderDoubleClick: false,
         allowResize: self.resizableColumns
+        // iFixedColumns configures how many columns should be unmovable starting from left
+        // if the first column is the bulk column we make it unmovable
+        iFixedColumns: this.$el.find(this.BULK_COLUMN_HEADER_CHECKBOX_SELECTOR).length
       });
     },
 
@@ -1382,11 +1392,11 @@ _.extend(Plugin.factory, {
     },
 
     _initBulkHandling : function() {
-      var bulkCheckbox = this.$el.find("th.bulk :checkbox");
+      var bulkCheckbox = this.$el.find(this.BULK_COLUMN_HEADER_CHECKBOX_SELECTOR);
       if (!bulkCheckbox.length) return;
       this.bulkCheckbox = bulkCheckbox;
       this.bulkCheckbox.click(this._onBulkHeaderClick);
-      this.dataTable.on("click", "td.bulk :checkbox", this._onBulkRowClick);
+      this.dataTable.on("click", this.BULK_COLUMN_CHECKBOXES_SELECTOR, this._onBulkRowClick);
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
     },
 
@@ -1401,7 +1411,10 @@ _.extend(Plugin.factory, {
         fnCreatedRow : this._onRowCreated,
         aoColumns : this._columnManager.dataTableColumnsConfig(),
         aaSorting : this._columnManager.dataTableSortingConfig(),
-        fnDrawCallback : this._onDraw
+        fnDrawCallback : this._onDraw,
+        oLanguage: {
+          sEmptyTable: this.emptyText
+        }
       };
     },
 
@@ -1831,7 +1844,7 @@ _.extend(Plugin.factory, {
     _dataTableConfig : function() {
       var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
-      return _.extend(config, {
+      return $.extend(true, config, {
         bProcessing : true,
         bServerSide : true,
         sAjaxSource : _.result(this.collection, "url"),
@@ -1839,8 +1852,7 @@ _.extend(Plugin.factory, {
         fnServerParams : this._addServerParams,
         fnDrawCallback : this._onDraw,
         oLanguage: {
-          sProcessing: this.processingText,
-          sEmptyTable: this.emptyText
+          sProcessing: this.processingText
         }
       });
     },
@@ -3785,7 +3797,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
 
 })(jQuery, window, document);
-
 
 
     app.view.dataTable = function(name, baseClassName, properties) {

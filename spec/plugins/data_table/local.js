@@ -104,6 +104,27 @@ describe("DataTable Plugin", function() {
         });
       });
     });
+
+    describe("customization", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "name", title : "Name" }
+          ]
+        });
+      });
+
+      it("should allow a empty text to be provided", function() {
+        app.view.dataTable("TableWithEmptyText", {
+          rowClassName : "R",
+          emptyText: "Sad, there is nothing here!"
+        });
+
+        table = new app.Views.TableWithEmptyText({ collection : collection });
+        table.render();
+        expect(table.$(".dataTables_empty").text()).toEqual("Sad, there is nothing here!");
+      });
+    });
   });
 
   describe("local data store pagination", function() {
