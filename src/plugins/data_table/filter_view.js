@@ -8,6 +8,7 @@ var DataTableFilter = (function(options) {
   };
 
   var DataTableFilterMenu = Base.View.extend({
+    filterMenuClass: "",
     menuTemplate: _.template(''), // to be overridden by subclasses
 
     initialize: function (options) {
@@ -55,8 +56,14 @@ var DataTableFilter = (function(options) {
   });
 
   var StringFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-string",
+
     menuTemplate: _.template('\
-        <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+        <div class="filter-text">Show:</div>\
+        <div class="icon-addon addon-sm">\
+          <input class="filter-string form-control input-sm" id="value" type="text" name="filter-string" />\
+          <label for="filter-string" class="glyphicon glyphicon-search"></label>\
+        </div>\
       ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
@@ -72,6 +79,7 @@ var DataTableFilter = (function(options) {
   });
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-numeric",
     tagName: "ul",
 
     menuTemplate: _.template('\
@@ -94,17 +102,21 @@ var DataTableFilter = (function(options) {
   });
 
   var ListFilterMenu = DataTableFilterMenu.extend({
-    tagName: "ul",
+    filterMenuClass: "filterMenu-list",
 
     menuTemplate: _.template('\
-        <% _.each(filter.options, function(element, index) { %>\
-          <li>\
-            <label>\
-              <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
-              <%= element %>\
-            </label>\
-          </li>\
-        <% }) %>\
+        <div class="filter-text">Show:</div>\
+        <a class="select-all" href="#">Select all</a>\
+        <ul>\
+          <% _.each(filter.options, function(element, index) { %>\
+            <li>\
+              <label>\
+                <input class="list list-item-input" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+                <%= element %>\
+              </label>\
+            </li>\
+          <% }) %>\
+        </ul>\
       ', null, DEFAULT_JST_DELIMS),
 
     afterRender: function () {
@@ -118,7 +130,7 @@ var DataTableFilter = (function(options) {
         listClass = "single";
       }
 
-      this.$el.addClass(listClass);
+      this.$('ul').addClass(listClass);
     },
 
     _onInputChange: function (event) {
@@ -147,9 +159,9 @@ var DataTableFilter = (function(options) {
         <div class="toggle-filter-button" data-toggle="dropdown">\
           <span class="<%= filterButtonClass %>"></span>\
         </div>\
-        <div class="filterMenu dropdown-menu">\
-          <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
-          <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
+        <div class="filterMenu <%= filterMenuClass %> dropdown-menu">\
+          <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
+          <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
         </div>\
       ', null, DEFAULT_JST_DELIMS),
 
@@ -187,7 +199,8 @@ var DataTableFilter = (function(options) {
 
     render: function () {
       this.$el.html(this.template({
-        filterButtonClass: this.filterButtonClass
+        filterButtonClass: this.filterButtonClass,
+        filterMenuClass: this.child("filter-menu").filterMenuClass
       }));
 
       $(".filterMenu", this.$el).prepend(this.child("filter-menu").render().$el);
