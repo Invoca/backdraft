@@ -130,7 +130,7 @@ var DataTableFilter = (function(options) {
         listClass = "single";
       }
 
-      this.$('ul').addClass(listClass);
+      this.$("ul").addClass(listClass);
     },
 
     _onInputChange: function (event) {
