@@ -106,7 +106,7 @@ var DataTableFilter = (function(options) {
 
     menuTemplate: _.template('\
         <div class="filter-text">Show:</div>\
-        <a class="select-all" href="#">Select all</a>\
+        <a class="select-all" href="javascript:;">Select all</a>\
         <ul>\
           <% _.each(filter.options, function(element, index) { %>\
             <li>\
@@ -131,6 +131,13 @@ var DataTableFilter = (function(options) {
       }
 
       this.$("ul").addClass(listClass);
+      this.$(".select-all").click(this._selectAll.bind(this));
+    },
+
+    _selectAll: function(event) {
+      this.$('li input').each(function(i, el) {
+        this.$(el).click();
+      }.bind(this));
     },
 
     _onInputChange: function (event) {
