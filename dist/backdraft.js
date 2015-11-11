@@ -791,6 +791,7 @@ _.extend(Plugin.factory, {
   };
 
   var DataTableFilterMenu = Base.View.extend({
+    filterMenuClass: "",
     menuTemplate: _.template(''), // to be overridden by subclasses
 
     initialize: function (options) {
@@ -838,8 +839,14 @@ _.extend(Plugin.factory, {
   });
 
   var StringFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-string",
+
     menuTemplate: _.template('\
-        <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+        <div class="filter-text">Show:</div>\
+        <div class="icon-addon addon-sm">\
+          <input class="filter-string form-control input-sm" id="value" type="text" name="filter-string" />\
+          <label for="filter-string" class="glyphicon glyphicon-search"></label>\
+        </div>\
       ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
@@ -855,39 +862,62 @@ _.extend(Plugin.factory, {
   });
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
-    tagName: "ul",
-
+    filterMenuClass: "filterMenu-numeric",
     menuTemplate: _.template('\
-        <li> &gt; <input data-numeric-filter-name="gt" class="filter-numeric filter-numeric-greater" type="text" /></li> \
-        <li> &lt; <input data-numeric-filter-name="lt" class="filter-numeric filter-numeric-less" type="text"/></li> \
-        <li> = <input data-numeric-filter-name="eq" class="filter-numeric filter-numeric-equal" type="text" /></li> \
-      ', null, DEFAULT_JST_DELIMS),
+      <div class="filter-text">Show items with value that:</div>\
+      <select class="filter-type" data-filter-id="first-filter">\
+        <option selected value="gt">is greater than</option> \
+        <option value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="first-filter" class="filter-value" type="text" data-filter-type="gt"  /> \
+      <div class="filter-text">and</div> \
+      <select class="filter-type" data-filter-id="second-filter">\
+        <option value="gt">is greater than</option> \
+        <option selected value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="second-filter" class="filter-value" type="text" data-filter-type="lt" /> \
+    ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
-      var filterInput = event.target;
-      var numericValueName = $(filterInput).attr("data-numeric-filter-name");
-      if (filterInput.value === "") {
-        this.filter[numericValueName] = null;
+      event.stopImmediatePropagation();
+      var filterType = event.target.getAttribute('data-filter-type'),
+          filterValue = event.target.value;
+      if (filterValue === "") {
+        this.filter[filterType] = null;
         this.parentView._toggleIcon(false);
       } else {
-        this.filter[numericValueName] = filterInput.value;
+        this.filter[filterType] = filterValue;
         this.parentView._toggleIcon(true);
       }
+    },
+
+    afterRender: function() {
+      this.$('.filter-type').select2().bind('change', function(event) {
+        var filterElementId = event.target.getAttribute('data-filter-id'),
+          filterType = event.target.value;
+        $('#'+filterElementId).attr('data-filter-type', filterType);
+      });
     }
   });
 
   var ListFilterMenu = DataTableFilterMenu.extend({
-    tagName: "ul",
+    filterMenuClass: "filterMenu-list",
 
     menuTemplate: _.template('\
-        <% _.each(filter.options, function(element, index) { %>\
-          <li>\
-            <label>\
-              <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
-              <%= element %>\
-            </label>\
-          </li>\
-        <% }) %>\
+        <div class="filter-text">Show:</div>\
+        <a class="select-all" href="javascript:;">Select all</a>\
+        <ul>\
+          <% _.each(filter.options, function(element, index) { %>\
+            <li>\
+              <label>\
+                <input class="list list-item-input" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+                <%= element %>\
+              </label>\
+            </li>\
+          <% }) %>\
+        </ul>\
       ', null, DEFAULT_JST_DELIMS),
 
     afterRender: function () {
@@ -901,7 +931,14 @@ _.extend(Plugin.factory, {
         listClass = "single";
       }
 
-      this.$el.addClass(listClass);
+      this.$("ul").addClass(listClass);
+      this.$(".select-all").click(this._selectAll.bind(this));
+    },
+
+    _selectAll: function(event) {
+      this.$('li input').each(function(i, el) {
+        this.$(el).click();
+      }.bind(this));
     },
 
     _onInputChange: function (event) {
@@ -930,9 +967,9 @@ _.extend(Plugin.factory, {
         <div class="toggle-filter-button" data-toggle="dropdown">\
           <span class="<%= filterButtonClass %>"></span>\
         </div>\
-        <div class="filterMenu dropdown-menu">\
-          <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
-          <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
+        <div class="filterMenu <%= filterMenuClass %> dropdown-menu">\
+          <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
+          <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
         </div>\
       ', null, DEFAULT_JST_DELIMS),
 
@@ -970,7 +1007,8 @@ _.extend(Plugin.factory, {
 
     render: function () {
       this.$el.html(this.template({
-        filterButtonClass: this.filterButtonClass
+        filterButtonClass: this.filterButtonClass,
+        filterMenuClass: this.child("filter-menu").filterMenuClass
       }));
 
       $(".filterMenu", this.$el).prepend(this.child("filter-menu").render().$el);
@@ -978,7 +1016,7 @@ _.extend(Plugin.factory, {
     },
 
     _toggleIcon: function (enabled) {
-      var icon = $("span", this.$el);
+      var icon = $(".toggle-filter-button>span", this.$el);
       icon.removeClass("filterActive");
       icon.removeClass("filterInactive");
       if (enabled) {
@@ -1021,6 +1059,7 @@ _.extend(Plugin.factory, {
 
   return new DataTableFilter(options);
 });
+
   var Row = (function() {
 
   var Base = Backdraft.plugin("Base");

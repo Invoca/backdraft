@@ -80,24 +80,42 @@ var DataTableFilter = (function(options) {
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
     filterMenuClass: "filterMenu-numeric",
-    tagName: "ul",
-
     menuTemplate: _.template('\
-        <li> &gt; <input data-numeric-filter-name="gt" class="filter-numeric filter-numeric-greater" type="text" /></li> \
-        <li> &lt; <input data-numeric-filter-name="lt" class="filter-numeric filter-numeric-less" type="text"/></li> \
-        <li> = <input data-numeric-filter-name="eq" class="filter-numeric filter-numeric-equal" type="text" /></li> \
-      ', null, DEFAULT_JST_DELIMS),
+      <div class="filter-text">Show items with value that:</div>\
+      <select class="filter-type" data-filter-id="first-filter">\
+        <option selected value="gt">is greater than</option> \
+        <option value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="first-filter" class="filter-value" type="text" data-filter-type="gt"  /> \
+      <div class="filter-text">and</div> \
+      <select class="filter-type" data-filter-id="second-filter">\
+        <option value="gt">is greater than</option> \
+        <option selected value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="second-filter" class="filter-value" type="text" data-filter-type="lt" /> \
+    ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
-      var filterInput = event.target;
-      var numericValueName = $(filterInput).attr("data-numeric-filter-name");
-      if (filterInput.value === "") {
-        this.filter[numericValueName] = null;
+      event.stopImmediatePropagation();
+      var filterType = event.target.getAttribute('data-filter-type'),
+          filterValue = event.target.value;
+      if (filterValue === "") {
+        this.filter[filterType] = null;
         this.parentView._toggleIcon(false);
       } else {
-        this.filter[numericValueName] = filterInput.value;
+        this.filter[filterType] = filterValue;
         this.parentView._toggleIcon(true);
       }
+    },
+
+    afterRender: function() {
+      this.$('.filter-type').select2().bind('change', function(event) {
+        var filterElementId = event.target.getAttribute('data-filter-id'),
+          filterType = event.target.value;
+        $('#'+filterElementId).attr('data-filter-type', filterType);
+      });
     }
   });
 
@@ -215,7 +233,7 @@ var DataTableFilter = (function(options) {
     },
 
     _toggleIcon: function (enabled) {
-      var icon = $("span", this.$el);
+      var icon = $(".toggle-filter-button>span", this.$el);
       icon.removeClass("filterActive");
       icon.removeClass("filterInactive");
       if (enabled) {
