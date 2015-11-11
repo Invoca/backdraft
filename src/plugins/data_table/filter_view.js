@@ -80,6 +80,7 @@ var DataTableFilter = (function(options) {
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
     filterMenuClass: "filterMenu-numeric",
+
     menuTemplate: _.template('\
       <div class="filter-text">Show items with value that:</div>\
       <select class="filter-type" data-filter-id="first-filter">\
@@ -111,11 +112,11 @@ var DataTableFilter = (function(options) {
     },
 
     afterRender: function() {
-      this.$('.filter-type').select2().bind('change', function(event) {
+      this.$('.filter-type').bind('change', function(event) {
         var filterElementId = event.target.getAttribute('data-filter-id'),
           filterType = event.target.value;
-        $('#'+filterElementId).attr('data-filter-type', filterType);
-      });
+        this.$('#'+filterElementId).attr('data-filter-type', filterType);
+      }.bind(this));
     }
   });
 
