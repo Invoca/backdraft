@@ -83,19 +83,19 @@ var DataTableFilter = (function(options) {
 
     menuTemplate: _.template('\
       <div class="filter-text">Show items with value that:</div>\
-      <select class="filter-type" data-filter-id="first-filter">\
+      <select class="filter-type form-control" data-filter-id="first-filter">\
         <option selected value="gt">is greater than</option> \
         <option value="lt">is less than</option> \
         <option value="eq">is equal to</option> \
       </select> \
-      <input id="first-filter" class="filter-value" type="text" data-filter-type="gt"  /> \
+      <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt"  /> \
       <div class="filter-text">and</div> \
-      <select class="filter-type" data-filter-id="second-filter">\
+      <select class="filter-type form-control" data-filter-id="second-filter">\
         <option value="gt">is greater than</option> \
         <option selected value="lt">is less than</option> \
         <option value="eq">is equal to</option> \
       </select> \
-      <input id="second-filter" class="filter-value" type="text" data-filter-type="lt" /> \
+      <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
     ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
