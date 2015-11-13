@@ -1183,20 +1183,28 @@
         var nThNext = $(nTh).next();
         var moveLength = e.pageX - this.s.mouse.startX;
         var newWidth = this.s.mouse.startWidth + moveLength;
+        var newWidthNoScrollX = this.s.mouse.nextStartWidth - moveLength;
+        var newTableWidth = this.table_size + moveLength;
         // set a min width of 10 - this would be good to configure
         if (newWidth < this.s.minResizeWidth) {
           newWidth = this.s.minResizeWidth;
           moveLength = newWidth - this.s.mouse.startWidth ;
         }
         if (moveLength !== 0 && !scrollXEnabled) {
-          $(nThNext).width(this.s.mouse.nextStartWidth - moveLength);
+          $(nThNext).width(newWidthNoScrollX);
+          // browser fix
+          $(nThNext).css('min-width',newWidthNoScrollX);
         }
-        $(nTh).width(this.s.mouse.startWidth + moveLength);
+        $(nTh).width(newWidth);
+        //browser fix
+        $(nTh).css('min-width',newWidth);
 
         //Martin Marchetta: Resize the header too (if sScrollX is enabled)
         if (scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length) {
           if ($('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length > 0)
-            $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width(this.table_size + moveLength);
+            $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width(newTableWidth);
+            //browser fix
+            $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).css('min-width',newTableWidth);
         }
 
         ////////////////////////
@@ -1223,13 +1231,20 @@
 
             //Resize the columns
             if (moveLength  && !scrollXEnabled) {
-              $($(scrollingTableHead)[0].childNodes[visibleColumnIndex + 1]).width(this.s.mouse.nextStartWidth - moveLength);
+              $($(scrollingTableHead)[0].childNodes[visibleColumnIndex + 1]).width(newWidthNoScrollX);
+              // browser fix
+              $($(scrollingTableHead)[0].childNodes[visibleColumnIndex + 1]).css('min-width',newWidthNoScrollX);
             }
-            $($(scrollingTableHead)[0].childNodes[visibleColumnIndex]).width(this.s.mouse.startWidth + moveLength);
+            $($(scrollingTableHead)[0].childNodes[visibleColumnIndex]).width(newWidth);
+            // browser fix
+            $($(scrollingTableHead)[0].childNodes[visibleColumnIndex]).css('min-width',newWidth);
 
             //Resize the table too
             if (scrollXEnabled) {
-              $($(tableScroller)[0].childNodes[0]).width(this.table_size + moveLength);
+              $($(tableScroller)[0].childNodes[0]).width(newTableWidth);
+              // browser fix
+              $($(tableScroller)[0].childNodes[0]).css('min-width',newTableWidth);
+              console.log('scrollXenabled');
             }
           }
         }
@@ -1237,6 +1252,8 @@
         if (this.s.bResizeTable) {
           var tableMove = this.s.tableWidth + moveLength;
           $(nTh).closest('table').width(tableMove);
+          // browser fix
+          $(nTh).closest('table').css('min-width',tableMove);
           this.s.fnResizeTableCallback($(nTh).closest('table'),tableMove,moveLength);
         }
 
