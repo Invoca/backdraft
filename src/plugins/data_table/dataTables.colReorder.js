@@ -1244,7 +1244,6 @@
               $($(tableScroller)[0].childNodes[0]).width(newTableWidth);
               // browser fix
               $($(tableScroller)[0].childNodes[0]).css('min-width',newTableWidth);
-              console.log('scrollXenabled');
             }
           }
         }

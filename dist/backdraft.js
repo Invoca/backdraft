@@ -1361,6 +1361,10 @@ _.extend(Plugin.factory, {
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
+      // if resizeable, add resizeable class
+      if (this._colReorder.s.allowResize) {
+        this.$("table").addClass('resizeableColumns')
+      }
     },
 
     _areAllVisibleRowsSelected : function() {
@@ -3265,7 +3269,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
               $($(tableScroller)[0].childNodes[0]).width(newTableWidth);
               // browser fix
               $($(tableScroller)[0].childNodes[0]).css('min-width',newTableWidth);
-              console.log('scrollXenabled');
             }
           }
         }

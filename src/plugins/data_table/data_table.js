@@ -276,6 +276,10 @@ var LocalDataTable = (function() {
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
+      // if resizeable, add resizeable class
+      if (this._colReorder.s.allowResize) {
+        this.$("table").addClass('resizeableColumns')
+      }
     },
 
     _areAllVisibleRowsSelected : function() {
