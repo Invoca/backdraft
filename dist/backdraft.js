@@ -1362,8 +1362,8 @@ _.extend(Plugin.factory, {
       this._columnManager.applyVisibilityPreferences();
       if (this.collection.length) this._onReset(this.collection);
       // if resizeable, add resizeable class
-      if (this._colReorder.s.allowResize) {
-        this.$('table').addClass('resizeableColumns');
+      if (this._colReorder && this._colReorder.s.allowResize) {
+        this.$("table").addClass('dataTable-resizeableColumns')
       }
     },
 

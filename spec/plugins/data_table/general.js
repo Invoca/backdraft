@@ -603,6 +603,40 @@ describe("DataTable Plugin", function() {
       expect(table._colReorder.s.allowHeaderDoubleClick).toEqual(false, "ColReorder allowHeaderDoubleClick");
     });
 
+    it('should add dataTable-resizeableColumns class to resizable tables', function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        resizableColumns : true
+      });
+
+      var table = new app.Views.def({ collection : collection }).render();
+      expect(table.$el.find('table').hasClass('dataTable-resizeableColumns')).toEqual(true, 'Has class dataTable-resizeableColumns');
+    });
+
+    it('should not add dataTable-resizeableColumns class to non-resizable tables', function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        resizableColumns : false
+      });
+
+      var table = new app.Views.def({ collection : collection }).render();
+      expect(table.$el.find('table').hasClass('dataTable-resizeableColumns')).toEqual(false, 'Has class dataTable-resizeableColumns');
+    });
+
     it("should keep track of columns being reordered", function() {
       app.view.dataTable.row("abc", {
         columns : [
