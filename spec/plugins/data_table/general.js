@@ -603,7 +603,7 @@ describe("DataTable Plugin", function() {
       expect(table._colReorder.s.allowHeaderDoubleClick).toEqual(false, "ColReorder allowHeaderDoubleClick");
     });
 
-    it('should add dataTable-resizeableColumns class to resizable tables', function() {
+    it("should add dataTable-resizeableColumns class to resizable tables", function() {
       app.view.dataTable.row("abc", {
         columns : [
           { attr: "name", title: "Name" },
@@ -617,10 +617,10 @@ describe("DataTable Plugin", function() {
       });
 
       var table = new app.Views.def({ collection : collection }).render();
-      expect(table.$el.find('table').hasClass('dataTable-resizeableColumns')).toEqual(true, 'Has class dataTable-resizeableColumns');
+      expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(true, "Has class dataTable-resizeableColumns");
     });
 
-    it('should not add dataTable-resizeableColumns class to non-resizable tables', function() {
+    it("should not add dataTable-resizeableColumns class to non-resizable tables", function() {
       app.view.dataTable.row("abc", {
         columns : [
           { attr: "name", title: "Name" },
@@ -634,7 +634,7 @@ describe("DataTable Plugin", function() {
       });
 
       var table = new app.Views.def({ collection : collection }).render();
-      expect(table.$el.find('table').hasClass('dataTable-resizeableColumns')).toEqual(false, 'Has class dataTable-resizeableColumns');
+      expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(false, "Has class dataTable-resizeableColumns");
     });
 
     it("should keep track of columns being reordered", function() {

@@ -1363,7 +1363,7 @@ _.extend(Plugin.factory, {
       if (this.collection.length) this._onReset(this.collection);
       // if resizeable, add resizeable class
       if (this._colReorder && this._colReorder.s.allowResize) {
-        this.$("table").addClass('dataTable-resizeableColumns')
+        this.$("table").addClass("dataTable-resizeableColumns")
       }
     },
 
