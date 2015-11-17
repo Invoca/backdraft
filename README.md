@@ -132,7 +132,12 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
  * ```nvm alias default 0.10.26```
 * Install grunt-cli
  * ```npm install -g grunt-cli```
+* Install dependencies
 
+  ```
+  cd backdraft
+  npm install
+  ```
 
 ### Testing
 
