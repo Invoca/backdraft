@@ -791,7 +791,16 @@ _.extend(Plugin.factory, {
   };
 
   var DataTableFilterMenu = Base.View.extend({
+    filterMenuClass: "",
+
     menuTemplate: _.template(''), // to be overridden by subclasses
+    parentMenuTemplate: _.template('\
+      <div class="filterMenu <%= filterMenuClass %>">\
+        <%= menuTemplate %>\
+        <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
+        <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
+      </div>\
+      ', null, DEFAULT_JST_DELIMS),
 
     initialize: function (options) {
       this.filter = options.column.filter;
@@ -808,14 +817,20 @@ _.extend(Plugin.factory, {
     render: function () {
       this.beforeRender();
 
-      this.$el.html(this.menuTemplate({
-        filter: this.filter,
-        attr: this.attr,
-        title: this.title,
-        parentView: this.parentView
+      this.$el.html(this.parentMenuTemplate({
+        filterMenuClass: this.filterMenuClass,
+        menuTemplate: this.menuTemplate({
+          filter: this.filter,
+          attr: this.attr,
+          title: this.title,
+          parentView: this.parentView
+        })
       }));
 
       this.afterRender();
+
+      this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
+      this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
       return this;
     },
 
@@ -838,15 +853,13 @@ _.extend(Plugin.factory, {
   });
 
   var StringFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-string",
+
     menuTemplate: _.template('\
-      <div class="filterMenu filterMenu-string">\
-        <div class="filter-text">Show:</div>\
-        <div class="icon-addon addon-sm">\
-          <input class="filter-string form-control input-sm" id="value" type="text" name="filter-string" />\
-          <label for="filter-string" class="glyphicon glyphicon-search"></label>\
-        </div>\
-        <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
-        <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
+      <div class="filter-text">Show:</div>\
+      <div class="icon-addon addon-sm">\
+        <input class="filter-string form-control input-sm" type="text" name="filter-string" />\
+        <label for="filter-string" class="glyphicon glyphicon-search"></label>\
       </div>\
       ', null, DEFAULT_JST_DELIMS),
 
@@ -861,32 +874,29 @@ _.extend(Plugin.factory, {
       }
     },
 
-    afterRender: function() {
-      this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
-      this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
+    clear: function() {
+      this.$("input[type=text]").val("").trigger("change");
     }
   });
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-numeric",
+
     menuTemplate: _.template('\
-      <div class="filterMenu filterMenu-numeric">\
-        <div class="filter-text">Show items with value that:</div>\
-        <select class="filter-type form-control" data-filter-id="first-filter">\
-          <option selected value="gt">is greater than</option> \
-          <option value="lt">is less than</option> \
-          <option value="eq">is equal to</option> \
-        </select> \
-        <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt"  /> \
-        <div class="filter-text">and</div> \
-        <select class="filter-type form-control" data-filter-id="second-filter">\
-          <option value="gt">is greater than</option> \
-          <option selected value="lt">is less than</option> \
-          <option value="eq">is equal to</option> \
-        </select> \
-        <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
-        <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
-        <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
-      </div>\
+      <div class="filter-text">Show items with value that:</div> \
+      <select class="filter-type form-control" data-filter-id="first-filter">\
+        <option selected value="gt">is greater than</option> \
+        <option value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
+      <div class="filter-text">and</div> \
+      <select class="filter-type form-control" data-filter-id="second-filter">\
+        <option value="gt">is greater than</option> \
+        <option selected value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
     ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
@@ -908,30 +918,31 @@ _.extend(Plugin.factory, {
           filterType = event.target.value;
         $('#'+filterElementId).attr('data-filter-type', filterType);
       });
+    },
 
-      this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
-      this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
+    clear: function() {
+      this.$("input[type=text]").val("").trigger("change");
+      this.$("select[data-filter-id=first-filter]").val("gt").trigger("change");
+      this.$("select[data-filter-id=second-filter]").val("lt").trigger("change");
     }
   });
 
   var ListFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-list",
+
     menuTemplate: _.template('\
-      <div class="filterMenu filterMenu-list">\
-        <div class="filter-text">Show:</div>\
-        <a class="select-all" href="javascript:;">Select all</a>\
-        <ul>\
-          <% _.each(filter.options, function(element, index) { %>\
-            <li>\
-              <label>\
-                <input class="list list-item-input" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
-                <%= element %>\
-              </label>\
-            </li>\
-          <% }) %>\
-        </ul>\
-        <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
-        <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
-      </div>\
+      <div class="filter-text">Show:</div>\
+      <a class="select-all" href="javascript:;">Select all</a>\
+      <ul>\
+        <% _.each(filter.options, function(element, index) { %>\
+          <li>\
+            <label>\
+              <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+              <%= element %>\
+            </label>\
+          </li>\
+        <% }) %>\
+      </ul>\
       ', null, DEFAULT_JST_DELIMS),
 
     afterRender: function () {
@@ -947,9 +958,6 @@ _.extend(Plugin.factory, {
 
       this.$("ul").addClass(listClass);
       this.$(".select-all").click(this._selectAll.bind(this));
-
-      this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
-      this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
     },
 
     _selectAll: function(event) {
@@ -976,6 +984,10 @@ _.extend(Plugin.factory, {
           this.parentView._toggleIcon(false);
         }
       }
+    },
+
+    clear: function() {
+      this.$("input[type=checkbox]").attr("checked", false).trigger("change");
     }
   });
 
@@ -1050,9 +1062,7 @@ _.extend(Plugin.factory, {
     },
 
     _onClearClick: function () {
-      $("input[type=text]", this.child("filter-menu").$el).val("");
-      $("input[type=checkbox]", this.child("filter-menu").$el).attr("checked", false);
-      $("input", this.child("filter-menu").$el).trigger("change");
+      this.child("filter-menu").clear();
       this.table.dataTable._fnAjaxUpdate();
       this.$(".toggle-filter-button").popoverMenu('hide');
     }
