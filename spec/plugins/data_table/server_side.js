@@ -717,55 +717,61 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
-            var filterButton = $(".btn-filter", this);
             if (col.filter.type === "string") {
               // test assignment
-              $('.filterMenu input', this).val("Scott").trigger("change");
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("Scott").trigger("change");
               expect(col.filter.value).toEqual("Scott");
               // verify ajax
-              filterButton.trigger("click");
+              $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
               VerifyFilterAjax(expectedFilterObj);
 
               // test unassignment
-              $('.filterMenu input', this).val("").trigger("change");
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("").trigger("change");
               expect(col.filter.value).toEqual(null);
               // verify ajax
-              filterButton.trigger("click");
+              $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
             }
             else if (col.filter.type === "numeric") {
               // test assignment
-              $('.filterMenu .filter-numeric-equal', this).val("0.5").trigger("change");
+              $(".toggle-filter-button", this).click();
+              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+              $('input#first-filter').val("0.5").trigger("change");
               expect(col.filter.eq).toEqual("0.5");
               // verify ajax
-              filterButton.trigger("click");
+              $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
               VerifyFilterAjax(expectedFilterObj);
 
               // test unassignment
-              $('.filterMenu .filter-numeric-equal', this).val("").trigger("change");
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
               expect(col.filter.eq).toEqual(null);
               // verify ajax
-              filterButton.trigger("click");
+              $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
             }
             else if (col.filter.type === "list") {
               // test assignment
-              $('.filterMenu input', this).prop("checked", true).trigger("change");
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').prop("checked", true).trigger("change");
               expect(col.filter.value).toEqual(["Basic", "Advanced"]);
               // verify ajax
-              filterButton.trigger("click");
+              $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
               VerifyFilterAjax(expectedFilterObj);
 
               // test unassignment
-              $('.filterMenu input', this).prop("checked", false).trigger("change");
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').prop("checked", false).trigger("change");
               expect(col.filter.value).toEqual(null);
               // verify ajax
-              filterButton.trigger("click");
+              $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
             }
@@ -782,22 +788,23 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
+            $(".toggle-filter-button", this).click();
             if (col.filter.type === "string") {
-              $(".filterMenu input", this).val("Test").trigger("change");
+              $(".filterMenu input").val("Test").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
-              $(".filterMenu input", this).val("").trigger("change");
+              $(".filterMenu input").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
             else if (col.filter.type === "numeric") {
-              $(".filterMenu .filter-numeric-greater", this).val("3").trigger("change");
+              $("input#first-filter").val("3").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
-              $(".filterMenu .filter-numeric-greater", this).val("").trigger("change");
+              $("input#first-filter").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
             else if (col.filter.type === "list") {
-              $(".filterMenu input", this).prop("checked", true).trigger("change");
+              $(".filterMenu input").prop("checked", true).trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
-              $(".filterMenu input", this).prop("checked", false).trigger("change");
+              $(".filterMenu input").prop("checked", false).trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
           }
@@ -831,11 +838,11 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
-            expect($(".filterMenu", this).is(":hidden"));
+            expect($(".popover .filterMenu").length).toEqual(3);
             $("span", this).trigger("click");
-            expect($(".filterMenu", this).is(":visible"));
-            $("document").trigger("click");
-            expect($(".filterMenu", this).is(":hidden"));
+            expect($(".popover .filterMenu").length).toEqual(4);
+            $("div:first-child", this).trigger("click");
+            expect($(".popover .filterMenu").length).toEqual(3);
           }
         }
       });
@@ -874,21 +881,26 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
+            var toggleButton = $(".toggle-filter-button", this);
+            toggleButton.click();
             if (col.filter.type === "string") {
-              $(".filterMenu input", this).val("Test").trigger("change");
-              $(".btn-clear", this).click();
-              expect($(".filterMenu input", this).val()).toEqual("");
+              $(".filterMenu input").val("Test").trigger("change");
+              $(".btn-clear").click();
+              toggleButton.click();
+              expect($(".filterMenu input").val()).toEqual("");
             }
             else if (col.filter.type === "numeric") {
-              $(".filterMenu .filter-numeric-less", this).val("3").trigger("change");
-              $(".btn-clear", this).click();
-              expect($(".filterMenu .filter-numeric-less", this).val()).toEqual("");
+              $("input#first-filter").val("3").trigger("change");
+              $(".btn-clear").click();
+              toggleButton.click();
+              expect($("input#first-filter").val()).toEqual("");
             }
             else if (col.filter.type === "list") {
-              $(".filterMenu input", this).prop("checked", true).trigger("change");
-              $(".btn-clear", this).click();
-              $(".filterMenu input", this).prop("checked", false).trigger("change");
-              expect($(".filterMenu input", this).prop("checked")).toEqual(false);
+              $(".filterMenu input").prop("checked", true).trigger("change");
+              $(".btn-clear").click();
+              $(".filterMenu input").prop("checked", false).trigger("change");
+              toggleButton.click();
+              expect($(".filterMenu input").prop("checked")).toEqual(false);
             }
           }
         }

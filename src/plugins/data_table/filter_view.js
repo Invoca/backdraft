@@ -8,7 +8,16 @@ var DataTableFilter = (function(options) {
   };
 
   var DataTableFilterMenu = Base.View.extend({
+    filterMenuClass: "",
+
     menuTemplate: _.template(''), // to be overridden by subclasses
+    parentMenuTemplate: _.template('\
+      <div class="filterMenu <%= filterMenuClass %>">\
+        <%= menuTemplate %>\
+        <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
+        <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
+      </div>\
+      ', null, DEFAULT_JST_DELIMS),
 
     initialize: function (options) {
       this.filter = options.column.filter;
@@ -25,14 +34,30 @@ var DataTableFilter = (function(options) {
     render: function () {
       this.beforeRender();
 
-      this.$el.html(this.menuTemplate({
-        filter: this.filter,
-        attr: this.attr,
-        title: this.title,
-        parentView: this.parentView
+      this.$el.html(this.parentMenuTemplate({
+        filterMenuClass: this.filterMenuClass,
+        menuTemplate: this.menuTemplate({
+          filter: this.filter,
+          attr: this.attr,
+          title: this.title,
+          parentView: this.parentView
+        })
       }));
 
       this.afterRender();
+
+      // Bind button clicks
+      this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
+      this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
+
+      // Bind "enter" key
+      this.$('.filterMenu').keyup(function(event) {
+        var key = event.keyCode || event.which;
+        if (key === 13) {
+          this.parentView._onFilterClick.call(this.parentView);
+        }
+      }.bind(this));
+      
       return this;
     },
 
@@ -55,8 +80,14 @@ var DataTableFilter = (function(options) {
   });
 
   var StringFilterMenu = DataTableFilterMenu.extend({
+    filterMenuClass: "filterMenu-string",
+
     menuTemplate: _.template('\
-        <input class="filter-string" id ="value" type="text" placeholder="Search <%= title %>" />\
+      <div class="filter-text">Show:</div>\
+      <div class="icon-addon addon-sm">\
+        <input class="filter-string form-control input-sm" type="text" name="filter-string" />\
+        <label for="filter-string" class="glyphicon glyphicon-search"></label>\
+      </div>\
       ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
@@ -68,43 +99,77 @@ var DataTableFilter = (function(options) {
         this.filter.value = filterInput.value;
         this.parentView._toggleIcon(true);
       }
+    },
+
+    clear: function() {
+      this.$("input[type=text]").val("").trigger("change");
     }
   });
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
-    tagName: "ul",
+    filterMenuClass: "filterMenu-numeric",
 
     menuTemplate: _.template('\
-        <li> &gt; <input data-numeric-filter-name="gt" class="filter-numeric filter-numeric-greater" type="text" /></li> \
-        <li> &lt; <input data-numeric-filter-name="lt" class="filter-numeric filter-numeric-less" type="text"/></li> \
-        <li> = <input data-numeric-filter-name="eq" class="filter-numeric filter-numeric-equal" type="text" /></li> \
-      ', null, DEFAULT_JST_DELIMS),
+      <div class="filter-text">Show items with value that:</div> \
+      <select class="filter-type form-control" data-filter-id="first-filter">\
+        <option selected value="gt">is greater than</option> \
+        <option value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
+      <div class="filter-text">and</div> \
+      <select class="filter-type form-control" data-filter-id="second-filter">\
+        <option value="gt">is greater than</option> \
+        <option selected value="lt">is less than</option> \
+        <option value="eq">is equal to</option> \
+      </select> \
+      <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
+    ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
-      var filterInput = event.target;
-      var numericValueName = $(filterInput).attr("data-numeric-filter-name");
-      if (filterInput.value === "") {
-        this.filter[numericValueName] = null;
+      event.stopImmediatePropagation();
+      var filterType = event.target.getAttribute('data-filter-type'),
+          filterValue = event.target.value;
+      if (filterValue === "") {
+        this.filter[filterType] = null;
         this.parentView._toggleIcon(false);
       } else {
-        this.filter[numericValueName] = filterInput.value;
+        this.filter[filterType] = filterValue;
         this.parentView._toggleIcon(true);
       }
+    },
+
+    afterRender: function() {
+      this.$('.filter-type').bind('change', function(event) {
+        var filterElementId = event.target.getAttribute('data-filter-id'),
+          filterType = event.target.value;
+        $('#'+filterElementId).attr('data-filter-type', filterType);
+      });
+    },
+
+    clear: function() {
+      this.$("input[type=text]").val("").trigger("change");
+      this.$("select[data-filter-id=first-filter]").val("gt").trigger("change");
+      this.$("select[data-filter-id=second-filter]").val("lt").trigger("change");
     }
   });
 
   var ListFilterMenu = DataTableFilterMenu.extend({
-    tagName: "ul",
+    filterMenuClass: "filterMenu-list",
 
     menuTemplate: _.template('\
+      <div class="filter-text">Show:</div>\
+      <a class="select-all" href="javascript:;">Select all</a>\
+      <ul>\
         <% _.each(filter.options, function(element, index) { %>\
           <li>\
             <label>\
-              <input class="list" id="value" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+              <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
               <%= element %>\
             </label>\
           </li>\
         <% }) %>\
+      </ul>\
       ', null, DEFAULT_JST_DELIMS),
 
     afterRender: function () {
@@ -118,7 +183,14 @@ var DataTableFilter = (function(options) {
         listClass = "single";
       }
 
-      this.$el.addClass(listClass);
+      this.$("ul").addClass(listClass);
+      this.$(".select-all").click(this._selectAll.bind(this));
+    },
+
+    _selectAll: function(event) {
+      this.$('li input').each(function(i, el) {
+        this.$(el).click();
+      }.bind(this));
     },
 
     _onInputChange: function (event) {
@@ -139,24 +211,22 @@ var DataTableFilter = (function(options) {
           this.parentView._toggleIcon(false);
         }
       }
+    },
+
+    clear: function() {
+      this.$("input[type=checkbox]").attr("checked", false).trigger("change");
     }
   });
 
   var DataTableFilter = Base.View.extend({
     template: _.template('\
-        <div class="toggle-filter-button" data-toggle="dropdown">\
+        <div class="toggle-filter-button btn-popover-menu" data-toggle="dropdown">\
           <span class="<%= filterButtonClass %>"></span>\
-        </div>\
-        <div class="filterMenu dropdown-menu">\
-          <button class="btn btn-primary btn-sm btn-filter" name="button" type="submit" title="">Filter</button>\
-          <button class="btn btn-primary btn-sm btn-clear" name="button" type="submit" title="">Clear</button>\
         </div>\
       ', null, DEFAULT_JST_DELIMS),
 
     events: {
       "click .toggle-filter-button": "_onToggleClick",
-      "click .btn-filter": "_onFilterClick",
-      "click .btn-clear": "_onClearClick"
     },
 
     initialize: function (options) {
@@ -190,12 +260,15 @@ var DataTableFilter = (function(options) {
         filterButtonClass: this.filterButtonClass
       }));
 
-      $(".filterMenu", this.$el).prepend(this.child("filter-menu").render().$el);
+      this.$('.toggle-filter-button').popoverMenu({
+        content: this.child("filter-menu").render().$el
+      });
+
       return this;
     },
 
     _toggleIcon: function (enabled) {
-      var icon = $("span", this.$el);
+      var icon = $(".toggle-filter-button > span", this.$el);
       icon.removeClass("filterActive");
       icon.removeClass("filterInactive");
       if (enabled) {
@@ -206,33 +279,21 @@ var DataTableFilter = (function(options) {
     },
 
     _onToggleClick: function (event) {
-      var table = this.table;
+      // close popoverMenus except for this one
+      $(".toggle-filter-button").not(event.currentTarget).popoverMenu('hide');
       event.stopImmediatePropagation();
-      var currentFilterMenu = $('.filterMenu', this.$el);
-      if ((table.activeFilterMenu) && (table.activeFilterMenu.is(currentFilterMenu))) {
-        table.activeFilterMenu.slideUp(100);
-        table.activeFilterMenu = null;
-      } else if (table.activeFilterMenu) {
-        table.activeFilterMenu.slideUp(100, function () {
-          table.activeFilterMenu = currentFilterMenu;
-          table.activeFilterMenu.slideDown(200);
-        });
-      } else {
-        table.activeFilterMenu = currentFilterMenu;
-        table.activeFilterMenu.slideDown(200);
-      }
     },
 
     _onFilterClick: function () {
       $("input[type=text]", this.head).trigger("change");
       this.table.dataTable._fnAjaxUpdate();
+      this.$(".toggle-filter-button").popoverMenu('hide');
     },
 
     _onClearClick: function () {
-      $("input[type=text]", this.head).val("");
-      $("input[type=checkbox]", this.head).attr("checked", false);
-      $("input", this.head).trigger("change");
+      this.child("filter-menu").clear();
       this.table.dataTable._fnAjaxUpdate();
+      this.$(".toggle-filter-button").popoverMenu('hide');
     }
   });
 

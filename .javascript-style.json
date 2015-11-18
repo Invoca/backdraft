@@ -7,7 +7,7 @@
   "forin": true,
   "immed": true,
   "latedef": "nofunc",
-  "maxlen": 110,
+  "maxlen": 999,
   "newcap": true,
   "noarg": true,
   "noempty": true,
@@ -30,5 +30,6 @@
   "quotmark": true,
   "trailing": true,
   "undef": true,
-  "unused": true
+  "unused": true,
+  "multistr": true,
 }
