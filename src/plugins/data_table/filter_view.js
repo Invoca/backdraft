@@ -46,8 +46,18 @@ var DataTableFilter = (function(options) {
 
       this.afterRender();
 
+      // Bind button clicks
       this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
       this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
+
+      // Bind "enter" key
+      this.$('.filterMenu').keyup(function(event) {
+        var key = event.keyCode || event.which;
+        if (key === 13) {
+          this.parentView._onFilterClick.call(this.parentView);
+        }
+      }.bind(this));
+      
       return this;
     },
 
@@ -269,6 +279,8 @@ var DataTableFilter = (function(options) {
     },
 
     _onToggleClick: function (event) {
+      // close popoverMenus except for this one
+      $(".toggle-filter-button").not(event.currentTarget).popoverMenu('hide');
       event.stopImmediatePropagation();
     },
 
