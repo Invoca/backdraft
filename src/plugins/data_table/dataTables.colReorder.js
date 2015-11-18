@@ -1087,24 +1087,23 @@
         this.s.mouse.startX = e.pageX;
         this.s.tableWidth = $(nTh).closest("table").width();
 
-
         // If we are at the left end, we expand the previous column
         if (this.dom.resizeCol == "left") {
           nThPrev = $(nTh).prev();
-          this.s.mouse.startWidth = $(nThPrev).width();
+          this.s.mouse.startWidth = $(nThPrev).outerWidth();
           this.s.mouse.resizeElem = $(nThPrev);
           nThNext = $(nTh).next();
-          this.s.mouse.nextStartWidth = $(nTh).width();
+          this.s.mouse.nextStartWidth = $(nTh).outerWidth();
           this.s.mouse.targetIndex = $('th', nTh.parentNode).index(nThPrev);
           this.s.mouse.fromIndex = this.s.dt.oInstance.oApi._fnVisibleToColumnIndex(this.s.dt, this.s.mouse.targetIndex);
         }
 
         // If we are at the right end of column, we expand the current column
         else {
-          this.s.mouse.startWidth = $(nTh).width();
+          this.s.mouse.startWidth = $(nTh).outerWidth();
           this.s.mouse.resizeElem = $(nTh);
           nThNext = $(nTh).next();
-          this.s.mouse.nextStartWidth = $(nThNext).width();
+          this.s.mouse.nextStartWidth = $(nThNext).outerWidth();
           this.s.mouse.targetIndex = $('th', nTh.parentNode).index(nTh);
           this.s.mouse.fromIndex = this.s.dt.oInstance.oApi._fnVisibleToColumnIndex(this.s.dt, this.s.mouse.targetIndex);
         }
