@@ -907,6 +907,36 @@ describe("DataTable Plugin", function() {
       });
     });
 
+    it("should disable filter menus and display error message, and remove error message when enabled", function() {
+      table.disableFilters("Test error message");
+      var columns = table.columnsConfig();
+      var currentFilterMenu;
+
+      for (var c in columns) {
+        if (!columns[c].filter) continue;
+        currentFilterMenu = $(table.child("filter-" + columns[c].attr).$el);
+
+        $("span", currentFilterMenu).trigger("click");
+        expect($(".filterMenu .error-text").length).toEqual(1);
+        expect($(".filterMenu .error-text").text()).toMatch(/Test error message/);
+        expect($(".filterMenu .btn-filter").last().prop('disabled')).toEqual(true);
+
+        $("span", currentFilterMenu).trigger("click");
+      }
+
+      table.enableFilters();
+      for (var c in columns) {
+        if (!columns[c].filter) continue;
+        currentFilterMenu = $(table.child("filter-" + columns[c].attr).$el);
+
+        $("span", currentFilterMenu).trigger("click");
+        expect($(".filterMenu .error-text").length).toEqual(0);
+        expect($(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
+
+        $("span", currentFilterMenu).trigger("click");
+      }
+    });
+
     describe("_fetchCSV", function () {
       it("should append current filter parameters to the URL when requesting a CSV export", function () {
         expect(table.serverSideFiltering).toEqual(true);

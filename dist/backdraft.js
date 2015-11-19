@@ -802,6 +802,12 @@ _.extend(Plugin.factory, {
       </div>\
       ', null, DEFAULT_JST_DELIMS),
 
+    errorTemplate: _.template('\
+      <span class="text-danger error-text">\
+        <%= errorCopy %>\
+      </span>\
+    ', null, DEFAULT_JST_DELIMS),
+
     initialize: function (options) {
       this.filter = options.column.filter;
       this.attr = options.column.attr;
@@ -840,7 +846,7 @@ _.extend(Plugin.factory, {
           this.parentView._onFilterClick.call(this.parentView);
         }
       }.bind(this));
-      
+
       return this;
     },
 
@@ -859,6 +865,16 @@ _.extend(Plugin.factory, {
 
     _onInputChange: function (event) {
       // to be implemented by subclasses
+    },
+
+    disableFilter: function(errorMessage) {
+      this.$('.filterMenu').prepend(this.errorTemplate({ errorCopy: errorMessage }));
+      this.$('.btn-filter').prop("disabled", true);
+    },
+
+    enableFilter: function() {
+      this.$('.error-text').remove();
+      this.$('.btn-filter').prop("disabled", false);
     }
   });
 
@@ -1077,6 +1093,14 @@ _.extend(Plugin.factory, {
       this.child("filter-menu").clear();
       this.table.dataTable._fnAjaxUpdate();
       this.$(".toggle-filter-button").popoverMenu('hide');
+    },
+
+    disableFilter: function(errorMessage) {
+      this.child("filter-menu").disableFilter(errorMessage);
+    },
+
+    enableFilter: function() {
+      this.child("filter-menu").enableFilter();
     }
   });
 
@@ -1309,6 +1333,22 @@ _.extend(Plugin.factory, {
 
     configGenerator: function() {
       return this._columnManager._configGenerator;
+    },
+
+    disableFilters: function(errorMessage) {
+      var columns = this.columnsConfig();
+      for (var c in columns) {
+        if (!columns[c].filter) continue;
+        this.child("filter-" + columns[c].attr).disableFilter(errorMessage);
+      }
+    },
+
+    enableFilters: function() {
+      var columns = this.columnsConfig();
+      for (var c in columns) {
+        if (!columns[c].filter) continue;
+        this.child("filter-" + columns[c].attr).enableFilter();
+      }
     },
 
     // Private APIs

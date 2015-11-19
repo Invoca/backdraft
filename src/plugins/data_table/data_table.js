@@ -164,6 +164,22 @@ var LocalDataTable = (function() {
       return this._columnManager._configGenerator;
     },
 
+    disableFilters: function(errorMessage) {
+      var columns = this.columnsConfig();
+      for (var c in columns) {
+        if (!columns[c].filter) continue;
+        this.child("filter-" + columns[c].attr).disableFilter(errorMessage);
+      }
+    },
+
+    enableFilters: function() {
+      var columns = this.columnsConfig();
+      for (var c in columns) {
+        if (!columns[c].filter) continue;
+        this.child("filter-" + columns[c].attr).enableFilter();
+      }
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {
