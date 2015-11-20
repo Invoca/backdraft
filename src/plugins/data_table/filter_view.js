@@ -30,6 +30,7 @@ var DataTableFilter = (function(options) {
       this.attr = options.column.attr;
       this.title = options.column.title;
       this.parentView = options.parentView;
+      this.enabled = true;
     },
 
     events: {
@@ -85,13 +86,17 @@ var DataTableFilter = (function(options) {
     },
 
     disableFilter: function(errorMessage) {
+      if (!this.enabled) return;
       this.$('.filterMenu').prepend(this.errorTemplate({ errorCopy: errorMessage }));
       this.$('.btn-filter').prop("disabled", true);
+      this.enabled = false;
     },
 
     enableFilter: function() {
+      if (this.enabled) return;
       this.$('.error-text').remove();
       this.$('.btn-filter').prop("disabled", false);
+      this.enabled = true;
     }
   });
 
