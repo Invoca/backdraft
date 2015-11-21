@@ -54,16 +54,16 @@ var DataTableFilter = (function(options) {
       this.afterRender();
 
       // Bind button clicks
-      this.$('.btn-filter').click(this.parentView._onFilterClick.bind(this.parentView));
-      this.$('.btn-clear').click(this.parentView._onClearClick.bind(this.parentView));
+      this.$('.btn-filter').click(_.bind(this.parentView._onFilterClick, this.parentView));
+      this.$('.btn-clear').click(_.bind(this.parentView._onClearClick, this.parentView));
 
       // Bind "enter" key
-      this.$('.filterMenu').keyup(function(event) {
+      this.$('.filterMenu').keyup(_.bind(function(event) {
         var key = event.keyCode || event.which;
         if (key === 13) {
           this.parentView._onFilterClick.call(this.parentView);
         }
-      }.bind(this));
+      }, this));
 
       return this;
     },
@@ -205,13 +205,13 @@ var DataTableFilter = (function(options) {
       }
 
       this.$("ul").addClass(listClass);
-      this.$(".select-all").click(this._selectAll.bind(this));
+      this.$(".select-all").click(_.bind(this._selectAll, this));
     },
 
     _selectAll: function(event) {
-      this.$('li input').each(function(i, el) {
+      this.$('li input').each(_.bind(function(i, el) {
         this.$(el).click();
-      }.bind(this));
+      }, this));
     },
 
     _onInputChange: function (event) {
