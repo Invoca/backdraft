@@ -229,9 +229,10 @@
      */
 
     /* Sort listener */
+    /** NOTE: Non Default behavior. Plugin has been modified. DO NOT CHANGE */
     for (i = 0, iLen = iCols; i < iLen; i++) {
-      $(oSettings.aoColumns[i].nTh).off('click');
-      this.oApi._fnSortAttachListener(oSettings, oSettings.aoColumns[i].nTh, i);
+      $(oSettings.aoColumns[i].nTh).children(".DataTables_sort_wrapper").off('click');
+      this.oApi._fnSortAttachListener(oSettings, $(oSettings.aoColumns[i].nTh).children(".DataTables_sort_wrapper"), i);
     }
 
 
