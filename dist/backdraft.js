@@ -968,7 +968,7 @@ _.extend(Plugin.factory, {
         <% _.each(filter.options, function(element, index) { %>\
           <li>\
             <label>\
-              <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%= element %>" /> \
+              <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%- element %>" /> \
               <%= element %>\
             </label>\
           </li>\
@@ -992,7 +992,7 @@ _.extend(Plugin.factory, {
     },
 
     _selectAll: function(event) {
-      this.$('li input').each(_.bind(function(i, el) {
+      this.$('li input:checkbox:not(:checked)').each(_.bind(function(i, el) {
         this.$(el).click();
       }, this));
     },
@@ -1065,7 +1065,22 @@ _.extend(Plugin.factory, {
       }));
 
       this.$('.toggle-filter-button').popoverMenu({
-        content: this.child("filter-menu").render().$el
+        content: this.child("filter-menu").render().$el,
+        placement: function(popover, trigger) {
+          // We can't know the width without rendering to DOM.
+          // We can't render to DOM without knowing the width.
+          // Thus is life.
+          var popoverWidth = 250;
+
+          var triggerLeftPosition = trigger.getBoundingClientRect().left;
+          var windowWidth = window.innerWidth;
+
+          if ((triggerLeftPosition + popoverWidth) > windowWidth) {
+            return 'left auto';
+          }
+
+          return 'bottom';
+        }
       });
 
       return this;
