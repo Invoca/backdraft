@@ -1866,7 +1866,7 @@ _.extend(Plugin.factory, {
         var filterJson = {};
         filterJson.name = "ext_filter_json";
         filterJson.value = this._getFilteringSettings();
-        this._goToWindowLocation(sUrl + "&ext_filter_json=" + encodeURIComponent(filterJson.value));
+        this._goToWindowLocation(sUrl + "&backdraft_request=1&ext_filter_json=" + encodeURIComponent(filterJson.value));
       }
       else {
         throw new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called");
