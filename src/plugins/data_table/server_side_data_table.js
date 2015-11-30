@@ -50,7 +50,7 @@ var ServerSideDataTable = (function() {
     },
 
     _onRemove : function() {
-      throw new Error("Server side dataTables do not allow removing from collection")
+      this.page(this._currentPageIndex());
     },
 
     _onReset : function(collection, options) {
@@ -290,6 +290,14 @@ var ServerSideDataTable = (function() {
       return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
         return $(node).data("row");
       });
+    },
+
+    _currentPageIndex : function() {
+      if (this.dataTable.fnSettings()._iDisplayLength === 0) {
+        return 0;
+      } else {
+        return this.dataTable.fnSettings()._iDisplayStart / this.dataTable.fnSettings()._iDisplayLength;
+      }
     }
 
   });

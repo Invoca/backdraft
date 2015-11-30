@@ -128,14 +128,6 @@ describe("DataTable Plugin", function() {
       }).toThrowError("Server side dataTables do not allow adding to the collection");
     });
 
-    it("should not allow removing from the collection", function() {
-      table = new app.Views.T({ collection : collection });
-      expect(function() {
-        collection.add({ name : "Bob" }, { silent : true });
-        collection.remove(collection.models[0]);
-      }).toThrowError("Server side dataTables do not allow removing from collection");
-    });
-
     it("should require that collections define a url", function() {
       expect(function() {
         collection.url = null;
@@ -231,6 +223,15 @@ describe("DataTable Plugin", function() {
       expect(_.isArray(finishArgs[4])).toEqual(true);
       expect(_.pluck(finishArgs[4], "name")).toContain("sEcho");
       expect(_.pluck(finishArgs[4], "name")).toContain("column_attrs[]");
+    });
+  });
+
+  describe("server side removal", function() {
+    it("should reload the collection to the page", function() {
+      table = new app.Views.T({ collection : collection });
+      collection.remove(collection.models[0])
+
+      expect(table.$("tbody tr").length).toEqual(0);
     });
   });
 
