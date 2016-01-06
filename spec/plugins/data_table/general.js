@@ -462,6 +462,23 @@ describe("DataTable Plugin", function() {
         expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
       });
 
+      it("is able to modify multiple visibilities", function() {
+        // initially all columns are visible
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
+
+        // hide Attr2, Attr3
+        table.setColumnVisibilities({ Attr2: false, Attr3: false });
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
+
+        // show Attr1, Attr4 even though already visible
+        table.setColumnVisibilities({ Attr1: true, Attr4: true });
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
+
+        // show Attr2 and Attr 3
+        table.setColumnVisibilities({ Attr2: true, Attr3: true });
+        expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
+      });
+
       it("returns the current visibility", function() {
         // initially all columns are visible
         expect(getVisibilities()).toEqual([true, true, true, true]);
