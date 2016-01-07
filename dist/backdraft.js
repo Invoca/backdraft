@@ -1290,14 +1290,18 @@ _.extend(Plugin.factory, {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
+    columnRequired: function(state, title) {
+      if (!state && this._columnManager.columnConfigForTitle(title).required) {
+        throw new Error("can not disable visibility when column is required");
+      }
+    },
+
     columnVisibility: function(title, state) {
       if (arguments.length === 1) {
         // getter
         return this._columnManager.visibility.get(title);
       } else {
-        if (!state && this._columnManager.columnConfigForTitle(title).required) {
-          throw new Error("can not disable visibility when column is required");
-        }
+        this.columnRequired(state, title);
         this._columnManager.visibility.set(title, state);
         state && this.renderColumn(title);
       }
@@ -1305,11 +1309,7 @@ _.extend(Plugin.factory, {
 
     // takes a hash of { columnTitle: columnState, ... }
     setColumnVisibilities: function(columns) {
-      _.each(columns, function(state, title) {
-        if (!state && this._columnManager.columnConfigForTitle(title).required) {
-          throw new Error("can not disable visibility when column is required");
-        }
-      }, this);
+      _.each(columns, this.columnRequired, this);
       this._columnManager.visibility.set(columns);
       _.each(columns, function(state, title) {
         state && this.renderColumn(title);
