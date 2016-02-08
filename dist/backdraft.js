@@ -1490,6 +1490,7 @@ _.extend(Plugin.factory, {
 
     _dataTableCreate : function() {
       this.dataTable = this.$("table").dataTable(this._dataTableConfig());
+      this._setupSelect2PaginationAttributes();
       this._installSortInterceptors();
       this.filteringEnabled && this._setupFiltering();
       this.reorderableColumns && this._enableReorderableColumns();
@@ -1560,6 +1561,12 @@ _.extend(Plugin.factory, {
     _triggerChangeSelection: function(extraData) {
       var data = _.extend(extraData || {}, { count : this.selectionManager.count() });
       this.trigger("change:selected", data);
+    },
+
+    _setupSelect2PaginationAttributes: function () {
+      this.$('select').
+          attr('data-plugin', 'select2').
+          css('width', '5em');
     },
 
     // DataTables does not provide a good way to programmatically disable sorting, so we:
