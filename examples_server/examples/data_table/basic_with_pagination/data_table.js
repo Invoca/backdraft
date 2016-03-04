@@ -54,7 +54,11 @@ Backdraft.app("TableExample", function(app) {
 
     layout : "t<'row'<'col-xs-4'p><'col-xs-4'l><'col-xs-4'i>>",
 
-    resizableColumns: true
+    resizableColumns: true,
+
+    paginateLengthMenu: [5, 10, 20],
+
+    sorting: [["Name", "desc"]]
 
   });
 

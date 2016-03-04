@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" class="bs">
+  <head>
+    <meta charset="utf-8">
+    <title>Backdraft DataTable Examples</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="shortcut icon" href="#">
+    <link type="text/css" href="../../../vendor/bootstrap-3.1.1-dist/css/bootstrap.css" rel="stylesheet" />
+    <link type="text/css" href="../../../vendor/dataTables.bootstrap.css" rel="stylesheet" />
+    <link type="text/css" href="../../../vendor/dataTables.colReorder.css" rel="stylesheet" />
+
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>List: Add and Remove last item only</h1>
+      <div id="example-area"></div>
+    </div>
+
+    <!-- libraries -->
+    <script type="text/javascript" src="../../../vendor/json2.js"></script>
+    <script type="text/javascript" src="../../../vendor/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="../../../vendor/underscore-1.8.3.js"></script>
+    <script type="text/javascript" src="../../../vendor/backbone-1.1.2.js"></script>
+    <script type="text/javascript" src="../../../vendor/jquery.dataTables-1.9.4.js"></script>
+    <script type="text/javascript" src="../../../dist/backdraft.js"></script>
+
+    <!-- demo -->
+    <script type="text/javascript" src="listing.js"></script>
+    <script type="text/javascript">
+      Backdraft.app("ListingExample").activate($("#example-area"));
+    </script>
+
+  </body>
+</html>
