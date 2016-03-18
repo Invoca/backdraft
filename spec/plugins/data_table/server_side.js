@@ -680,6 +680,17 @@ describe("DataTable Plugin", function() {
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
       expect(url).toMatch("ext_filter_json="+expectedFilterJson);
     }
+    function verifyUrlParams(filterObj) {
+      var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).ext_filter_json)
+      var expectedFilterJson
+      if (filterObj.length>0) {
+        expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
+      }
+      else {
+        expectedFilterJson = "";
+      }
+      expect(uri).toMatch(expectedFilterJson);
+    }
 
     it("should have an object for each filterable column in the column manager "+
         "which describes the filter to be applied", function() {
@@ -710,6 +721,9 @@ describe("DataTable Plugin", function() {
     });
 
     it("should track filtering in column manager and in ext_filter_json parameter", function() {
+
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+
       var cg = table.configGenerator();
       var expectedFilterObj = [];
       table.dataTable.find("thead th").each(function (index) {
@@ -727,6 +741,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
 
               // test unassignment
               $(".toggle-filter-button", this).click();
@@ -736,6 +751,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "numeric") {
               // test assignment
@@ -747,6 +763,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
 
               // test unassignment
               $(".toggle-filter-button", this).click();
@@ -756,6 +773,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "list") {
               // test assignment
@@ -766,6 +784,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
 
               // test unassignment
               $(".toggle-filter-button", this).click();
@@ -775,6 +794,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
             }
           }
         }
@@ -952,7 +972,7 @@ describe("DataTable Plugin", function() {
 
         spyOn(table, "_goToWindowLocation").and.callFake(function(){});
         table._fetchCSV(csv_url);
-        expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
+        expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
       });
 
       it("should throw error when serverSideFiltering is not enabled", function () {
