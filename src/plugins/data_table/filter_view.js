@@ -87,14 +87,10 @@ var DataTableFilter = (function(options) {
 
     _updateFilterUrlParams: function() {
       // get url parameters into an array
-      var params;
+      var params=[];
       // if there are already parameters there, get them
       if (window.location.href.split("?")[1]) {
         params = $.deparam(window.location.href.split("?")[1]);
-      }
-      // if not, params will be empty
-      else {
-        params = []
       }
       // get the filter settings
       var filteringSettings = this.parent.table._getFilteringSettings();
@@ -143,11 +139,11 @@ var DataTableFilter = (function(options) {
 
       afterRender: function() {
         var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
-        // if there are filters in the url...
+        // if there are filters in url, enable in UI
         if (filterArray.length > 0) {
           // find the filters that match this filter instance
           var matches = _.where(filterArray, {type: "string", attr: this.attr});
-          // if there are url params for this filter...
+          // if there are filter params for this filter, add them to the markup
           if (matches[0]) {
             this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
             this.parentView._toggleIcon(true);
