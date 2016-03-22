@@ -1220,15 +1220,16 @@ _.extend(Plugin.factory, {
       // get ajax url
       var ajaxURL = this.parent.dataTable.fnSettings().sAjaxSource;
       // get the endpoint of ajax url
-      var endpoint = ajaxURL.split("?")[0];
+      var splitUrl = ajaxURL.split("?");
+      var endpoint = splitUrl[0];
 
       // Early exit if no params
-      if (!ajaxURL.split("?")[1]) {
+      if (!splitUrl[1]) {
         return;
       }
 
       // get parameters of ajax url
-      var params = $.deparam(ajaxURL.split("?")[1]);
+      var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
       params.ext_filter_json = $.deparam(window.location.href.split("?")[1]).ext_filter_json;
