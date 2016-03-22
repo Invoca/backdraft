@@ -532,6 +532,16 @@ _.extend(Plugin.factory, {
       return !columnConfig.bulk;
     });
 
+    // read initial filters from URL
+    var urlParamString = window.location.href.split("?")[1];
+    if (urlParamString && $.deparam(urlParamString) && $.deparam(urlParamString).ext_filter_json ) {
+      var urlFilters = JSON.parse($.deparam(urlParamString).ext_filter_json);
+      urlFilters.forEach(function(element, index, array){
+        var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
+        this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
+      }.bind(this));
+    }
+
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
       var definition = columnType.definition()(this.table, config);
@@ -870,7 +880,15 @@ _.extend(Plugin.factory, {
 
     _updateFilterUrlParams: function() {
       // get url parameters into an array
-      var params = $.deparam(window.location.href.split("?")[1]);
+      var params;
+      // if there are already parameters there, get them
+      if (window.location.href.split("?")[1]) {
+        params = $.deparam(window.location.href.split("?")[1]);
+      }
+      // if not, params will be empty
+      else {
+        params = []
+      }
       // get the filter settings
       var filteringSettings = this.parent.table._getFilteringSettings();
 
@@ -915,6 +933,20 @@ _.extend(Plugin.factory, {
         <label for="filter-string" class="glyphicon glyphicon-search"></label>\
       </div>\
       ', null, DEFAULT_JST_DELIMS),
+
+      afterRender: function() {
+        var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+        // if there are filters in the url...
+        if (filterArray.length > 0) {
+          // find the filters that match this filter instance
+          var matches = _.where(filterArray, {type: "string", attr: this.attr});
+          // if there are url params for this filter...
+          if (matches[0]) {
+            this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
+            this.parentView._toggleIcon(true);
+          }
+        }
+      },
 
     _onInputChange: function (event) {
       var filterInput = event.target;
@@ -968,6 +1000,31 @@ _.extend(Plugin.factory, {
     },
 
     afterRender: function() {
+      // populate filter fields
+      var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+      // if there are filters in the url...
+      if (filterArray.length > 0) {
+        // find the filters that match this filter instance
+        var matches = _.where(filterArray, {type: "numeric", attr: this.attr});
+        // if there are url params for this filter...
+        if (matches[0]) {
+          // change the comparison type on the select dropdown
+          this.$el.find("[data-filter-id=first-filter]").val(matches[0].comparison);
+          // change the value of the input field
+          this.$el.find("input#first-filter").val(matches[0].value).attr("data-filter-type", matches[0].comparison);
+
+          this.parentView._toggleIcon(true);
+        }
+        if (matches[1]) {
+          // change the comparison type on the second select dropdown
+          this.$el.find("[data-filter-id=second-filter]").val(matches[1].comparison);
+          // change the value of the input second field
+          this.$el.find("input#second-filter").val(matches[1].value).attr("data-filter-type", matches[1].comparison);
+
+          this.parentView._toggleIcon(true);
+        }
+      }
+
       this.$('.filter-type').bind('change', function(event) {
         var filterElementId = event.target.getAttribute('data-filter-id'),
           filterType = event.target.value;
@@ -1001,6 +1058,24 @@ _.extend(Plugin.factory, {
       ', null, DEFAULT_JST_DELIMS),
 
     afterRender: function () {
+      var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+      // if there are filters in the url...
+      if (filterArray.length > 0) {
+        // find the filters that match this filter instance
+        var matches = _.where(filterArray, {type: "list", attr: this.attr});
+
+        // if there are url params for this filter...
+        if (matches[0]) {
+          // go through each of those list values
+          matches[0].value.forEach( function(element, index, array) {
+            // check it
+            this.$el.find('input[value="'+element+'"]').prop("checked", true);
+          }.bind(this));
+          // make the button show
+          this.parentView._toggleIcon(true);
+        }
+      }
+
       var listClass;
 
       if (this.filter.options.length > 30) {

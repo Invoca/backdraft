@@ -36,6 +36,16 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       return !columnConfig.bulk;
     });
 
+    // read initial filters from URL
+    var urlParamString = window.location.href.split("?")[1];
+    if (urlParamString && $.deparam(urlParamString) && $.deparam(urlParamString).ext_filter_json ) {
+      var urlFilters = JSON.parse($.deparam(urlParamString).ext_filter_json);
+      urlFilters.forEach(function(element, index, array){
+        var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
+        this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
+      }.bind(this));
+    }
+
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
       var definition = columnType.definition()(this.table, config);

@@ -673,6 +673,7 @@ describe("DataTable Plugin", function() {
       table = new app.Views.T({ collection : collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+      history.pushState(null, null, "_SpecRunner.html");
     });
 
     function VerifyFilterAjax(filterObj) {
@@ -800,6 +801,214 @@ describe("DataTable Plugin", function() {
         }
       });
     });
+
+    it("should load filters from url params", function() {
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      var cg = table.configGenerator();
+      var expectedFilters = [];
+
+      // populate url with filters
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("Scott").trigger("change");
+              $(".btn-filter").trigger("click");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".toggle-filter-button", this).click();
+              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+              $('input#first-filter').val("0.5").trigger("change");
+              $(".btn-filter").trigger("click");
+            }
+            else if (col.filter.type === "list") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').prop("checked", true).trigger("change");
+              $(".btn-filter").trigger("click");
+            }
+          }
+        }
+      });
+
+      // get url
+      var oldFilterSettings = table._getFilteringSettings();
+      var populatedURL = "_SpecRunner.html"+window.location.search;
+
+      // remove filters
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("").trigger("change");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
+            }
+            else if (col.filter.type === "list") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').prop("checked", false).trigger("change");
+            }
+          }
+        }
+      });
+
+      // push the populatedURL
+      history.pushState(null, null, populatedURL);
+      // Since we can't do a refresh, we just call the method that fires at that moment
+      cg._computeColumnConfig();
+      // get new filtering settings
+      var newFilterSettings = table._getFilteringSettings();
+      // They should be the same
+      expect(oldFilterSettings).toEqual(newFilterSettings);
+
+      history.pushState(null, null, "_SpecRunner.html");
+
+      // remove filters again so that other tests don't fail
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("").trigger("change");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
+            }
+            else if (col.filter.type === "list") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').prop("checked", false).trigger("change");
+            }
+          }
+        }
+      });
+    });
+
+    it("should populate filter markup from url params", function() {
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      var cg = table.configGenerator();
+      var expectedFilters = [];
+
+      // populate url with filters
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("Scott").trigger("change");
+              $(".btn-filter").trigger("click");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".toggle-filter-button", this).click();
+              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+              $('input#first-filter').val("0.5").trigger("change");
+              $(".btn-filter").trigger("click");
+            }
+            else if (col.filter.type === "list") {
+              $(".toggle-filter-button", this).click();
+              $(".filterMenu input[value=Basic]").prop("checked", true).trigger("change");
+              $(".btn-filter").trigger("click");
+            }
+          }
+        }
+      });
+
+      var populatedURL = "_SpecRunner.html"+window.location.search;
+
+      // remove filters
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("").trigger("change");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
+            }
+            else if (col.filter.type === "list") {
+              $(".toggle-filter-button", this).click();
+              $(".filterMenu input[value=Basic]").prop("checked", false).trigger("change");
+            }
+          }
+        }
+      });
+
+      // push the populatedURL
+      history.pushState(null, null, populatedURL);
+
+      // Since we can't do a refresh, we just call the method that fires at that moment
+      cg._computeColumnConfig();
+      cg.table.children["filter-name"].children["filter-menu"].afterRender()
+      cg.table.children["filter-cost"].children["filter-menu"].afterRender()
+      cg.table.children["filter-type"].children["filter-menu"].afterRender()
+
+      // Check the filters are there
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              expect($('.filterMenu input').val()).toEqual("Scott")
+            }
+            else if (col.filter.type === "numeric") {
+              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
+              expect($('input#first-filter').val()).toEqual("0.5");
+            }
+            else if (col.filter.type === "list") {
+              expect($(".filterMenu input[value=Basic]").prop("checked")).toEqual(true);
+            }
+          }
+        }
+      });
+
+      history.pushState(null, null, "_SpecRunner.html");
+      // remove filters again so that other tests don't fail
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            if (col.filter.type === "string") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').val("").trigger("change");
+            }
+            else if (col.filter.type === "numeric") {
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
+            }
+            else if (col.filter.type === "list") {
+              $(".toggle-filter-button", this).click();
+              $('.filterMenu input').prop("checked", false).trigger("change");
+            }
+          }
+        }
+      });
+
+    });
+
 
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
       var cg = table.configGenerator();
