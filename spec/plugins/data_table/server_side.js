@@ -684,17 +684,20 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
-            if (col.filter.type === "string") {
-              $(".toggle-filter-button", this).click();
-              $('.filterMenu input').val("").trigger("change");
-            }
-            else if (col.filter.type === "numeric") {
-              $(".toggle-filter-button", this).click();
-              $("input#first-filter").val("").trigger("change");
-            }
-            else if (col.filter.type === "list") {
-              $(".toggle-filter-button", this).click();
-              $('.filterMenu input').prop("checked", false).trigger("change");
+            switch (col.filter.type) {
+              case "string":
+                $(".toggle-filter-button", this).click();
+                $('.filterMenu input').val("").trigger("change");
+                break;
+              case "numeric":
+                $(".toggle-filter-button", this).click();
+                $("input#first-filter").val("").trigger("change");
+                break;
+
+              case "list":
+                $(".toggle-filter-button", this).click();
+                $('.filterMenu input').prop("checked", false).trigger("change");
+                break;
             }
           }
         }
@@ -709,21 +712,23 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
-            if (col.filter.type === "string") {
-              $(".toggle-filter-button", this).click();
-              $('.filterMenu input').val("Scott").trigger("change");
-              $(".btn-filter").trigger("click");
-            }
-            else if (col.filter.type === "numeric") {
-              $(".toggle-filter-button", this).click();
-              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
-              $('input#first-filter').val("0.5").trigger("change");
-              $(".btn-filter").trigger("click");
-            }
-            else if (col.filter.type === "list") {
-              $(".toggle-filter-button", this).click();
-              $(".filterMenu input[value=Basic]").prop("checked", true).trigger("change");
-              $(".btn-filter").trigger("click");
+            switch (col.filter.type) {
+              case "string":
+                $(".toggle-filter-button", this).click();
+                $('.filterMenu input').val("Scott").trigger("change");
+                $(".btn-filter").trigger("click");
+                break;
+              case "numeric":
+                $(".toggle-filter-button", this).click();
+                $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+                $('input#first-filter').val("0.5").trigger("change");
+                $(".btn-filter").trigger("click");
+                break;
+              case "list":
+                $(".toggle-filter-button", this).click();
+                $(".filterMenu input[value=Basic]").prop("checked", true).trigger("change");
+                $(".btn-filter").trigger("click");
+                break;
             }
           }
         }
@@ -735,15 +740,10 @@ describe("DataTable Plugin", function() {
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
       expect(url).toMatch("ext_filter_json="+expectedFilterJson);
     }
+
     function verifyUrlParams(filterObj) {
       var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).ext_filter_json)
-      var expectedFilterJson
-      if (filterObj.length>0) {
-        expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
-      }
-      else {
-        expectedFilterJson = "";
-      }
+      var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
 
@@ -907,15 +907,17 @@ describe("DataTable Plugin", function() {
           var title = wrapper.text();
           var col = cg.columnConfigByTitle.attributes[title];
           if (col && col.filter) {
-            if (col.filter.type === "string") {
-              expect($('.filterMenu input').val()).toEqual("Scott")
-            }
-            else if (col.filter.type === "numeric") {
-              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
-              expect($('input#first-filter').val()).toEqual("0.5");
-            }
-            else if (col.filter.type === "list") {
-              expect($(".filterMenu input[value=Basic]").prop("checked")).toEqual(true);
+            switch (col.filter.type) {
+              case "string":
+                expect($('.filterMenu input').val()).toEqual("Scott")
+                break;
+              case "numeric":
+                expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
+                expect($('input#first-filter').val()).toEqual("0.5");
+                break;
+              case "list":
+                expect($(".filterMenu input[value=Basic]").prop("checked")).toEqual(true);
+                break;
             }
           }
         }

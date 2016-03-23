@@ -104,10 +104,10 @@ var DataTableFilter = (function(options) {
         delete params.ext_filter_json;
       }
       // if history is supported, add it to the url
-      if (history.pushState) {
+      if (history.replaceState) {
         var state = { params: params };
         var url =  window.location.href.split("?")[0] + "?" + jQuery.param(params);
-        history.pushState(state, window.document.title, url);
+        history.replaceState(state, window.document.title, url);
       }
     },
 
