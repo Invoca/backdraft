@@ -669,15 +669,16 @@ describe("DataTable Plugin", function() {
   });
 
   describe("filtering", function() {
+    var cg;
     beforeEach(function() {
       table = new app.Views.T({ collection : collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
       history.pushState(null, null, "_SpecRunner.html");
+      cg = table.configGenerator();
     });
 
     function clearFilters() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -705,7 +706,6 @@ describe("DataTable Plugin", function() {
     };
 
     function populateFilters() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -742,7 +742,7 @@ describe("DataTable Plugin", function() {
     }
 
     function verifyUrlParams(filterObj) {
-      var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).ext_filter_json)
+      var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).filter_json)
       var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
@@ -779,7 +779,6 @@ describe("DataTable Plugin", function() {
 
       history.pushState(null, null, "_SpecRunner.html?date_filter=today");
 
-      var cg = table.configGenerator();
       var expectedFilterObj = [];
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
@@ -858,7 +857,6 @@ describe("DataTable Plugin", function() {
 
     it("should load filters from url params", function() {
       history.pushState(null, null, "_SpecRunner.html?date_filter=today");
-      var cg = table.configGenerator();
       var expectedFilters = [];
       // populate url with filters
       populateFilters();
@@ -878,9 +876,22 @@ describe("DataTable Plugin", function() {
       history.pushState(null, null, "_SpecRunner.html");
     });
 
+    it("should load filters from url params with old uri param", function() {
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      var expectedFilters = [];
+      populateFilters();
+      var oldFilterSettings = table._getFilteringSettings();
+      var populatedURL = "_SpecRunner.html"+window.location.search;
+      populatedURL = populatedURL.replace("filter_json", "ext_filter_json");
+      clearFilters();
+      history.pushState(null, null, populatedURL);
+      cg._computeColumnConfig();
+      var newFilterSettings = table._getFilteringSettings();
+      expect(oldFilterSettings).toEqual(newFilterSettings);
+    });
+
     it("should populate filter markup from url params", function() {
       history.pushState(null, null, "_SpecRunner.html?date_filter=today");
-      var cg = table.configGenerator();
       var expectedFilters = [];
 
       // populate url with filters
@@ -932,7 +943,6 @@ describe("DataTable Plugin", function() {
 
 
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -964,7 +974,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -982,7 +991,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks out of it", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -1000,7 +1008,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
-      var cg = table.configGenerator();
       var lastFilterMenu;
       var currentFilterMenu;
       table.dataTable.find("thead th").each(function () {
@@ -1025,7 +1032,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should clear the filters when the clear button is clicked", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {

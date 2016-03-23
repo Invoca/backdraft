@@ -534,11 +534,13 @@ _.extend(Plugin.factory, {
 
     // read initial filters from URL
     var urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && $.deparam(urlParamString) && $.deparam(urlParamString).ext_filter_json ) {
-      var urlFilters = JSON.parse($.deparam(urlParamString).ext_filter_json);
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+      // if they don't come in the new filter_json, check for ext_filter_json
+      var filterArray = $.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json
+      var urlFilters = JSON.parse(filterArray);
       urlFilters.forEach(function(element, index, array){
         var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
-        if (columnConfigIndex >= 0) {          
+        if (columnConfigIndex >= 0) {
           this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
         }
       }.bind(this));
@@ -890,14 +892,17 @@ _.extend(Plugin.factory, {
       // get the filter settings
       var filteringSettings = this.parent.table._getFilteringSettings();
 
-      // if there are active filters, put them in the ext_filter_json param
+      // if there are active filters, put them in the filter_json param
       if (JSON.parse(filteringSettings).length>0) {
-        params.ext_filter_json = filteringSettings;
+        params.filter_json = filteringSettings;
       }
-      // otherwise delete the ext_filter_json param to keep a clean uri
+      // otherwise delete the filter_json param to keep a clean uri
       else {
-        delete params.ext_filter_json;
+        delete params.filter_json;
       }
+      // Delete ext_filter_json from the url, we're deprecating it
+      delete params.ext_filter_json;
+
       // if history is supported, add it to the url
       if (history.replaceState) {
         var state = { params: params };
@@ -1232,7 +1237,7 @@ _.extend(Plugin.factory, {
       var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
-      params.ext_filter_json = $.deparam(window.location.href.split("?")[1]).ext_filter_json;
+      params.ext_filter_json = $.deparam(window.location.href.split("?")[1]).ext_filter_json || $.deparam(window.location.href.split("?")[1]).filter_json;
 
       // Build new url with old endpoint but new params
       var newURL = endpoint + "?"+ $.param(params);

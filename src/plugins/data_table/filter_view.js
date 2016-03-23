@@ -95,14 +95,17 @@ var DataTableFilter = (function(options) {
       // get the filter settings
       var filteringSettings = this.parent.table._getFilteringSettings();
 
-      // if there are active filters, put them in the ext_filter_json param
+      // if there are active filters, put them in the filter_json param
       if (JSON.parse(filteringSettings).length>0) {
-        params.ext_filter_json = filteringSettings;
+        params.filter_json = filteringSettings;
       }
-      // otherwise delete the ext_filter_json param to keep a clean uri
+      // otherwise delete the filter_json param to keep a clean uri
       else {
-        delete params.ext_filter_json;
+        delete params.filter_json;
       }
+      // Delete ext_filter_json from the url, we're deprecating it
+      delete params.ext_filter_json;
+
       // if history is supported, add it to the url
       if (history.replaceState) {
         var state = { params: params };
@@ -437,7 +440,7 @@ var DataTableFilter = (function(options) {
       var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
-      params.ext_filter_json = $.deparam(window.location.href.split("?")[1]).ext_filter_json;
+      params.ext_filter_json = $.deparam(window.location.href.split("?")[1]).ext_filter_json || $.deparam(window.location.href.split("?")[1]).filter_json;
 
       // Build new url with old endpoint but new params
       var newURL = endpoint + "?"+ $.param(params);

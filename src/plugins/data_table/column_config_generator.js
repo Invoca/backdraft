@@ -38,11 +38,13 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
     // read initial filters from URL
     var urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && $.deparam(urlParamString) && $.deparam(urlParamString).ext_filter_json ) {
-      var urlFilters = JSON.parse($.deparam(urlParamString).ext_filter_json);
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+      // if they don't come in the new filter_json, check for ext_filter_json
+      var filterArray = $.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json
+      var urlFilters = JSON.parse(filterArray);
       urlFilters.forEach(function(element, index, array){
         var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
-        if (columnConfigIndex >= 0) {          
+        if (columnConfigIndex >= 0) {
           this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
         }
       }.bind(this));
