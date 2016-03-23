@@ -89,8 +89,9 @@ var DataTableFilter = (function(options) {
       // get url parameters into an array
       var params=[];
       // if there are already parameters there, get them
-      if (window.location.href.split("?")[1]) {
-        params = $.deparam(window.location.href.split("?")[1]);
+      var urlArray = window.location.href.split("?");
+      if (urlArray[1]) {
+        params = $.deparam(urlArray[1]);
       }
       // get the filter settings
       var filteringSettings = this.parent.table._getFilteringSettings();
@@ -109,7 +110,7 @@ var DataTableFilter = (function(options) {
       // if history is supported, add it to the url
       if (history.replaceState) {
         var state = { params: params };
-        var url =  window.location.href.split("?")[0] + "?" + jQuery.param(params);
+        var url =  urlArray[0] + "?" + jQuery.param(params);
         history.replaceState(state, window.document.title, url);
       }
     },
@@ -440,7 +441,8 @@ var DataTableFilter = (function(options) {
       var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
-      params.ext_filter_json = $.deparam(window.location.href.split("?")[1]).ext_filter_json || $.deparam(window.location.href.split("?")[1]).filter_json;
+      var urlParamString = window.location.href.split("?")[1];
+      params.ext_filter_json = $.deparam(urlParamString).ext_filter_json || $.deparam(urlParamString).filter_json;
 
       // Build new url with old endpoint but new params
       var newURL = endpoint + "?"+ $.param(params);
