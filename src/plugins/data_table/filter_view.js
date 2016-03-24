@@ -441,8 +441,7 @@ var DataTableFilter = (function(options) {
       var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
-      var urlParamString = window.location.href.split("?")[1];
-      params.ext_filter_json = $.deparam(urlParamString).ext_filter_json || $.deparam(urlParamString).filter_json;
+      params.ext_filter_json = JSON.stringify(this.table._columnManager._configGenerator._getUrlFilterParams());
 
       // Build new url with old endpoint but new params
       var newURL = endpoint + "?"+ $.param(params);

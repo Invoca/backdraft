@@ -515,9 +515,16 @@ _.extend(Plugin.factory, {
     this._computeColumnLookups();
   },
 
-  _getUrlParams: function(url) {
-    return $.deparam(url);
+  _getUrlFilterParams: function() {
+    var urlParamString = window.location.href.split("?")[1];
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+      return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
+    }
+    else {
+      return []
+    }
   },
+
 
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
@@ -536,19 +543,13 @@ _.extend(Plugin.factory, {
       return !columnConfig.bulk;
     });
 
-    // read initial filters from URL
-    var urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && this._getUrlParams(urlParamString) && (this._getUrlParams(urlParamString).filter_json || this._getUrlParams(urlParamString).ext_filter_json) ) {
-      // if they don't come in the new filter_json, check for ext_filter_json
-      var filterArray = this._getUrlParams(urlParamString).filter_json || this._getUrlParams(urlParamString).ext_filter_json
-      var urlFilters = JSON.parse(filterArray);
-      urlFilters.forEach(function(element, index, array){
-        var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
-        if (columnConfigIndex >= 0) {
-          this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
-        }
-      }.bind(this));
-    }
+    var urlFilters = this._getUrlFilterParams();
+    urlFilters.forEach(function(element, index, array){
+      var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
+      if (columnConfigIndex >= 0) {
+        this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
+      }
+    }.bind(this));
 
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
@@ -1242,8 +1243,7 @@ _.extend(Plugin.factory, {
       var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
-      var urlParamString = window.location.href.split("?")[1];
-      params.ext_filter_json = $.deparam(urlParamString).ext_filter_json || $.deparam(urlParamString).filter_json;
+      params.ext_filter_json = JSON.stringify(this.table._columnManager._configGenerator._getUrlFilterParams());
 
       // Build new url with old endpoint but new params
       var newURL = endpoint + "?"+ $.param(params);
