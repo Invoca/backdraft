@@ -515,6 +515,10 @@ _.extend(Plugin.factory, {
     this._computeColumnLookups();
   },
 
+  _getUrlParams: function(url) {
+    return $.deparam(url);
+  },
+
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
     this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
@@ -534,9 +538,9 @@ _.extend(Plugin.factory, {
 
     // read initial filters from URL
     var urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+    if (urlParamString && this._getUrlParams(urlParamString) && (this._getUrlParams(urlParamString).filter_json || this._getUrlParams(urlParamString).ext_filter_json) ) {
       // if they don't come in the new filter_json, check for ext_filter_json
-      var filterArray = $.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json
+      var filterArray = this._getUrlParams(urlParamString).filter_json || this._getUrlParams(urlParamString).ext_filter_json
       var urlFilters = JSON.parse(filterArray);
       urlFilters.forEach(function(element, index, array){
         var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
