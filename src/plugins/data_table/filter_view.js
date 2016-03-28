@@ -85,6 +85,36 @@ var DataTableFilter = (function(options) {
       // to be implemented by subclasses
     },
 
+    _updateFilterUrlParams: function() {
+      // get url parameters into an array
+      var params=[];
+      // if there are already parameters there, get them
+      var urlArray = window.location.href.split("?");
+      if (urlArray[1]) {
+        params = $.deparam(urlArray[1]);
+      }
+      // get the filter settings
+      var filteringSettings = this.parent.table._getFilteringSettings();
+
+      // if there are active filters, put them in the filter_json param
+      if (JSON.parse(filteringSettings).length>0) {
+        params.filter_json = filteringSettings;
+      }
+      // otherwise delete the filter_json param to keep a clean uri
+      else {
+        delete params.filter_json;
+      }
+      // Delete ext_filter_json from the url, we're deprecating it
+      delete params.ext_filter_json;
+
+      // if history is supported, add it to the url
+      if (history.replaceState) {
+        var state = { params: params };
+        var url =  urlArray[0] + "?" + jQuery.param(params);
+        history.replaceState(state, window.document.title, url);
+      }
+    },
+
     disableFilter: function(errorMessage) {
       if (!this.enabled) return;
       this.$('.filterMenu').prepend(this.errorTemplate({ errorCopy: errorMessage }));
@@ -111,6 +141,20 @@ var DataTableFilter = (function(options) {
       </div>\
       ', null, DEFAULT_JST_DELIMS),
 
+      afterRender: function() {
+        var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+        // if there are filters in url, enable in UI
+        if (filterArray.length > 0) {
+          // find the filters that match this filter instance
+          var matches = _.where(filterArray, {type: "string", attr: this.attr});
+          // if there are filter params for this filter, add them to the markup
+          if (matches[0]) {
+            this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
+            this.parentView._toggleIcon(true);
+          }
+        }
+      },
+
     _onInputChange: function (event) {
       var filterInput = event.target;
       if (filterInput.value === "") {
@@ -120,6 +164,7 @@ var DataTableFilter = (function(options) {
         this.filter.value = filterInput.value;
         this.parentView._toggleIcon(true);
       }
+      this._updateFilterUrlParams();
     },
 
     clear: function() {
@@ -158,9 +203,35 @@ var DataTableFilter = (function(options) {
         this.filter[filterType] = filterValue;
         this.parentView._toggleIcon(true);
       }
+      this._updateFilterUrlParams();
     },
 
     afterRender: function() {
+      // populate filter fields
+      var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+      // if there are filters in the url...
+      if (filterArray.length > 0) {
+        // find the filters that match this filter instance
+        var matches = _.where(filterArray, {type: "numeric", attr: this.attr});
+        // if there are url params for this filter...
+        if (matches[0]) {
+          // change the comparison type on the select dropdown
+          this.$el.find("[data-filter-id=first-filter]").val(matches[0].comparison);
+          // change the value of the input field
+          this.$el.find("input#first-filter").val(matches[0].value).attr("data-filter-type", matches[0].comparison);
+
+          this.parentView._toggleIcon(true);
+        }
+        if (matches[1]) {
+          // change the comparison type on the second select dropdown
+          this.$el.find("[data-filter-id=second-filter]").val(matches[1].comparison);
+          // change the value of the input second field
+          this.$el.find("input#second-filter").val(matches[1].value).attr("data-filter-type", matches[1].comparison);
+
+          this.parentView._toggleIcon(true);
+        }
+      }
+
       this.$('.filter-type').bind('change', function(event) {
         var filterElementId = event.target.getAttribute('data-filter-id'),
           filterType = event.target.value;
@@ -194,6 +265,24 @@ var DataTableFilter = (function(options) {
       ', null, DEFAULT_JST_DELIMS),
 
     afterRender: function () {
+      var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+      // if there are filters in the url...
+      if (filterArray.length > 0) {
+        // find the filters that match this filter instance
+        var matches = _.where(filterArray, {type: "list", attr: this.attr});
+
+        // if there are url params for this filter...
+        if (matches[0]) {
+          // go through each of those list values
+          matches[0].value.forEach( function(element, index, array) {
+            // check it
+            this.$el.find('input[value="'+element+'"]').prop("checked", true);
+          }.bind(this));
+          // make the button show
+          this.parentView._toggleIcon(true);
+        }
+      }
+
       var listClass;
 
       if (this.filter.options.length > 30) {
@@ -232,6 +321,7 @@ var DataTableFilter = (function(options) {
           this.parentView._toggleIcon(false);
         }
       }
+      this._updateFilterUrlParams();
     },
 
     clear: function() {
@@ -322,14 +412,42 @@ var DataTableFilter = (function(options) {
 
     _onFilterClick: function () {
       $("input[type=text]", this.head).trigger("change");
+      // Update ajaxsource on datatable
+      this._updateAjaxSource();
       this.table.dataTable._fnAjaxUpdate();
       this.$(".toggle-filter-button").popoverMenu('hide');
     },
 
     _onClearClick: function () {
       this.child("filter-menu").clear();
+      this._updateAjaxSource();
       this.table.dataTable._fnAjaxUpdate();
       this.$(".toggle-filter-button").popoverMenu('hide');
+    },
+
+    _updateAjaxSource: function() {
+      // get ajax url
+      var ajaxURL = this.parent.dataTable.fnSettings().sAjaxSource;
+      // get the endpoint of ajax url
+      var splitUrl = ajaxURL.split("?");
+      var endpoint = splitUrl[0];
+
+      // Early exit if no params
+      if (!splitUrl[1]) {
+        return;
+      }
+
+      // get parameters of ajax url
+      var params = $.deparam(splitUrl[1]);
+
+      // make ext_filter_json param the same as the current url, now with new filters
+      params.ext_filter_json = JSON.stringify(this.table._columnManager._configGenerator._getUrlFilterParams());
+
+      // Build new url with old endpoint but new params
+      var newURL = endpoint + "?"+ $.param(params);
+
+      // Update datatable ajax source
+      this.parent.dataTable.fnSettings().sAjaxSource = newURL;
     },
 
     disableFilter: function(errorMessage) {

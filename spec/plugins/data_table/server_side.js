@@ -669,16 +669,82 @@ describe("DataTable Plugin", function() {
   });
 
   describe("filtering", function() {
+    var cg;
     beforeEach(function() {
       table = new app.Views.T({ collection : collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+      history.pushState(null, null, "_SpecRunner.html");
+      cg = table.configGenerator();
     });
+
+    function clearFilters() {
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            switch (col.filter.type) {
+              case "string":
+                $(".toggle-filter-button", this).click();
+                $('.filterMenu input').val("").trigger("change");
+                break;
+              case "numeric":
+                $(".toggle-filter-button", this).click();
+                $("input#first-filter").val("").trigger("change");
+                break;
+
+              case "list":
+                $(".toggle-filter-button", this).click();
+                $('.filterMenu input').prop("checked", false).trigger("change");
+                break;
+            }
+          }
+        }
+      });
+    };
+
+    function populateFilters() {
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            switch (col.filter.type) {
+              case "string":
+                $(".toggle-filter-button", this).click();
+                $('.filterMenu input').val("Scott").trigger("change");
+                $(".btn-filter").trigger("click");
+                break;
+              case "numeric":
+                $(".toggle-filter-button", this).click();
+                $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+                $('input#first-filter').val("0.5").trigger("change");
+                $(".btn-filter").trigger("click");
+                break;
+              case "list":
+                $(".toggle-filter-button", this).click();
+                $(".filterMenu input[value=Basic]").prop("checked", true).trigger("change");
+                $(".btn-filter").trigger("click");
+                break;
+            }
+          }
+        }
+      });
+    }
 
     function VerifyFilterAjax(filterObj) {
       var url = jasmine.Ajax.requests.mostRecent().url;
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
       expect(url).toMatch("ext_filter_json="+expectedFilterJson);
+    }
+
+    function verifyUrlParams(filterObj) {
+      var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).filter_json)
+      var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
+      expect(uri).toMatch(expectedFilterJson);
     }
 
     it("should have an object for each filterable column in the column manager "+
@@ -710,7 +776,9 @@ describe("DataTable Plugin", function() {
     });
 
     it("should track filtering in column manager and in ext_filter_json parameter", function() {
-      var cg = table.configGenerator();
+
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+
       var expectedFilterObj = [];
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
@@ -727,6 +795,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
 
               // test unassignment
               $(".toggle-filter-button", this).click();
@@ -736,6 +805,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "numeric") {
               // test assignment
@@ -747,6 +817,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
 
               // test unassignment
               $(".toggle-filter-button", this).click();
@@ -756,6 +827,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "list") {
               // test assignment
@@ -766,6 +838,7 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
 
               // test unassignment
               $(".toggle-filter-button", this).click();
@@ -775,14 +848,101 @@ describe("DataTable Plugin", function() {
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
               VerifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
             }
           }
         }
       });
     });
 
+    it("should load filters from url params", function() {
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      var expectedFilters = [];
+      // populate url with filters
+      populateFilters();
+      // get url
+      var oldFilterSettings = table._getFilteringSettings();
+      var populatedURL = "_SpecRunner.html"+window.location.search;
+      // remove filters
+      clearFilters();
+      // push the populatedURL
+      history.pushState(null, null, populatedURL);
+      // Since we can't do a refresh, we just call the method that fires at that moment
+      cg._computeColumnConfig();
+      // get new filtering settings
+      var newFilterSettings = table._getFilteringSettings();
+      // They should be the same
+      expect(oldFilterSettings).toEqual(newFilterSettings);
+      history.pushState(null, null, "_SpecRunner.html");
+    });
+
+    it("should load filters from url params with old uri param", function() {
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      var expectedFilters = [];
+      populateFilters();
+      var oldFilterSettings = table._getFilteringSettings();
+      var populatedURL = "_SpecRunner.html"+window.location.search;
+      populatedURL = populatedURL.replace("filter_json", "ext_filter_json");
+      clearFilters();
+      history.pushState(null, null, populatedURL);
+      cg._computeColumnConfig();
+      var newFilterSettings = table._getFilteringSettings();
+      expect(oldFilterSettings).toEqual(newFilterSettings);
+    });
+
+    it("should populate filter markup from url params", function() {
+      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      var expectedFilters = [];
+
+      // populate url with filters
+      populateFilters();
+
+      var populatedURL = "_SpecRunner.html"+window.location.search;
+
+      // remove filters
+      clearFilters();
+
+      // push the populatedURL
+      history.pushState(null, null, populatedURL);
+
+      // Since we can't do a refresh, we just call the methods that fires at that moment
+      cg._computeColumnConfig();
+      cg.table.children["filter-name"].children["filter-menu"].afterRender()
+      cg.table.children["filter-cost"].children["filter-menu"].afterRender()
+      cg.table.children["filter-type"].children["filter-menu"].afterRender()
+
+      // Check the filters are there
+      table.dataTable.find("thead th").each(function (index) {
+        var wrapper = $(".DataTables_sort_wrapper", this);
+        if (wrapper) {
+          var title = wrapper.text();
+          var col = cg.columnConfigByTitle.attributes[title];
+          if (col && col.filter) {
+            switch (col.filter.type) {
+              case "string":
+                expect($('.filterMenu input').val()).toEqual("Scott")
+                break;
+              case "numeric":
+                expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
+                expect($('input#first-filter').val()).toEqual("0.5");
+                break;
+              case "list":
+                expect($(".filterMenu input[value=Basic]").prop("checked")).toEqual(true);
+                break;
+            }
+          }
+        }
+      });
+
+      history.pushState(null, null, "_SpecRunner.html");
+
+      // remove filters again so that other tests don't fail
+      clearFilters();
+
+    });
+
+
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -814,7 +974,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -832,7 +991,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks out of it", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -850,7 +1008,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
-      var cg = table.configGenerator();
       var lastFilterMenu;
       var currentFilterMenu;
       table.dataTable.find("thead th").each(function () {
@@ -875,7 +1032,6 @@ describe("DataTable Plugin", function() {
     });
 
     it("should clear the filters when the clear button is clicked", function() {
-      var cg = table.configGenerator();
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
@@ -952,7 +1108,7 @@ describe("DataTable Plugin", function() {
 
         spyOn(table, "_goToWindowLocation").and.callFake(function(){});
         table._fetchCSV(csv_url);
-        expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
+        expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
       });
 
       it("should throw error when serverSideFiltering is not enabled", function () {
