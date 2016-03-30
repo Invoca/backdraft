@@ -1276,15 +1276,13 @@ _.extend(Plugin.factory, {
     render : function() {
       var cells = this.findCells(), node;
       var cleanConfigs = this.columnsConfig.map(function(currentValue,index){
-        if (index===0) {
-          return currentValue
+        if (index===0 || (currentValue.attr && currentValue.visible) ) {
+          return currentValue;
         }
-        if(currentValue.attr&&currentValue.visible){
-          return currentValue}
-        }).filter(function(currentValue){
-           return currentValue != undefined
-         }
-       );
+      }).filter(function(currentValue) {
+         return currentValue !== undefined;
+        }
+      );
       _.each(cleanConfigs, function(config, index) {
         node = $(cells[index]);
         this._invokeRenderer(config, node);
