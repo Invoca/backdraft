@@ -1275,15 +1275,14 @@ _.extend(Plugin.factory, {
 
     render : function() {
       var cells = this.findCells(), node;
-      var configsArray = this.columnsConfig;
-      var cleanConfigs = this.columnsConfig.map(function(a,b,c){
-        if (b===0) {
-          return a
+      var cleanConfigs = this.columnsConfig.map(function(currentValue,index){
+        if (index===0) {
+          return currentValue
         }
-        if(a.attr&&a.visible){
-          return a}
-        }).filter(function(n){
-           return n != undefined
+        if(currentValue.attr&&currentValue.visible){
+          return currentValue}
+        }).filter(function(currentValue){
+           return currentValue != undefined
          }
        );
       _.each(cleanConfigs, function(config, index) {
