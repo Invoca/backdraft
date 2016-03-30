@@ -836,7 +836,8 @@ _.extend(Plugin.factory, {
 
     events: {
       "click input": "_onInputClick",
-      "change input": "_onInputChange"
+      "change input": "_onInputChange",
+      "change select": "_onSelectChange"
     },
 
     render: function () {
@@ -884,6 +885,10 @@ _.extend(Plugin.factory, {
 
     _onInputChange: function (event) {
       // to be implemented by subclasses
+    },
+
+    _onSelectChange: function (event) {
+      // to be optionally implemented by subclasses
     },
 
     _updateFilterUrlParams: function() {
@@ -978,14 +983,14 @@ _.extend(Plugin.factory, {
 
     menuTemplate: _.template('\
       <div class="filter-text">Show items with value that:</div> \
-      <select class="filter-type form-control" data-filter-id="first-filter">\
+      <select class="filter-type form-control" data-filter-id="first-filter" data-previous-value="gt">\
         <option selected value="gt">is greater than</option> \
         <option value="lt">is less than</option> \
         <option value="eq">is equal to</option> \
       </select> \
       <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
       <div class="filter-text">and</div> \
-      <select class="filter-type form-control" data-filter-id="second-filter">\
+      <select class="filter-type form-control" data-filter-id="second-filter" data-previous-value="lt">\
         <option value="gt">is greater than</option> \
         <option selected value="lt">is less than</option> \
         <option value="eq">is equal to</option> \
@@ -1004,6 +1009,18 @@ _.extend(Plugin.factory, {
         this.filter[filterType] = filterValue;
         this.parentView._toggleIcon(true);
       }
+      this._updateFilterUrlParams();
+    },
+
+    _onSelectChange: function (event) {
+      event.stopImmediatePropagation();
+      var filterElementId = event.target.getAttribute('data-filter-id'),
+          previousFilterType = event.target.getAttribute('data-previous-value'),
+          filterType = event.target.value;
+      this.filter[filterType] = this.filter[previousFilterType];
+      delete this.filter[previousFilterType];
+      event.target.setAttribute('data-previous-value', filterType);
+      this.$('#' + filterElementId).attr('data-filter-type', filterType).trigger("change");
       this._updateFilterUrlParams();
     },
 
@@ -1032,12 +1049,6 @@ _.extend(Plugin.factory, {
           this.parentView._toggleIcon(true);
         }
       }
-
-      this.$('.filter-type').bind('change', function(event) {
-        var filterElementId = event.target.getAttribute('data-filter-id'),
-          filterType = event.target.value;
-        $('#'+filterElementId).attr('data-filter-type', filterType);
-      });
     },
 
     clear: function() {
