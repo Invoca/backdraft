@@ -436,13 +436,13 @@ var LocalDataTable = (function() {
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+col.attr, new DataTableFilter({
+            table.child("filter-"+cg.columnsConfig[index].attr, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+col.attr).render().$el);
+            $(this).append(table.child("filter-"+cg.columnsConfig[index].attr).render().$el);
           }
         }
       });

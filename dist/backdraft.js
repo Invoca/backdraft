@@ -1275,8 +1275,19 @@ _.extend(Plugin.factory, {
 
     render : function() {
       var cells = this.findCells(), node;
-      _.each(this.columnsConfig, function(config) {
-        node = cells.filter(config.nodeMatcher(config));
+      var configsArray = this.columnsConfig;
+      var cleanConfigs = this.columnsConfig.map(function(a,b,c){
+        if (b===0) {
+          return a
+        }
+        if(a.attr&&a.visible){
+          return a}
+        }).filter(function(n){
+           return n != undefined
+         }
+       );
+      _.each(cleanConfigs, function(config, index) {
+        node = $(cells[index]);
         this._invokeRenderer(config, node);
       }, this);
     },
@@ -1325,6 +1336,7 @@ _.extend(Plugin.factory, {
   return Row;
 
 })();
+
   var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
@@ -1763,13 +1775,13 @@ _.extend(Plugin.factory, {
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+col.attr, new DataTableFilter({
+            table.child("filter-"+cg.columnsConfig[index].attr, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+col.attr).render().$el);
+            $(this).append(table.child("filter-"+cg.columnsConfig[index].attr).render().$el);
           }
         }
       });

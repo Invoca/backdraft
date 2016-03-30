@@ -10,8 +10,19 @@ var Row = (function() {
 
     render : function() {
       var cells = this.findCells(), node;
-      _.each(this.columnsConfig, function(config) {
-        node = cells.filter(config.nodeMatcher(config));
+      var configsArray = this.columnsConfig;
+      var cleanConfigs = this.columnsConfig.map(function(a,b,c){
+        if (b===0) {
+          return a
+        }
+        if(a.attr&&a.visible){
+          return a}
+        }).filter(function(n){
+           return n != undefined
+         }
+       );
+      _.each(cleanConfigs, function(config, index) {
+        node = $(cells[index]);
         this._invokeRenderer(config, node);
       }, this);
     },
