@@ -1276,7 +1276,7 @@ _.extend(Plugin.factory, {
     render : function() {
       var cells = this.findCells(), node;
       var cleanConfigs = this.columnsConfig.map(function(currentValue,index){
-        if (index===0 || (currentValue.attr && currentValue.visible) ) {
+        if (currentValue.bulk || ((currentValue.attr || currentValue.title) && currentValue.visible) ) {
           return currentValue;
         }
       }).filter(function(currentValue) {

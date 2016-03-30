@@ -806,6 +806,11 @@ describe("DataTable Plugin", function() {
       table = new app.Views.T({ collection : collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+      debugger;
+      expect(table.children["filter-name"]).toBeDefined();
+      expect(table.children["filter-cost"]).toBeDefined();
+      expect(table.children["filter-cost2"]).toBeDefined();
+      expect(table.children["filter-type"]).toBeDefined();
       expect(table).toBeDefined();
     });
 
