@@ -35,7 +35,8 @@ var DataTableFilter = (function(options) {
 
     events: {
       "click input": "_onInputClick",
-      "change input": "_onInputChange"
+      "change input": "_onInputChange",
+      "change select": "_onSelectChange"
     },
 
     render: function () {
@@ -83,6 +84,10 @@ var DataTableFilter = (function(options) {
 
     _onInputChange: function (event) {
       // to be implemented by subclasses
+    },
+
+    _onSelectChange: function (event) {
+      // to be optionally implemented by subclasses
     },
 
     _updateFilterUrlParams: function() {
@@ -177,14 +182,14 @@ var DataTableFilter = (function(options) {
 
     menuTemplate: _.template('\
       <div class="filter-text">Show items with value that:</div> \
-      <select class="filter-type form-control" data-filter-id="first-filter">\
+      <select class="filter-type form-control" data-filter-id="first-filter" data-previous-value="gt">\
         <option selected value="gt">is greater than</option> \
         <option value="lt">is less than</option> \
         <option value="eq">is equal to</option> \
       </select> \
       <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
       <div class="filter-text">and</div> \
-      <select class="filter-type form-control" data-filter-id="second-filter">\
+      <select class="filter-type form-control" data-filter-id="second-filter" data-previous-value="lt">\
         <option value="gt">is greater than</option> \
         <option selected value="lt">is less than</option> \
         <option value="eq">is equal to</option> \
@@ -203,6 +208,19 @@ var DataTableFilter = (function(options) {
         this.filter[filterType] = filterValue;
         this.parentView._toggleIcon(true);
       }
+      this._updateFilterUrlParams();
+    },
+
+    _onSelectChange: function (event) {
+      event.stopImmediatePropagation();
+      var target = $(event.target),
+          filterElementId = target.data('filter-id'),
+          previousFilterType = target.data('previous-value'),
+          filterType = target.val();
+      this.filter[filterType] = this.filter[previousFilterType];
+      delete this.filter[previousFilterType];
+      target.attr('data-previous-value', filterType);
+      this.$('#' + filterElementId).attr('data-filter-type', filterType).trigger("change");
       this._updateFilterUrlParams();
     },
 
@@ -231,12 +249,6 @@ var DataTableFilter = (function(options) {
           this.parentView._toggleIcon(true);
         }
       }
-
-      this.$('.filter-type').bind('change', function(event) {
-        var filterElementId = event.target.getAttribute('data-filter-id'),
-          filterType = event.target.value;
-        $('#'+filterElementId).attr('data-filter-type', filterType);
-      });
     },
 
     clear: function() {
