@@ -351,7 +351,7 @@ var LocalDataTable = (function() {
     },
 
     _enableRowHighlight: function() {
-     this.dataTable.on("click", this.ROWS_SELECTOR, this._onRowHighlightClick);
+      this.dataTable.on("click", this.ROWS_SELECTOR, this._onRowHighlightClick);
     },
 
     _onRowHighlightClick: function(event) {
