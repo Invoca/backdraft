@@ -1332,7 +1332,7 @@ _.extend(Plugin.factory, {
   var LocalDataTable = Base.View.extend({
     BULK_COLUMN_HEADER_CHECKBOX_SELECTOR : "th:first.bulk :checkbox",
     BULK_COLUMN_CHECKBOXES_SELECTOR : "td:first-child.bulk :checkbox",
-
+    ROWS_SELECTOR: "tbody tr",
     template : '\
       <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered"></table>\
     ',
@@ -1382,6 +1382,7 @@ _.extend(Plugin.factory, {
       this.$el.html(this.template);
       this._dataTableCreate();
       this._initBulkHandling();
+      this._enableRowHighlight();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
       this.trigger("render");
@@ -1676,6 +1677,17 @@ _.extend(Plugin.factory, {
       this.dataTable.on("filter", this._bulkCheckboxAdjust);
     },
 
+    _enableRowHighlight: function() {
+      this.dataTable.on("click", this.ROWS_SELECTOR, this._onRowHighlightClick);
+    },
+
+    _onRowHighlightClick: function(event) {
+     var el = $(event.target).closest("tr"),
+         currentState = el.hasClass("highlighted");
+     $(event.target).closest("tbody").find('tr').toggleClass('highlighted',false);
+     el.toggleClass("highlighted", !currentState);
+    },
+
     _dataTableConfig : function() {
       return {
         sDom : this.layout,
@@ -1801,6 +1813,7 @@ _.extend(Plugin.factory, {
       if (!checked) this.bulkCheckbox.prop("checked", false);
       this._setRowSelectedState(row.model, row, checked);
       this._triggerChangeSelection();
+      event.stopPropagation();
     },
 
     _onRowCreated : function(node, data) {
