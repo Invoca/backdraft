@@ -735,7 +735,7 @@ describe("DataTable Plugin", function() {
       });
     }
 
-    function VerifyFilterAjax(filterObj) {
+    function verifyFilterAjax(filterObj) {
       var url = jasmine.Ajax.requests.mostRecent().url;
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
       expect(url).toMatch("ext_filter_json="+expectedFilterJson);
@@ -746,6 +746,72 @@ describe("DataTable Plugin", function() {
       var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
+
+    it("should not duplicate filter view when there are duplicate title names", function() {
+
+      // Create a brand new table with duplicate titles
+      Backdraft.app.destroyAll();
+      app = Backdraft.app("myapp", {
+        plugins : [ "DataTable" ]
+      });
+
+      app.model("M", {});
+      app.collection("Col", {
+        model : app.Models.M,
+        url : "/somewhere"
+      });
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { bulk : true },
+          { attr : "name", title : "Name", filter : { type : "string" } },
+          { attr : "cost", title : "Cost", filter : { type : "numeric" } },
+          { attr : "cost2", title : "Cost", filter : { type : "numeric" } },
+          { attr : "type", title : "Type", filter : { type : "list", options: ["Basic", "Advanced"] } },
+          { title : "Non attr column"}
+        ],
+        renderers: {
+          "Non attr column": function(node, config) {
+            node.html("Non attr column");
+          }
+        }
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        serverSide : true,
+        sorting : [['Name', 'desc']],
+        filteringEnabled: true,
+        serverSideFiltering : true
+      });
+
+      app.view.dataTable.row("RSimple", {
+        columns : [
+          { attr : "cost", title : "Cost", filter : { type : "numeric" } },
+          { attr : "name", title : "Name", filter : { type : "string" } }
+        ]
+      });
+
+      app.view.dataTable("TSimple", {
+        rowClassName : "RSimple",
+        serverSide : true,
+        sorting : [['Name', 'desc']],
+        simpleParams : true
+      });
+
+      collection = new app.Collections.Col();
+
+      jasmine.Ajax.install();
+      mockResponse = new MockResponse();
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+      expect(table.children["filter-name"]).toBeDefined();
+      expect(table.children["filter-cost"]).toBeDefined();
+      expect(table.children["filter-cost2"]).toBeDefined();
+      expect(table.children["filter-type"]).toBeDefined();
+      expect(table).toBeDefined();
+    });
 
     it("should have an object for each filterable column in the column manager "+
         "which describes the filter to be applied", function() {
@@ -794,7 +860,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
               // test unassignment
@@ -804,7 +870,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "numeric") {
@@ -816,7 +882,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
               // test unassignment
@@ -826,7 +892,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "list") {
@@ -837,7 +903,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
               // test unassignment
@@ -847,7 +913,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
             }
           }

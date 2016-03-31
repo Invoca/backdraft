@@ -390,25 +390,25 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // when nothing specified, sort asc by default
-      table.$("thead th.Name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 0)).toEqual(["Bob", "Joe", "Zebra"]);
 
 
       // when clicking on a 'desc' specified one, sort desc by default
-      table.$("thead th.Age .DataTables_sort_wrapper").click();
+      table.$("thead th.column-age .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
 
       // a second click should go to 'asc'
-      table.$("thead th.Age .DataTables_sort_wrapper").click();
+      table.$("thead th.column-age .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
 
 
       // when clicking on a 'asc' specified one, sort asc by default
-      table.$("thead th.Zip .DataTables_sort_wrapper").click();
+      table.$("thead th.column-zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       // a second click should go to 'desc''
-      table.$("thead th.Zip .DataTables_sort_wrapper").click();
+      table.$("thead th.column-zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["90000", "33333", "10000"]);
     });
 
@@ -872,13 +872,13 @@ describe("DataTable Plugin", function() {
       // enable columns that were hidden when initially rendered, which should now be populated
       table.columnVisibility("Attr2", true);
       table.columnVisibility("Attr4", true);
-      expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
-      expect(cellsForColumn(table, "Attr4")).toEqual(["A4", "B4", "C4", "D4"]);
+      expect(cellsForColumn(table, "column-attr2")).toEqual(["A2", "B2", "C2", "D2"]);
+      expect(cellsForColumn(table, "column-attr4")).toEqual(["A4", "B4", "C4", "D4"]);
 
       // remove some content
-      table.$("tbody td.Attr2").html("");
+      table.$("tbody td.column-attr2").html("");
       table.renderColumn("Attr2");
-      expect(cellsForColumn(table, "Attr2")).toEqual(["A2", "B2", "C2", "D2"]);
+      expect(cellsForColumn(table, "column-attr2")).toEqual(["A2", "B2", "C2", "D2"]);
     });
   });
 
@@ -1028,16 +1028,17 @@ describe("DataTable Plugin", function() {
 
     it("should work for sorting ui", function() {
       function getCells() {
-        return table.$("tbody td.Name").map(function() {
+        return table.$("tbody td.column-name").map(function() {
           return $(this).text();
         }).get();
       }
+      debugger;
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
-      table.$("thead th.Name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", false);
-      table.$("thead th.Name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
