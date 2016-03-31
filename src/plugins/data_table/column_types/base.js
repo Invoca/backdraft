@@ -4,7 +4,7 @@ app.view.dataTable.columnType(function(columnType) {
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toCSSClass(config.attr || config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -17,7 +17,7 @@ app.view.dataTable.columnType(function(columnType) {
       bSortable: sortable,
       bSearchable: searchable,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source);
       },

@@ -433,16 +433,26 @@ var LocalDataTable = (function() {
         var title = this.textContent || this.innerText;
         var col = cg.columnConfigByTitle.attributes[title];
 
+        // Try to grab it by attribute, if possible
+        var matches = this.className.match(/(?:^|\s)column-(.*?)(?:\s|$)/);
+        if (matches && matches[1]) {
+          cg.columnsConfig.forEach(function(currentObject){
+            if (currentObject.attr && Backdraft.Utils.toCSSClass(currentObject.attr).replace("column-","") === matches[1]) {
+              col = currentObject;
+            }
+          })
+        }
+
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+cg.columnsConfig[index].attr, new DataTableFilter({
+            table.child("filter-"+col.attr, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+cg.columnsConfig[index].attr).render().$el);
+            $(this).append(table.child("filter-"+col.attr).render().$el);
           }
         }
       });

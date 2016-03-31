@@ -10,16 +10,8 @@ var Row = (function() {
 
     render : function() {
       var cells = this.findCells(), node;
-      var cleanConfigs = this.columnsConfig.map(function(currentValue,index){
-        if (currentValue.bulk || ((currentValue.attr || currentValue.title) && currentValue.visible) ) {
-          return currentValue;
-        }
-      }).filter(function(currentValue) {
-         return currentValue !== undefined;
-        }
-      );
-      _.each(cleanConfigs, function(config, index) {
-        node = $(cells[index]);
+      _.each(this.columnsConfig, function(config) {
+        node = cells.filter(config.nodeMatcher(config));
         this._invokeRenderer(config, node);
       }, this);
     },

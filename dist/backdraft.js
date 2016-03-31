@@ -76,9 +76,10 @@
 Backdraft.Utils.toCSSClass = (function() {
   var cssClass = /[^a-zA-Z_0-9\-]/g;
   return function(input) {
-    return input.replace(cssClass, "-");
+    return "column-"+input.replace(cssClass, "-");
   };
 })();
+
 
   var App = (function() {
 
@@ -1275,16 +1276,8 @@ _.extend(Plugin.factory, {
 
     render : function() {
       var cells = this.findCells(), node;
-      var cleanConfigs = this.columnsConfig.map(function(currentValue,index){
-        if (currentValue.bulk || ((currentValue.attr || currentValue.title) && currentValue.visible) ) {
-          return currentValue;
-        }
-      }).filter(function(currentValue) {
-         return currentValue !== undefined;
-        }
-      );
-      _.each(cleanConfigs, function(config, index) {
-        node = $(cells[index]);
+      _.each(this.columnsConfig, function(config) {
+        node = cells.filter(config.nodeMatcher(config));
         this._invokeRenderer(config, node);
       }, this);
     },
@@ -1769,16 +1762,26 @@ _.extend(Plugin.factory, {
         var title = this.textContent || this.innerText;
         var col = cg.columnConfigByTitle.attributes[title];
 
+        // Try to grab it by attribute, if possible
+        var matches = this.className.match(/(?:^|\s)column-(.*?)(?:\s|$)/);
+        if (matches && matches[1]) {
+          cg.columnsConfig.forEach(function(currentObject){
+            if (currentObject.attr && Backdraft.Utils.toCSSClass(currentObject.attr).replace("column-","") === matches[1]) {
+              col = currentObject;
+            }
+          })
+        }
+
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+cg.columnsConfig[index].attr, new DataTableFilter({
+            table.child("filter-"+col.attr, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+cg.columnsConfig[index].attr).render().$el);
+            $(this).append(table.child("filter-"+col.attr).render().$el);
           }
         }
       });
@@ -4194,7 +4197,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toCSSClass(config.attr || config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -4203,7 +4206,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       bSearchable: config.search,
       asSorting: config.sortDir,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },
@@ -4235,7 +4238,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toCSSClass(config.attr || config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -4248,7 +4251,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       bSortable: sortable,
       bSearchable: searchable,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source);
       },
@@ -4277,6 +4280,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     renderer.apply(this, arguments);
   });
 });
+
   });
 
 });
