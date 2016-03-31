@@ -213,12 +213,13 @@ var DataTableFilter = (function(options) {
 
     _onSelectChange: function (event) {
       event.stopImmediatePropagation();
-      var filterElementId = event.target.getAttribute('data-filter-id'),
-          previousFilterType = event.target.getAttribute('data-previous-value'),
-          filterType = event.target.value;
+      var target = $(event.target),
+          filterElementId = target.data('filter-id'),
+          previousFilterType = target.data('previous-value'),
+          filterType = target.val();
       this.filter[filterType] = this.filter[previousFilterType];
       delete this.filter[previousFilterType];
-      event.target.setAttribute('data-previous-value', filterType);
+      target.attr('data-previous-value', filterType);
       this.$('#' + filterElementId).attr('data-filter-type', filterType).trigger("change");
       this._updateFilterUrlParams();
     },
