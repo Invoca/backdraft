@@ -1163,7 +1163,7 @@ describe("DataTable Plugin", function() {
     it("should overwrite existing numeric filter when filter type is changed", function () {
       var cg = table.configGenerator();
       var col = cg.columnConfigByTitle.attributes["Cost"];
-      table.dataTable.find("th.Cost .toggle-filter-button").trigger("click");
+      table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
       $(".popover-menu #first-filter").val("3").trigger("change");
 
       expect(col.filter).toEqual({type: "numeric", gt: "3"});

@@ -1032,7 +1032,6 @@ describe("DataTable Plugin", function() {
           return $(this).text();
         }).get();
       }
-      debugger;
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
       table.$("thead th.column-name .DataTables_sort_wrapper").click();
