@@ -2,6 +2,6 @@
 Backdraft.Utils.toCSSClass = (function() {
   var cssClass = /[^a-zA-Z_0-9\-]/g;
   return function(input) {
-    return input.replace(cssClass, "-");
+    return "column-"+input.replace(cssClass, "-");
   };
 })();

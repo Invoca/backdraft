@@ -76,9 +76,10 @@
 Backdraft.Utils.toCSSClass = (function() {
   var cssClass = /[^a-zA-Z_0-9\-]/g;
   return function(input) {
-    return input.replace(cssClass, "-");
+    return "column-"+input.replace(cssClass, "-");
   };
 })();
+
 
   var App = (function() {
 
@@ -1325,6 +1326,7 @@ _.extend(Plugin.factory, {
   return Row;
 
 })();
+
   var LocalDataTable = (function() {
 
   var Base = Backdraft.plugin("Base");
@@ -1771,6 +1773,16 @@ _.extend(Plugin.factory, {
         // there isn't a better way to do this currently
         var title = this.textContent || this.innerText;
         var col = cg.columnConfigByTitle.attributes[title];
+
+        // Try to grab it by attribute, if possible
+        var matches = this.className.match(/(?:^|\s)column-(.*?)(?:\s|$)/);
+        if (matches && matches[1]) {
+          cg.columnsConfig.forEach(function(currentObject){
+            if (currentObject.attr && Backdraft.Utils.toCSSClass(currentObject.attr).replace("column-","") === matches[1]) {
+              col = currentObject;
+            }
+          })
+        }
 
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
@@ -4198,7 +4210,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toCSSClass(config.attr || config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -4207,7 +4219,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       bSearchable: config.search,
       asSorting: config.sortDir,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },
@@ -4239,7 +4251,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toCSSClass(config.attr || config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -4252,7 +4264,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       bSortable: sortable,
       bSearchable: searchable,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source);
       },
@@ -4281,6 +4293,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     renderer.apply(this, arguments);
   });
 });
+
   });
 
 });

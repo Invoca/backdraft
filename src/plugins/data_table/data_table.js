@@ -445,6 +445,16 @@ var LocalDataTable = (function() {
         var title = this.textContent || this.innerText;
         var col = cg.columnConfigByTitle.attributes[title];
 
+        // Try to grab it by attribute, if possible
+        var matches = this.className.match(/(?:^|\s)column-(.*?)(?:\s|$)/);
+        if (matches && matches[1]) {
+          cg.columnsConfig.forEach(function(currentObject){
+            if (currentObject.attr && Backdraft.Utils.toCSSClass(currentObject.attr).replace("column-","") === matches[1]) {
+              col = currentObject;
+            }
+          })
+        }
+
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
