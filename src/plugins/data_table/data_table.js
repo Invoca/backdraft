@@ -445,11 +445,11 @@ var LocalDataTable = (function() {
         var title = this.textContent || this.innerText;
         var col;
         // Try to grab it by attribute, if possible
-        var matches = this.className.match(/column-([^\s]*)/);
+        var matches = this.className.match(/(?:^|\s)column-([^\s]+)/);
         if (matches && matches[1]) {
-          cg.columnsConfig.forEach(function(currentObject){
-            if (currentObject.attr && Backdraft.Utils.toCSSClass(currentObject.attr).replace("column-","") === matches[1]) {
-              col = currentObject;
+          cg.columnsConfig.forEach(function(currentColConfig){
+            if (currentColConfig.attr && Backdraft.Utils.toCSSClass(currentColConfig.attr).replace("column-","") === matches[1]) {
+              col = currentColConfig;
             }
           })
         }
