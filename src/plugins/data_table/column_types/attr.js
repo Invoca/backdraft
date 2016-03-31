@@ -13,7 +13,7 @@ app.view.dataTable.columnType(function(columnType) {
       bSearchable: config.search,
       asSorting: config.sortDir,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr),
       mData: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },

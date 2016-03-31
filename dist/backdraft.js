@@ -1760,16 +1760,18 @@ _.extend(Plugin.factory, {
         // here we use the text in the header to get the column config by title
         // there isn't a better way to do this currently
         var title = this.textContent || this.innerText;
-        var col = cg.columnConfigByTitle.attributes[title];
-
+        var col;
         // Try to grab it by attribute, if possible
-        var matches = this.className.match(/(?:^|\s)column-(.*?)(?:\s|$)/);
+        var matches = this.className.match(/column-([^\s]*)/);
         if (matches && matches[1]) {
           cg.columnsConfig.forEach(function(currentObject){
             if (currentObject.attr && Backdraft.Utils.toCSSClass(currentObject.attr).replace("column-","") === matches[1]) {
               col = currentObject;
             }
           })
+        }
+        else {
+          col = cg.columnConfigByTitle.attributes[title];
         }
 
         if (col) {
@@ -4206,7 +4208,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       bSearchable: config.search,
       asSorting: config.sortDir,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.attr),
       mData: function(source, type, val) {
         return dataTable.collection.get(source).get(config.attr);
       },
@@ -4238,7 +4240,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.attr || config.title);
+    return "." + Backdraft.Utils.toCSSClass(config.title);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -4251,7 +4253,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
       bSortable: sortable,
       bSearchable: searchable,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.attr || config.title),
+      sClass : Backdraft.Utils.toCSSClass(config.title),
       mData: function(source, type, val) {
         return dataTable.collection.get(source);
       },
