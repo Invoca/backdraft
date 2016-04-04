@@ -1,8 +1,8 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
-    this.columnIndexByTitle = new Backbone.Model();
-    this.columnConfigByTitle = new Backbone.Model();
+    this.columnIndexByAttr = new Backbone.Model();
+    this.columnConfigByAttr = new Backbone.Model();
     this._computeColumnConfig();
     this._computeColumnLookups();
     this._computeSortingConfig();
@@ -41,6 +41,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
         return !columnConfig.present();
       }
     });
+    this.columnsConfig = this._addAttrsToColumnsWhenMissing(this.columnsConfig);
 
     // make the bulk column the first one if present
     this.columnsConfig = _.sortBy(this.columnsConfig, function (columnConfig) {
@@ -83,19 +84,19 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
-      // column index can be provided as the column title, convert to index
-      if (_.isString(columnIndex)) columnIndex = this.columnIndexByTitle.get(columnIndex);
+      // column index can be provided as the column attr, convert to index
+      if (_.isString(columnIndex)) columnIndex = this.columnIndexByAttr.get(columnIndex);
       return [ columnIndex, direction ];
     }, this);
   },
 
   _computeColumnLookups: function() {
-    this.columnIndexByTitle.clear();
-    this.columnConfigByTitle.clear();
+    this.columnIndexByAttr.clear();
+    this.columnConfigByAttr.clear();
     _.each(this.columnsConfig, function(col, index) {
-      if (col.title) {
-        this.columnIndexByTitle.set(col.title, index);
-        this.columnConfigByTitle.set(col.title, col);
+      if (col.attr) {
+        this.columnIndexByAttr.set(col.attr, index);
+        this.columnConfigByAttr.set(col.attr, col);
       }
     }, this);
   },
@@ -114,5 +115,15 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
         return columnType;
       }
     });
+  },
+
+  _addAttrsToColumnsWhenMissing: function(columnsConfig) {
+    _.each(columnsConfig, function(columnConfig) {
+      if (!columnConfig.bulk && !columnConfig.attr) {
+        columnConfig.attr = Backdraft.Utils.toCSSClass(columnConfig.title);
+      }
+    });
+
+    return columnsConfig;
   }
 });

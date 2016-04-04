@@ -1,10 +1,10 @@
 app.view.dataTable.columnType(function(columnType) {
   columnType.configMatcher(function(config) {
-    return !config.attr && config.title;
+    return !!config.attr;
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toColumnCSSClass(config.attr);
   });
 
   columnType.definition(function(dataTable, config) {
@@ -16,10 +16,11 @@ app.view.dataTable.columnType(function(columnType) {
     return {
       bSortable: sortable,
       bSearchable: searchable,
+      asSorting: config.sortDir,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toColumnCSSClass(config.attr),
       mData: function(source, type, val) {
-        return dataTable.collection.get(source);
+        return dataTable.collection.get(source).get(config.attr);
       },
       mRender : function(data, type, full) {
         // note data is based on the result of mData
@@ -41,8 +42,12 @@ app.view.dataTable.columnType(function(columnType) {
   });
 
   columnType.renderer(function(cell, config) {
-    var renderer = this.renderers[config.title];
-    if (!renderer) throw new Error("renderer is missing for " + JSON.stringify(config));
-    renderer.apply(this, arguments);
+    // TODO: Fixup backend code that generates list of renderers
+    var renderer = this.renderers[config.attr];
+    if (renderer) {
+      renderer.apply(this, arguments);
+    } else {
+      cell.text(this.model.get(config.attr));
+    }
   });
 });

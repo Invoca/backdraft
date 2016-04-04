@@ -76,7 +76,7 @@ describe("DataTable Plugin", function() {
         { title : "Non attr column"}
       ],
       renderers: {
-        "Non attr column": function(node, config) {
+        "non attr column": function(node, config) {
           node.html("Non attr column");
         }
       }
@@ -84,7 +84,7 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("T", {
       rowClassName : "R",
       serverSide : true,
-      sorting : [['Name', 'desc']],
+      sorting : [['name', 'desc']],
       filteringEnabled: true,
       serverSideFiltering : true
     });
@@ -99,7 +99,7 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("TSimple", {
       rowClassName : "RSimple",
       serverSide : true,
-      sorting : [['Name', 'desc']],
+      sorting : [['name', 'desc']],
       simpleParams : true
     });
 
@@ -678,12 +678,16 @@ describe("DataTable Plugin", function() {
       cg = table.configGenerator();
     });
 
+    function getColumnConfigByCSS(element) {
+      var attr = Backdraft.Utils.extractColumnCSSClass(wrapper.className)
+      return cg.columnConfigByAttr.attributes[attr];
+    };
+
     function clearFilters() {
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -709,8 +713,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -771,7 +774,7 @@ describe("DataTable Plugin", function() {
           { title : "Non attr column"}
         ],
         renderers: {
-          "Non attr column": function(node, config) {
+          "non attr column": function(node, config) {
             node.html("Non attr column");
           }
         }
@@ -849,8 +852,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             if (col.filter.type === "string") {
               // test assignment
@@ -981,8 +983,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -1012,8 +1013,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             $(".toggle-filter-button", this).click();
             if (col.filter.type === "string") {
@@ -1043,8 +1043,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             expect($(".filterMenu", this).is(":hidden"));
             $("span", this).trigger("click");
@@ -1060,8 +1059,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             expect($(".popover .filterMenu").length).toEqual(3);
             $("span", this).trigger("click");
@@ -1079,8 +1077,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             if (currentFilterMenu) {
               lastFilterMenu = currentFilterMenu;
@@ -1101,8 +1098,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(wrapper);
           if (col && col.filter) {
             var toggleButton = $(".toggle-filter-button", this);
             toggleButton.click();
@@ -1162,7 +1158,7 @@ describe("DataTable Plugin", function() {
 
     it("should overwrite existing numeric filter when filter type is changed", function () {
       var cg = table.configGenerator();
-      var col = cg.columnConfigByTitle.attributes["Cost"];
+      var col = cg.columnConfigByAttr.attributes["cost"];
       table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
       $(".popover-menu #first-filter").val("3").trigger("change");
 

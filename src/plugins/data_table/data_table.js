@@ -62,8 +62,8 @@ var LocalDataTable = (function() {
       return this;
     },
 
-    renderColumn: function(title) {
-      var config = this._columnManager.columnConfigForTitle(title);
+    renderColumn: function(attr) {
+      var config = this._columnManager.columnConfigForAttr(attr);
       if (!config) {
         throw new Error("column not found");
       }
@@ -100,36 +100,36 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnRequired: function(state, title) {
-      if (!state && this._columnManager.columnConfigForTitle(title).required) {
+    columnRequired: function(state, attr) {
+      if (!state && this._columnManager.columnConfigForAttr(attr).required) {
         throw new Error("can not disable visibility when column is required");
       }
     },
 
-    columnVisibility: function(title, state) {
+    columnVisibility: function(attr, state) {
       if (arguments.length === 1) {
         // getter
-        return this._columnManager.visibility.get(title);
+        return this._columnManager.visibility.get(attr);
       } else {
-        this.columnRequired(state, title);
-        this._columnManager.visibility.set(title, state);
-        state && this.renderColumn(title);
+        this.columnRequired(state, attr);
+        this._columnManager.visibility.set(attr, state);
+        state && this.renderColumn(attr);
       }
     },
 
-    // takes a hash of { columnTitle: columnState, ... }
+    // takes a hash of { columnAttr: columnState, ... }
     setColumnVisibilities: function(columns) {
       _.each(columns, this.columnRequired, this);
       this._columnManager.visibility.set(columns);
-      _.each(columns, function(state, title) {
-        state && this.renderColumn(title);
+      _.each(columns, function(state, attr) {
+        state && this.renderColumn(attr);
       }, this);
     },
 
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
-        if (column.title) {
-          this.columnVisibility(column.title, column.visible);
+        if (column.attr) {
+          this.columnVisibility(column.attr, column.visible);
         }
       }, this);
     },
@@ -440,21 +440,19 @@ var LocalDataTable = (function() {
 
       // We make a filter for each column header
       table.dataTable.find("thead th").each(function (index) {
-        // here we use the text in the header to get the column config by title
+        // here we use the CSS in the header to get the column config by attr
         // there isn't a better way to do this currently
-        var title = this.textContent || this.innerText;
         var col;
-        // Try to grab it by attribute, if possible
-        var matches = this.className.match(/(?:^|\s)column-([^\s]+)/);
-        if (matches && matches[1]) {
+        var columnClassName = Backdraft.Utils.extractColumnCSSClass(this.className);
+        if (columnClassName) {
           cg.columnsConfig.forEach(function(currentColConfig){
-            if (currentColConfig.attr && Backdraft.Utils.toCSSClass(currentColConfig.attr).replace("column-","") === matches[1]) {
+            if (currentColConfig.attr && Backdraft.Utils.toColumnCSSClass(currentColConfig.attr) === columnClassName) {
               col = currentColConfig;
             }
           })
         }
         else {
-          col = cg.columnConfigByTitle.attributes[title];
+          // TODO: FAIL!!!
         }
 
         if (col) {

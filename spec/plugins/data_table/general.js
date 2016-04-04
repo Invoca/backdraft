@@ -182,10 +182,10 @@ describe("DataTable Plugin", function() {
           ],
           renderers : {
             // pure html, not based on model
-            "Name" : function(node, config) {
+            "name" : function(node, config) {
               node.html('<a href="#">I AM LINK</a>');
             },
-            "Age" : function(node, config) {
+            "age" : function(node, config) {
               node.addClass("age").text(this.model.get(config.attr));
             }
           }
@@ -248,10 +248,10 @@ describe("DataTable Plugin", function() {
       beforeEach(function() {
         app.view.dataTable.row("abc", {
           renderers: {
-            "Monkey": function(node, config) {
+            "monkey": function(node, config) {
               return "Monkey";
             },
-            "Chicken": function(node, config) {
+            "chicken": function(node, config) {
               return "Chicken";
             }
           }
@@ -262,25 +262,25 @@ describe("DataTable Plugin", function() {
         app.view.dataTable.row("new_abc", "abc", {
         });
 
-        expect(app.Views.new_abc.prototype.renderers["Monkey"]()).toEqual("Monkey");
-        expect(app.Views.new_abc.prototype.renderers["Chicken"]()).toEqual("Chicken");
+        expect(app.Views.new_abc.prototype.renderers["monkey"]()).toEqual("Monkey");
+        expect(app.Views.new_abc.prototype.renderers["chicken"]()).toEqual("Chicken");
       });
 
       it("should inherit renderers when a subclass does provide a renderers property", function() {
         app.view.dataTable.row("new_abc", "abc", {
           renderers: {
-            "Zebra": function(node, config) {
+            "zebra": function(node, config) {
               return "Zebra";
             },
-            "Monkey": function(node, config) {
+            "monkey": function(node, config) {
               return "OVERRIDE Monkey";
             }
           }
         });
 
-        expect(app.Views.new_abc.prototype.renderers["Zebra"]()).toEqual("Zebra");
-        expect(app.Views.new_abc.prototype.renderers["Monkey"]()).toEqual("OVERRIDE Monkey");
-        expect(app.Views.new_abc.prototype.renderers["Chicken"]()).toEqual("Chicken");
+        expect(app.Views.new_abc.prototype.renderers["zebra"]()).toEqual("Zebra");
+        expect(app.Views.new_abc.prototype.renderers["monkey"]()).toEqual("OVERRIDE Monkey");
+        expect(app.Views.new_abc.prototype.renderers["chicken"]()).toEqual("Chicken");
       });
     });
   });
@@ -432,7 +432,7 @@ describe("DataTable Plugin", function() {
 
       function getVisibilities() {
         return _.map(table.columnsConfig(), function(column) {
-          return table.columnVisibility(column.title);
+          return table.columnVisibility(column.attr);
         });
       }
 
@@ -445,20 +445,20 @@ describe("DataTable Plugin", function() {
         expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
 
         // hide Attr2
-        table.columnVisibility("Attr2", false);
+        table.columnVisibility("attr2", false);
         expect(getHeaders(table)).toEqual(["Attr1", "Attr3", "Attr4"]);
 
         // hide Attr3
-        table.columnVisibility("Attr3", false);
+        table.columnVisibility("attr3", false);
         expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
 
         // show Attr1 even though its already visible
-        table.columnVisibility("Attr1", true);
+        table.columnVisibility("attr1", true);
         expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
 
         // show Attr2 and Attr 3
-        table.columnVisibility("Attr2", true);
-        table.columnVisibility("Attr3", true);
+        table.columnVisibility("attr2", true);
+        table.columnVisibility("attr3", true);
         expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
       });
 
@@ -467,15 +467,15 @@ describe("DataTable Plugin", function() {
         expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
 
         // hide Attr2, Attr3
-        table.setColumnVisibilities({ Attr2: false, Attr3: false });
+        table.setColumnVisibilities({ attr2: false, attr3: false });
         expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
 
         // show Attr1, Attr4 even though already visible
-        table.setColumnVisibilities({ Attr1: true, Attr4: true });
+        table.setColumnVisibilities({ attr1: true, attr4: true });
         expect(getHeaders(table)).toEqual(["Attr1", "Attr4"]);
 
         // show Attr2 and Attr 3
-        table.setColumnVisibilities({ Attr2: true, Attr3: true });
+        table.setColumnVisibilities({ attr2: true, attr3: true });
         expect(getHeaders(table)).toEqual(["Attr1", "Attr2", "Attr3", "Attr4"]);
       });
 
@@ -484,20 +484,20 @@ describe("DataTable Plugin", function() {
         expect(getVisibilities()).toEqual([true, true, true, true]);
 
         // hide Attr2
-        table.columnVisibility("Attr2", false);
+        table.columnVisibility("attr2", false);
         expect(getVisibilities()).toEqual([true, false, true, true]);
 
         // hide Attr3
-        table.columnVisibility("Attr3", false);
+        table.columnVisibility("attr3", false);
         expect(getVisibilities()).toEqual([true, false, false, true]);
 
         // show Attr1 even though its already visible
-        table.columnVisibility("Attr1", true);
+        table.columnVisibility("attr1", true);
         expect(getVisibilities()).toEqual([true, false, false, true]);
 
         // show Attr2 and Attr 3
-        table.columnVisibility("Attr2", true);
-        table.columnVisibility("Attr3", true);
+        table.columnVisibility("attr2", true);
+        table.columnVisibility("attr3", true);
         expect(getVisibilities()).toEqual([true, true, true, true]);
       });
 
@@ -506,20 +506,20 @@ describe("DataTable Plugin", function() {
         expect(getColspanLength()).toEqual(4);
 
         // hide Attr2
-        table.columnVisibility("Attr2", false);
+        table.columnVisibility("attr2", false);
         expect(getColspanLength()).toEqual(3);
 
         // hide Attr3
-        table.columnVisibility("Attr3", false);
+        table.columnVisibility("attr3", false);
         expect(getColspanLength()).toEqual(2);
 
         // show Attr1 even though its already visible
-        table.columnVisibility("Attr1", true);
+        table.columnVisibility("attr1", true);
         expect(getColspanLength()).toEqual(2);
 
         // show Attr2 and Attr 3
-        table.columnVisibility("Attr2", true);
-        table.columnVisibility("Attr3", true);
+        table.columnVisibility("attr2", true);
+        table.columnVisibility("attr3", true);
         expect(getColspanLength()).toEqual(4);
       });
 
@@ -536,7 +536,7 @@ describe("DataTable Plugin", function() {
 
           table = new app.Views.TError({ collection : collection });
           table.render();
-          table.columnVisibility("Attr5", false);
+          table.columnVisibility("attr5", false);
         }).toThrowError(/can not disable visibility when column is required/);
       });
     });
@@ -678,7 +678,7 @@ describe("DataTable Plugin", function() {
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Birthday", "Name", "Age", "Location"]);
 
       // ensure that our internal title to index mappings are up to date
-      table.columnVisibility("Name", false);
+      table.columnVisibility("name", false);
       expect(table.$("thead th").map(function() {
         return $(this).text();
       }).get()).toEqual(["Birthday", "Age", "Location"]);
@@ -704,12 +704,12 @@ describe("DataTable Plugin", function() {
 
       it("should allow to change column order", function() {
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
-        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(0);
+        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(0);
 
         table.columnOrder([2, 1, 3, 0]);
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
         expect(getHeaders(table)).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
-        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(3);
+        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(3);
       });
 
       it("should restore column order", function() {
@@ -718,12 +718,12 @@ describe("DataTable Plugin", function() {
         table._colReorder.fnOrder([0, 1, 3, 2]);
         table._colReorder.s.dropCallback(3, 2);
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr4', 'Attr1', 'Attr3', 'Attr2']);
-        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(1);
+        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(1);
 
         table.restoreColumnOrder();
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
         expect(getHeaders(table)).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
-        expect(table._columnManager._configGenerator.columnIndexByTitle.get('Attr1')).toEqual(0);
+        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(0);
       });
     });
 
@@ -819,21 +819,21 @@ describe("DataTable Plugin", function() {
       });
 
       it("should initially have certain columns hidden", function() {
-        expect(table.columnVisibility("Attr1")).toEqual(true);
-        expect(table.columnVisibility("Attr2")).toEqual(true);
-        expect(table.columnVisibility("Attr3")).toEqual(false);
-        expect(table.columnVisibility("Attr4")).toEqual(true);
-        expect(table.columnVisibility("Attr5")).toEqual(true);
-        expect(table.columnVisibility("Attr6")).toEqual(false);
+        expect(table.columnVisibility("attr1")).toEqual(true);
+        expect(table.columnVisibility("attr2")).toEqual(true);
+        expect(table.columnVisibility("attr3")).toEqual(false);
+        expect(table.columnVisibility("attr4")).toEqual(true);
+        expect(table.columnVisibility("attr5")).toEqual(true);
+        expect(table.columnVisibility("attr6")).toEqual(false);
       });
 
       it("should restore columns to their default visibility", function() {
         var defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
-        table.columnVisibility("Attr1", false);
-        table.columnVisibility("Attr2", false);
-        table.columnVisibility("Attr3", true);
-        table.columnVisibility("Attr4", true);
-        table.columnVisibility("Attr5", false);
+        table.columnVisibility("attr1", false);
+        table.columnVisibility("attr2", false);
+        table.columnVisibility("attr3", true);
+        table.columnVisibility("attr4", true);
+        table.columnVisibility("attr5", false);
         expect(getHeaders(table)).toEqual(["Attr3", "Attr4"]);
         table.restoreColumnVisibility();
         expect(getHeaders(table)).toEqual(defaultColumnVisibility);
@@ -841,8 +841,8 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow specific columns to be re rendered", function() {
-      function cellsForColumn(view, title) {
-        return view.$("tbody td." + title).map(function() {
+      function cellsForColumn(view, attr) {
+        return view.$("tbody td." + attr).map(function() {
           return $.trim($(this).text());
         }).get();
       }
@@ -857,7 +857,7 @@ describe("DataTable Plugin", function() {
       });
       app.view.dataTable("T", {
         rowClassName : "R",
-        sorting: [ [ "Attr1", "asc" ] ]
+        sorting: [ [ "attr1", "asc" ] ]
       });
 
       collection.add([
@@ -870,14 +870,14 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // enable columns that were hidden when initially rendered, which should now be populated
-      table.columnVisibility("Attr2", true);
-      table.columnVisibility("Attr4", true);
+      table.columnVisibility("attr2", true);
+      table.columnVisibility("attr4", true);
       expect(cellsForColumn(table, "column-attr2")).toEqual(["A2", "B2", "C2", "D2"]);
       expect(cellsForColumn(table, "column-attr4")).toEqual(["A4", "B4", "C4", "D4"]);
 
       // remove some content
       table.$("tbody td.column-attr2").html("");
-      table.renderColumn("Attr2");
+      table.renderColumn("attr2");
       expect(cellsForColumn(table, "column-attr2")).toEqual(["A2", "B2", "C2", "D2"]);
     });
   });
@@ -925,11 +925,11 @@ describe("DataTable Plugin", function() {
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
 
-    it("should allow sorting to be provided using column name", function() {
+    it("should allow sorting to be provided using column attr", function() {
       app.view.dataTable("ByZip", {
         rowClassName : "R",
         // zip ascending
-        sorting: [ [ "Zip", "asc" ] ]
+        sorting: [ [ "zip", "asc" ] ]
       });
 
       table = new app.Views.ByZip({ collection : collection }).render();
@@ -938,7 +938,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("ByAge", {
         rowClassName : "R",
         // age descending
-        sorting: [ [ "Age", "desc" ] ]
+        sorting: [ [ "age", "desc" ] ]
       });
 
       table = new app.Views.ByAge({ collection : collection }).render();
@@ -953,7 +953,7 @@ describe("DataTable Plugin", function() {
         });
 
         table = new app.Views.ByIndex2({ collection : collection });
-        table.changeSorting([['Age', 'asc']]);
+        table.changeSorting([['age', 'asc']]);
         table.render();
         expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
       });
@@ -967,7 +967,7 @@ describe("DataTable Plugin", function() {
         table = new app.Views.ByIndex2({ collection : collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
         spyOn(table.dataTable, 'fnSort').and.callThrough();
-        table.changeSorting([['Age', 'asc']]);
+        table.changeSorting([['age', 'asc']]);
         expect(table.dataTable.fnSort).toHaveBeenCalled();
         expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
       });
