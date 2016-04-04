@@ -1094,6 +1094,18 @@ describe("DataTable Plugin", function() {
       }
     });
 
+    it("should overwrite existing numeric filter when filter type is changed", function () {
+      var cg = table.configGenerator();
+      var col = cg.columnConfigByTitle.attributes["Cost"];
+      table.dataTable.find("th.Cost .toggle-filter-button").trigger("click");
+      $(".popover-menu #first-filter").val("3").trigger("change");
+
+      expect(col.filter).toEqual({type: "numeric", gt: "3"});
+
+      $(".popover-menu select[data-filter-id=first-filter]").val("lt").trigger("change");
+      expect(col.filter).toEqual({type: "numeric", lt: "3"});
+    });
+
     describe("_fetchCSV", function () {
       it("should append current filter parameters to the URL when requesting a CSV export", function () {
         expect(table.serverSideFiltering).toEqual(true);
