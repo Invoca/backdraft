@@ -182,10 +182,10 @@ describe("DataTable Plugin", function() {
           ],
           renderers : {
             // pure html, not based on model
-            "name" : function(node, config) {
+            "Name" : function(node, config) {
               node.html('<a href="#">I AM LINK</a>');
             },
-            "age" : function(node, config) {
+            "Age" : function(node, config) {
               node.addClass("age").text(this.model.get(config.attr));
             }
           }
@@ -199,10 +199,10 @@ describe("DataTable Plugin", function() {
       });
 
       it("invoke them correctly", function() {
-        collection.add({ age_value : 30 });
+        collection.add({ age_value: 30 });
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
-        expect(cells.eq(1).hasClass("age")).toEqual(true);
+        expect(cells.eq(1).hasClass("column-age_value")).toEqual(true);
         expect(cells.eq(1).text()).toEqual("30");
       });
     });
