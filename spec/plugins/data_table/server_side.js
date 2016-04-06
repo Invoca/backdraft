@@ -679,15 +679,15 @@ describe("DataTable Plugin", function() {
     });
 
     function getColumnConfigByCSS(element) {
-      var attr = Backdraft.Utils.extractColumnCSSClass(wrapper.className)
+      var attr = Backdraft.Utils.extractColumnCSSClass(element.className).replace("column-","");
       return cg.columnConfigByAttr.attributes[attr];
     };
 
     function clearFilters() {
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -710,10 +710,10 @@ describe("DataTable Plugin", function() {
     };
 
     function populateFilters() {
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -849,10 +849,10 @@ describe("DataTable Plugin", function() {
       history.pushState(null, null, "_SpecRunner.html?date_filter=today");
 
       var expectedFilterObj = [];
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             if (col.filter.type === "string") {
               // test assignment
@@ -980,10 +980,10 @@ describe("DataTable Plugin", function() {
       cg.table.children["filter-type"].children["filter-menu"].afterRender()
 
       // Check the filters are there
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -1010,10 +1010,10 @@ describe("DataTable Plugin", function() {
 
 
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             $(".toggle-filter-button", this).click();
             if (col.filter.type === "string") {
@@ -1040,10 +1040,10 @@ describe("DataTable Plugin", function() {
     });
 
     it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             expect($(".filterMenu", this).is(":hidden"));
             $("span", this).trigger("click");
@@ -1056,10 +1056,10 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks out of it", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             expect($(".popover .filterMenu").length).toEqual(3);
             $("span", this).trigger("click");
@@ -1074,10 +1074,10 @@ describe("DataTable Plugin", function() {
     it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
       var lastFilterMenu;
       var currentFilterMenu;
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             if (currentFilterMenu) {
               lastFilterMenu = currentFilterMenu;
@@ -1095,10 +1095,10 @@ describe("DataTable Plugin", function() {
     });
 
     it("should clear the filters when the clear button is clicked", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(wrapper);
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             var toggleButton = $(".toggle-filter-button", this);
             toggleButton.click();
