@@ -782,7 +782,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("T", {
         rowClassName : "R",
         serverSide : true,
-        sorting : [['Name', 'desc']],
+        sorting : [['name', 'desc']],
         filteringEnabled: true,
         serverSideFiltering : true
       });
@@ -797,7 +797,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("TSimple", {
         rowClassName : "RSimple",
         serverSide : true,
-        sorting : [['Name', 'desc']],
+        sorting : [['name', 'desc']],
         simpleParams : true
       });
 
