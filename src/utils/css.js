@@ -12,8 +12,8 @@ Backdraft.Utils.toColumnCSSClass = function(input) {
 // extract the column CSS class from a list of classes, returns undefined if not found
 Backdraft.Utils.extractColumnCSSClass = function(classNames) {
   var matches = classNames.match(/(?:^|\s)column-(?:[^\s]+)/);
-  if (matches && matches[1]) {
-    return matches[0];
+  if (matches && matches[0]) {
+    return matches[0].trim();
   } else {
     return undefined;
   }
