@@ -85,7 +85,9 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       direction = sortConfig[1];
 
       // column index can be provided as the column attr, convert to index
-      if (_.isString(columnIndex)) columnIndex = this.columnIndexByAttr.get(columnIndex);
+      if (_.isString(columnIndex)) {
+        columnIndex = this.columnIndexByAttr.get(columnIndex);
+      }
       return [ columnIndex, direction ];
     }, this);
   },
