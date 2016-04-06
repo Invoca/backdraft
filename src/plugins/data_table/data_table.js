@@ -62,8 +62,8 @@ var LocalDataTable = (function() {
       return this;
     },
 
-    renderColumn: function(attr) {
-      var config = this._columnManager.columnConfigForAttr(attr);
+    renderColumn: function(id) {
+      var config = this._columnManager.columnConfigForId(id);
       if (!config) {
         throw new Error("column not found");
       }
@@ -100,8 +100,8 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnRequired: function(state, attr) {
-      if (!state && this._columnManager.columnConfigForAttr(attr).required) {
+    columnRequired: function(state, id) {
+      if (!state && this._columnManager.columnConfigForId(id).required) {
         throw new Error("can not disable visibility when column is required");
       }
     },
@@ -128,8 +128,8 @@ var LocalDataTable = (function() {
 
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
-        if (column.attr) {
-          this.columnVisibility(column.attr, column.visible);
+        if (column.id) {
+          this.columnVisibility(column.id, column.visible);
         }
       }, this);
     },
@@ -182,7 +182,7 @@ var LocalDataTable = (function() {
       var columns = this.columnsConfig();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        this.child("filter-" + columns[c].attr).disableFilter(errorMessage);
+        this.child("filter-" + columns[c].id).disableFilter(errorMessage);
       }
     },
 
@@ -190,7 +190,7 @@ var LocalDataTable = (function() {
       var columns = this.columnsConfig();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        this.child("filter-" + columns[c].attr).enableFilter();
+        this.child("filter-" + columns[c].id).enableFilter();
       }
     },
 
@@ -446,7 +446,7 @@ var LocalDataTable = (function() {
         var columnClassName = Backdraft.Utils.extractColumnCSSClass(this.className);
         if (columnClassName) {
           cg.columnsConfig.forEach(function(currentColConfig){
-            if (currentColConfig.attr && Backdraft.Utils.toColumnCSSClass(currentColConfig.attr) === columnClassName) {
+            if (currentColConfig.id && Backdraft.Utils.toColumnCSSClass(currentColConfig.id) === columnClassName) {
               col = currentColConfig;
             }
           })
@@ -458,13 +458,13 @@ var LocalDataTable = (function() {
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+col.attr, new DataTableFilter({
+            table.child("filter-"+col.id, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+col.attr).render().$el);
+            $(this).append(table.child("filter-"+col.id).render().$el);
           }
         }
       });

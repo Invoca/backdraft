@@ -182,11 +182,11 @@ describe("DataTable Plugin", function() {
           ],
           renderers : {
             // pure html, not based on model
-            "Name" : function(node, config) {
+            "name" : function(node, config) {
               node.html('<a href="#">I AM LINK</a>');
             },
-            "Age" : function(node, config) {
-              node.addClass("age").text(this.model.get(config.attr));
+            "age_value" : function(node, config) {
+              node.addClass("age-added-by-renderer").text(this.model.get(config.attr));
             }
           }
         });
@@ -203,6 +203,7 @@ describe("DataTable Plugin", function() {
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("column-age_value")).toEqual(true);
+        expect(cells.eq(1).hasClass("age-added-by-renderer")).toEqual(true);
         expect(cells.eq(1).text()).toEqual("30");
       });
     });
@@ -704,12 +705,12 @@ describe("DataTable Plugin", function() {
 
       it("should allow to change column order", function() {
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
-        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(0);
+        expect(table._columnManager._configGenerator.columnIndexById.get('attr1')).toEqual(0);
 
         table.columnOrder([2, 1, 3, 0]);
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
         expect(getHeaders(table)).toEqual(['Attr3', 'Attr2', 'Attr4', 'Attr1']);
-        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(3);
+        expect(table._columnManager._configGenerator.columnIndexById.get('attr1')).toEqual(3);
       });
 
       it("should restore column order", function() {
@@ -718,12 +719,12 @@ describe("DataTable Plugin", function() {
         table._colReorder.fnOrder([0, 1, 3, 2]);
         table._colReorder.s.dropCallback(3, 2);
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr4', 'Attr1', 'Attr3', 'Attr2']);
-        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(1);
+        expect(table._columnManager._configGenerator.columnIndexById.get('attr1')).toEqual(1);
 
         table.restoreColumnOrder();
         expect(_.pluck(table.columnsConfig(), "title")).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
         expect(getHeaders(table)).toEqual(['Attr1', 'Attr2', 'Attr3', 'Attr4']);
-        expect(table._columnManager._configGenerator.columnIndexByAttr.get('attr1')).toEqual(0);
+        expect(table._columnManager._configGenerator.columnIndexById.get('attr1')).toEqual(0);
       });
     });
 

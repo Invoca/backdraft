@@ -1,7 +1,7 @@
 // create a valid CSS class name based on input
 Backdraft.Utils.toCSSClass = function(input) {
   var cssClass = /[^a-zA-Z_0-9\-]/g;
-  return input.replace(cssClass, "-");
+  return input.replace(cssClass, "-").toLowerCase();
 };
 
 // create a data tables column CSS class name based on input

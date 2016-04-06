@@ -679,8 +679,8 @@ describe("DataTable Plugin", function() {
     });
 
     function getColumnConfigByCSS(element) {
-      var attr = Backdraft.Utils.extractColumnCSSClass(element.className).replace("column-","");
-      return cg.columnConfigByAttr.attributes[attr];
+      var id = Backdraft.Utils.extractColumnCSSClass(element.className).replace("column-","");
+      return cg.columnConfigById.attributes[id];
     };
 
     function clearFilters() {
@@ -1158,7 +1158,7 @@ describe("DataTable Plugin", function() {
 
     it("should overwrite existing numeric filter when filter type is changed", function () {
       var cg = table.configGenerator();
-      var col = cg.columnConfigByAttr.attributes["cost"];
+      var col = cg.columnConfigById.attributes["cost"];
       table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
       $(".popover-menu #first-filter").val("3").trigger("change");
 

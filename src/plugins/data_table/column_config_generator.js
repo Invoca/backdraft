@@ -1,8 +1,8 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
-    this.columnIndexByAttr = new Backbone.Model();
-    this.columnConfigByAttr = new Backbone.Model();
+    this.columnIndexById = new Backbone.Model();
+    this.columnConfigById = new Backbone.Model();
     this._computeColumnConfig();
     this._computeColumnLookups();
     this._computeSortingConfig();
@@ -84,21 +84,21 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
-      // column index can be provided as the column attr, convert to index
+      // column index can be provided as the column id, so convert to index
       if (_.isString(columnIndex)) {
-        columnIndex = this.columnIndexByAttr.get(columnIndex);
+        columnIndex = this.columnIndexById.get(columnIndex);
       }
       return [ columnIndex, direction ];
     }, this);
   },
 
   _computeColumnLookups: function() {
-    this.columnIndexByAttr.clear();
-    this.columnConfigByAttr.clear();
+    this.columnIndexById.clear();
+    this.columnConfigById.clear();
     _.each(this.columnsConfig, function(col, index) {
-      if (col.attr) {
-        this.columnIndexByAttr.set(col.attr, index);
-        this.columnConfigByAttr.set(col.attr, col);
+      if (col.id) {
+        this.columnIndexById.set(col.id, index);
+        this.columnConfigById.set(col.id, col);
       }
     }, this);
   },
@@ -121,8 +121,8 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
   _addAttrsToColumnsWhenMissing: function(columnsConfig) {
     _.each(columnsConfig, function(columnConfig) {
-      if (!columnConfig.bulk && !columnConfig.attr) {
-        columnConfig.attr = Backdraft.Utils.toCSSClass(columnConfig.title);
+      if (!columnConfig.bulk) {
+        columnConfig.id = columnConfig.attr || Backdraft.Utils.toCSSClass(columnConfig.title);
       }
     });
 
