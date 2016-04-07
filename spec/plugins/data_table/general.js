@@ -168,7 +168,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should insert a checkbox as first column", function() {
-        collection.add({});
+        collection.add({ name: "foo" });
         expect(table.$("tbody tr td:first :checkbox").length).toEqual(1);
       });
     });
@@ -411,6 +411,92 @@ describe("DataTable Plugin", function() {
       // a second click should go to 'desc''
       table.$("thead th.column-zip .DataTables_sort_wrapper").click();
       expect(cellsByIndex(table, 2)).toEqual(["90000", "33333", "10000"]);
+    });
+
+    it("should allow columns to set a sortBy method", function() {
+      function cellsByIndex(table, index) {
+        return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+          return $(this).text();
+        }).get();
+      }
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" },
+          { title : "User Age", sortBy: function(model) { return model.get('demographics').age; } }
+        ],
+
+        renderers: {
+          "user-age": function(node, config) {
+            var d = this.model.get('demographics');
+            return node.text(d.age);
+          }
+        }
+      });
+
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      collection.reset([
+        { name: "A", demographics: { age: 7, gender: "male" } },
+        { name: "B",  demographics: { age: 5, gender: "male" } },
+        { name: "C", demographics: { age: 9, gender: "female" } }
+      ]);
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      // should be based on name order
+      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      expect(cellsByIndex(table, 0)).toEqual(["A", "B", "C"]);
+
+      // sort by the callback method
+      table.$("thead th.column-user-age .DataTables_sort_wrapper").click();
+      expect(cellsByIndex(table, 0)).toEqual(["B", "A", "C"]);
+    });
+
+    it("should allow columns to set a searchBy method", function() {
+      function cellsByIndex(table, index) {
+        return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+          return $(this).text();
+        }).get();
+      }
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name" },
+          { title : "User Age", searchBy: function(model) { return model.get('demographics').gender; } }
+        ],
+
+        renderers: {
+          "user-age": function(node, config) {
+            var d = this.model.get('demographics');
+            return node.text(d.age);
+          }
+        }
+      });
+
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      collection.reset([
+        { name: "A", demographics: { age: 7, gender: "male" } },
+        { name: "B",  demographics: { age: 5, gender: "male" } },
+        { name: "C", demographics: { age: 9, gender: "female" } }
+      ]);
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      // all names are present
+      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      expect(cellsByIndex(table, 0)).toEqual(["A", "B", "C"]);
+
+      // filter the table
+      table.filter("female");
+      expect(cellsByIndex(table, 0)).toEqual(["C"]);
     });
 
     describe("getting and setting visibility", function() {

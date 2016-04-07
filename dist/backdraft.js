@@ -4269,12 +4269,12 @@ $.extend( $.fn.dataTableExt.oPagination, {
         if (config.attr) {
           // if attr was provided, we expect to find the value in the model by that key
           //  otherwise return undefined and let DataTables show a warning for missing data
-          return rowModel.get(config.attr);
+          //  because likely that means a contract mismatch bug
+          return rowModel.get(config.id);
         } else {
-          // when no attr is provided, look in the collection by id but fallback to prevent
-          //  unnecessary DataTable warnings (since likely a custom renderer is being used)
-          // TODO - add missing test for this case (that confirms no warning by dataTables)
-          return rowModel.get(config.id) || "";
+          // when no attr is provided, return the entire rowModel so that renderers and sortBy etc
+          // callbacks have access to the full model and all the attributes
+          return rowModel;
         }
       },
 
@@ -4287,7 +4287,6 @@ $.extend( $.fn.dataTableExt.oPagination, {
             return data;
           }
         } else {
-          // TODO - add missing tests for sortBy and searchBy
           // note data is based on the result of mData
           if (type === "sort") {
             return (config.sortBy || ignore)(data);

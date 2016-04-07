@@ -779,7 +779,7 @@
 				{
 					_fnLog( oSettings, 0, "Requested unknown parameter "+
 						(typeof oCol.mData=='function' ? '{mData function}' : "'"+oCol.mData+"'")+
-						" from the data source for row "+iRow );
+						" from the data source for row " + iRow + " at column " + iCol + ", title: '" + oCol.sTitle + "'" );
 					oSettings.iDrawError = oSettings.iDraw;
 				}
 				return oCol.sDefaultContent;

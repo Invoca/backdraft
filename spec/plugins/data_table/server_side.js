@@ -16,16 +16,30 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
-          { name: '1 - hey hey 1' },
-          { name: '2 - hey hey 2' },
-          { name: '3 - hey hey 3' },
-          { name: '4 - hey hey 4' },
-          { name: '5 - hey hey 5' },
-          { name: '6 - hey hey 6' },
-          { name: '7 - hey hey 7' },
-          { name: '8 - hey hey 8' },
-          { name: '9 - hey hey 9' },
-          { name: '10 - hey hey 10' }
+          { name: '1 - hey hey 1', cost: '', type: '' },
+          { name: '2 - hey hey 2', cost: '', type: '' },
+          { name: '3 - hey hey 3', cost: '', type: '' },
+          { name: '4 - hey hey 4', cost: '', type: '' },
+          { name: '5 - hey hey 5', cost: '', type: '' },
+          { name: '6 - hey hey 6', cost: '', type: '' },
+          { name: '7 - hey hey 7', cost: '', type: '' },
+          { name: '8 - hey hey 8', cost: '', type: '' },
+          { name: '9 - hey hey 9', cost: '', type: '' },
+          { name: '10 - hey hey 10', cost: '', type: '' }
+        ]
+      })
+    };
+  };
+
+  MockResponse.prototype.getBadKey = function() {
+    return {
+      status : 200,
+      responseText : JSON.stringify({
+        sEcho: this.echo++,
+        iTotalRecords: 1,
+        iTotalDisplayRecords: 1,
+        aaData: [
+          { name_misspelled: '1 - hey hey 1' }
         ]
       })
     };
@@ -154,6 +168,18 @@ describe("DataTable Plugin", function() {
   });
 
   describe("server side rendering", function() {
+    it("should log a warning via DataTables when the keys returned do not match", function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      try {
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.getBadKey());
+        throw Error("DataTables did not throw an error when we expected it to. It should warn about a missing parameter based on bad server response.");
+      } catch(ex) {
+        expect(ex.message).toMatch(/Requested unknown parameter/)
+      }
+    });
+
     it("should disable filtering", function() {
       table = new app.Views.T({ collection : collection });
       table.render();
@@ -787,28 +813,25 @@ describe("DataTable Plugin", function() {
         serverSideFiltering : true
       });
 
-      app.view.dataTable.row("RSimple", {
-        columns : [
-          { attr : "cost", title : "Cost", filter : { type : "numeric" } },
-          { attr : "name", title : "Name", filter : { type : "string" } }
-        ]
-      });
-
-      app.view.dataTable("TSimple", {
-        rowClassName : "RSimple",
-        serverSide : true,
-        sorting : [['name', 'desc']],
-        simpleParams : true
-      });
+      var mockResponse = {
+        status : 200,
+        responseText : JSON.stringify({
+          sEcho: 'custom1',
+          iTotalRecords: 1,
+          iTotalDisplayRecords: 1,
+          aaData: [
+            { name: '1 - hey hey 1', cost: 'c', cost2: 'c2', type: '' }
+          ]
+        })
+      };
 
       collection = new app.Collections.Col();
 
       jasmine.Ajax.install();
-      mockResponse = new MockResponse();
 
       table = new app.Views.T({ collection : collection });
       table.render();
-      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+      jasmine.Ajax.requests.mostRecent().response(mockResponse);
       expect(table.children["filter-name"]).toBeDefined();
       expect(table.children["filter-cost"]).toBeDefined();
       expect(table.children["filter-cost2"]).toBeDefined();
