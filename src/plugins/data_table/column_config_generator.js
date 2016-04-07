@@ -121,7 +121,7 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
   _addAttrsToColumnsWhenMissing: function(columnsConfig) {
     _.each(columnsConfig, function(columnConfig) {
-      if (!columnConfig.bulk) {
+      if (columnConfig.attr || columnConfig.title) {
         columnConfig.id = columnConfig.attr || Backdraft.Utils.toCSSClass(columnConfig.title);
       }
     });

@@ -631,7 +631,7 @@ _.extend(Plugin.factory, {
 
   _addAttrsToColumnsWhenMissing: function(columnsConfig) {
     _.each(columnsConfig, function(columnConfig) {
-      if (!columnConfig.bulk) {
+      if (columnConfig.attr || columnConfig.title) {
         columnConfig.id = columnConfig.attr || Backdraft.Utils.toCSSClass(columnConfig.title);
       }
     });
@@ -4245,7 +4245,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
     app.view.dataTable.columnType(function(columnType) {
   columnType.configMatcher(function(config) {
-    return !config.bulk;
+    return (config.attr || config.title);
   });
 
   columnType.nodeMatcher(function(config) {

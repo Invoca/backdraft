@@ -1,6 +1,6 @@
 app.view.dataTable.columnType(function(columnType) {
   columnType.configMatcher(function(config) {
-    return !config.bulk;
+    return (config.attr || config.title);
   });
 
   columnType.nodeMatcher(function(config) {
