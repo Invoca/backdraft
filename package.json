@@ -8,6 +8,7 @@
   },
   "author": "Invoca",
   "license": "MIT",
+  "repository": "https://github.com/Invoca/backdraft/",
   "devDependencies": {
     "grunt": "^0.4.2",
     "grunt-contrib-watch": "^0.5.3",
