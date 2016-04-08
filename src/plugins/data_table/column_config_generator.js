@@ -86,8 +86,14 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
 
       // column index can be provided as the column id, so convert to index
       if (_.isString(columnIndex)) {
-        columnIndex = this.columnIndexById.get(columnIndex);
+        var foundColumnIndex = this.columnIndexById.get(columnIndex);
+        if (typeof foundColumnIndex === "undefined") {
+          throw new Error("Could not find columnIndex by column ID: " + columnIndex);
+        }
+
+        columnIndex = foundColumnIndex;
       }
+
       return [ columnIndex, direction ];
     }, this);
   },
