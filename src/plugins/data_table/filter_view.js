@@ -425,41 +425,16 @@ var DataTableFilter = (function(options) {
     _onFilterClick: function () {
       $("input[type=text]", this.head).trigger("change");
       // Update ajaxsource on datatable
-      this._updateAjaxSource();
+      this.parent.updateAjaxSource();
       this.table.dataTable._fnAjaxUpdate();
       this.$(".toggle-filter-button").popoverMenu('hide');
     },
 
     _onClearClick: function () {
       this.child("filter-menu").clear();
-      this._updateAjaxSource();
+      this.parent.updateAjaxSource();
       this.table.dataTable._fnAjaxUpdate();
       this.$(".toggle-filter-button").popoverMenu('hide');
-    },
-
-    _updateAjaxSource: function() {
-      // get ajax url
-      var ajaxURL = this.parent.dataTable.fnSettings().sAjaxSource;
-      // get the endpoint of ajax url
-      var splitUrl = ajaxURL.split("?");
-      var endpoint = splitUrl[0];
-
-      // Early exit if no params
-      if (!splitUrl[1]) {
-        return;
-      }
-
-      // get parameters of ajax url
-      var params = $.deparam(splitUrl[1]);
-
-      // make ext_filter_json param the same as the current url, now with new filters
-      params.ext_filter_json = JSON.stringify(this.table._columnManager._configGenerator._getUrlFilterParams());
-
-      // Build new url with old endpoint but new params
-      var newURL = endpoint + "?"+ $.param(params);
-
-      // Update datatable ajax source
-      this.parent.dataTable.fnSettings().sAjaxSource = newURL;
     },
 
     disableFilter: function(errorMessage) {
