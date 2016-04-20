@@ -1531,6 +1531,9 @@ _.extend(Plugin.factory, {
 
       // Update datatable ajax source
       this.dataTable.fnSettings().sAjaxSource = newURL;
+
+      // trigger "filter:column" event
+      this._onColumnFilter();
     },
 
     // Private APIs
@@ -1875,6 +1878,10 @@ _.extend(Plugin.factory, {
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
+    },
+
+    _onColumnFilter: function() {
+      this.trigger("filter:column");
     }
 
   }, {

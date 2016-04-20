@@ -217,6 +217,9 @@ var LocalDataTable = (function() {
 
       // Update datatable ajax source
       this.dataTable.fnSettings().sAjaxSource = newURL;
+
+      // trigger "filter:column" event
+      this._onColumnFilter();
     },
 
     // Private APIs
@@ -561,6 +564,10 @@ var LocalDataTable = (function() {
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
+    },
+
+    _onColumnFilter: function() {
+      this.trigger("filter:column");
     }
 
   }, {
