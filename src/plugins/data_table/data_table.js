@@ -194,6 +194,34 @@ var LocalDataTable = (function() {
       }
     },
 
+    updateAjaxSource: function() {
+      // get ajax url
+      var ajaxURL = this.dataTable.fnSettings().sAjaxSource;
+      // get the endpoint of ajax url
+      var splitUrl = ajaxURL.split("?");
+      var endpoint = splitUrl[0];
+
+      // Early exit if no params
+      if (!splitUrl[1]) {
+        return;
+      }
+
+      // get parameters of ajax url
+      var params = $.deparam(splitUrl[1]);
+
+      // make ext_filter_json param the same as the current url, now with new filters
+      params.ext_filter_json = JSON.stringify(this.configGenerator()._getUrlFilterParams());
+
+      // Build new url with old endpoint but new params
+      var newURL = endpoint + "?"+ $.param(params);
+
+      // Update datatable ajax source
+      this.dataTable.fnSettings().sAjaxSource = newURL;
+
+      // trigger "filter:column" event
+      this._onColumnFilter();
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {
@@ -536,6 +564,10 @@ var LocalDataTable = (function() {
       // add new data
       this.dataTable.fnAddData(cidMap(collection));
       this._triggerChangeSelection();
+    },
+
+    _onColumnFilter: function() {
+      this.trigger("filter:column");
     }
 
   }, {
