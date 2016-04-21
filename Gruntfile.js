@@ -39,7 +39,8 @@ module.exports = function(grunt) {
             "vendor/mock-ajax.js",
             "vendor/bootstrap-3.1.1-dist/js/bootstrap.js",
             "vendor/popover_menu.js",
-            "vendor/jquery.dataTables-1.9.4.js"
+            "vendor/jquery.dataTables-1.9.4.js",
+            "vendor/jquery.dataTables.errorMode.js"
           ],
           specs : [
             "spec/**/*.js"

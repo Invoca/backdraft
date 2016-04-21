@@ -62,7 +62,6 @@ Backdraft.plugin("DataTable", function(plugin) {
 
     // add standard column types
     {%= inline("src/plugins/data_table/column_types/bulk.js") %}
-    {%= inline("src/plugins/data_table/column_types/attr.js") %}
     {%= inline("src/plugins/data_table/column_types/base.js") %}
   });
 

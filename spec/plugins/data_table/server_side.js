@@ -16,16 +16,30 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
-          { name: '1 - hey hey 1' },
-          { name: '2 - hey hey 2' },
-          { name: '3 - hey hey 3' },
-          { name: '4 - hey hey 4' },
-          { name: '5 - hey hey 5' },
-          { name: '6 - hey hey 6' },
-          { name: '7 - hey hey 7' },
-          { name: '8 - hey hey 8' },
-          { name: '9 - hey hey 9' },
-          { name: '10 - hey hey 10' }
+          { name: '1 - hey hey 1', cost: '', type: '' },
+          { name: '2 - hey hey 2', cost: '', type: '' },
+          { name: '3 - hey hey 3', cost: '', type: '' },
+          { name: '4 - hey hey 4', cost: '', type: '' },
+          { name: '5 - hey hey 5', cost: '', type: '' },
+          { name: '6 - hey hey 6', cost: '', type: '' },
+          { name: '7 - hey hey 7', cost: '', type: '' },
+          { name: '8 - hey hey 8', cost: '', type: '' },
+          { name: '9 - hey hey 9', cost: '', type: '' },
+          { name: '10 - hey hey 10', cost: '', type: '' }
+        ]
+      })
+    };
+  };
+
+  MockResponse.prototype.getBadKey = function() {
+    return {
+      status : 200,
+      responseText : JSON.stringify({
+        sEcho: this.echo++,
+        iTotalRecords: 1,
+        iTotalDisplayRecords: 1,
+        aaData: [
+          { name_misspelled: '1 - hey hey 1' }
         ]
       })
     };
@@ -76,7 +90,7 @@ describe("DataTable Plugin", function() {
         { title : "Non attr column"}
       ],
       renderers: {
-        "Non attr column": function(node, config) {
+        "non attr column": function(node, config) {
           node.html("Non attr column");
         }
       }
@@ -84,7 +98,7 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("T", {
       rowClassName : "R",
       serverSide : true,
-      sorting : [['Name', 'desc']],
+      sorting : [['name', 'desc']],
       filteringEnabled: true,
       serverSideFiltering : true
     });
@@ -99,7 +113,7 @@ describe("DataTable Plugin", function() {
     app.view.dataTable("TSimple", {
       rowClassName : "RSimple",
       serverSide : true,
-      sorting : [['Name', 'desc']],
+      sorting : [['name', 'desc']],
       simpleParams : true
     });
 
@@ -154,6 +168,18 @@ describe("DataTable Plugin", function() {
   });
 
   describe("server side rendering", function() {
+    it("should log a warning via DataTables when the keys returned do not match", function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      try {
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.getBadKey());
+        throw Error("DataTables did not throw an error when we expected it to. It should warn about a missing parameter based on bad server response.");
+      } catch(ex) {
+        expect(ex.message).toMatch(/Requested unknown parameter/)
+      }
+    });
+
     it("should disable filtering", function() {
       table = new app.Views.T({ collection : collection });
       table.render();
@@ -678,12 +704,16 @@ describe("DataTable Plugin", function() {
       cg = table.configGenerator();
     });
 
+    function getColumnConfigByCSS(element) {
+      var id = Backdraft.Utils.extractColumnCSSClass(element.className).replace("column-","");
+      return cg.columnConfigById.attributes[id];
+    };
+
     function clearFilters() {
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -706,11 +736,10 @@ describe("DataTable Plugin", function() {
     };
 
     function populateFilters() {
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -735,7 +764,7 @@ describe("DataTable Plugin", function() {
       });
     }
 
-    function VerifyFilterAjax(filterObj) {
+    function verifyFilterAjax(filterObj) {
       var url = jasmine.Ajax.requests.mostRecent().url;
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
       expect(url).toMatch("ext_filter_json="+expectedFilterJson);
@@ -746,6 +775,69 @@ describe("DataTable Plugin", function() {
       var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
+
+    it("should not duplicate filter view when there are duplicate title names", function() {
+
+      // Create a brand new table with duplicate titles
+      Backdraft.app.destroyAll();
+      app = Backdraft.app("myapp", {
+        plugins : [ "DataTable" ]
+      });
+
+      app.model("M", {});
+      app.collection("Col", {
+        model : app.Models.M,
+        url : "/somewhere"
+      });
+
+      app.view.dataTable.row("R", {
+        columns : [
+          { bulk : true },
+          { attr : "name", title : "Name", filter : { type : "string" } },
+          { attr : "cost", title : "Cost", filter : { type : "numeric" } },
+          { attr : "cost2", title : "Cost", filter : { type : "numeric" } },
+          { attr : "type", title : "Type", filter : { type : "list", options: ["Basic", "Advanced"] } },
+          { title : "Non attr column"}
+        ],
+        renderers: {
+          "non attr column": function(node, config) {
+            node.html("Non attr column");
+          }
+        }
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        serverSide : true,
+        sorting : [['name', 'desc']],
+        filteringEnabled: true,
+        serverSideFiltering : true
+      });
+
+      var mockResponse = {
+        status : 200,
+        responseText : JSON.stringify({
+          sEcho: 'custom1',
+          iTotalRecords: 1,
+          iTotalDisplayRecords: 1,
+          aaData: [
+            { name: '1 - hey hey 1', cost: 'c', cost2: 'c2', type: '' }
+          ]
+        })
+      };
+
+      collection = new app.Collections.Col();
+
+      jasmine.Ajax.install();
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse);
+      expect(table.children["filter-name"]).toBeDefined();
+      expect(table.children["filter-cost"]).toBeDefined();
+      expect(table.children["filter-cost2"]).toBeDefined();
+      expect(table.children["filter-type"]).toBeDefined();
+      expect(table).toBeDefined();
+    });
 
     it("should have an object for each filterable column in the column manager "+
         "which describes the filter to be applied", function() {
@@ -780,11 +872,10 @@ describe("DataTable Plugin", function() {
       history.pushState(null, null, "_SpecRunner.html?date_filter=today");
 
       var expectedFilterObj = [];
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             if (col.filter.type === "string") {
               // test assignment
@@ -794,7 +885,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
               // test unassignment
@@ -804,7 +895,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "numeric") {
@@ -816,7 +907,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
               // test unassignment
@@ -826,7 +917,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
             }
             else if (col.filter.type === "list") {
@@ -837,7 +928,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
               // test unassignment
@@ -847,7 +938,7 @@ describe("DataTable Plugin", function() {
               // verify ajax
               $(".btn-filter").trigger("click");
               expectedFilterObj = [];
-              VerifyFilterAjax(expectedFilterObj);
+              verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
             }
           }
@@ -912,11 +1003,10 @@ describe("DataTable Plugin", function() {
       cg.table.children["filter-type"].children["filter-menu"].afterRender()
 
       // Check the filters are there
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function (index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
@@ -943,11 +1033,10 @@ describe("DataTable Plugin", function() {
 
 
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             $(".toggle-filter-button", this).click();
             if (col.filter.type === "string") {
@@ -974,11 +1063,10 @@ describe("DataTable Plugin", function() {
     });
 
     it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             expect($(".filterMenu", this).is(":hidden"));
             $("span", this).trigger("click");
@@ -991,11 +1079,10 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks out of it", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             expect($(".popover .filterMenu").length).toEqual(3);
             $("span", this).trigger("click");
@@ -1010,11 +1097,10 @@ describe("DataTable Plugin", function() {
     it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
       var lastFilterMenu;
       var currentFilterMenu;
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             if (currentFilterMenu) {
               lastFilterMenu = currentFilterMenu;
@@ -1032,11 +1118,10 @@ describe("DataTable Plugin", function() {
     });
 
     it("should clear the filters when the clear button is clicked", function() {
-      table.dataTable.find("thead th").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var title = wrapper.text();
-          var col = cg.columnConfigByTitle.attributes[title];
+          var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             var toggleButton = $(".toggle-filter-button", this);
             toggleButton.click();
@@ -1096,8 +1181,8 @@ describe("DataTable Plugin", function() {
 
     it("should overwrite existing numeric filter when filter type is changed", function () {
       var cg = table.configGenerator();
-      var col = cg.columnConfigByTitle.attributes["Cost"];
-      table.dataTable.find("th.Cost .toggle-filter-button").trigger("click");
+      var col = cg.columnConfigById.attributes["cost"];
+      table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
       $(".popover-menu #first-filter").val("3").trigger("change");
 
       expect(col.filter).toEqual({type: "numeric", gt: "3"});
