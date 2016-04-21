@@ -917,7 +917,9 @@ _.extend(Plugin.factory, {
       if (history.replaceState) {
         var state = { params: params };
         var url =  urlArray[0] + "?" + jQuery.param(params);
-        history.replaceState(state, window.document.title, url);
+        if (url != window.location.href) {
+          history.replaceState(state, window.document.title, url);
+        }
       }
     },
 
