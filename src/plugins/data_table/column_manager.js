@@ -10,8 +10,8 @@ var ColumnManager = Backdraft.Utils.Class.extend({
   applyVisibilityPreferences: function() {
     var prefs = {};
     _.each(this.columnsConfig(), function(config) {
-      if (config.title) {
-        prefs[config.title] = config.visible;
+      if (config.id) {
+        prefs[config.id] = config.visible;
       }
     });
     this.visibility.set(prefs);
@@ -33,8 +33,8 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     return this._configGenerator.columnsConfig;
   },
 
-  columnConfigForTitle: function(title) {
-    return this._configGenerator.columnConfigByTitle.get(title);
+  columnConfigForId: function(id) {
+    return this._configGenerator.columnConfigById.get(id);
   },
 
   columnsSwapped: function(fromIndex, toIndex) {
@@ -57,18 +57,18 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     }, this);
   },
 
-  _applyVisibilitiesToDataTable: function(titleStateMap) {
-    _.each(titleStateMap, function(state, title) {
+  _applyVisibilitiesToDataTable: function(columnIdStateMap) {
+    _.each(columnIdStateMap, function(state, id) {
       // last argument of false signifies not to redraw the table
-      this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexByTitle.get(title), state, false);
+      this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexById.get(id), state, false);
     }, this);
   },
 
   _visibilitySummary: function() {
     var summary = { visible: [], hidden: [] };
-    _.each(this.visibility.attributes, function(state, title) {
-      if (state) summary.visible.push(title);
-      else       summary.hidden.push(title);
+    _.each(this.visibility.attributes, function(state, id) {
+      if (state) summary.visible.push(id);
+      else       summary.hidden.push(id);
     });
     return summary;
   }
