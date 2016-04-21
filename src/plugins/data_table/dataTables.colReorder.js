@@ -623,7 +623,7 @@
      *  @return {string} Html string
      */
     fnGetColumnSelectList : function() {
-
+      // TODO: This looks like it will be broken, need to investigate
       var tp,i;
       var availableFields = this.s.dt.aoColumns;
       var html ='<div class="selcol1">';

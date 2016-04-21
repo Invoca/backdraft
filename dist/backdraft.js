@@ -73,12 +73,26 @@
 
 })();
   // create a valid CSS class name based on input
-Backdraft.Utils.toCSSClass = (function() {
+Backdraft.Utils.toCSSClass = function(input) {
   var cssClass = /[^a-zA-Z_0-9\-]/g;
-  return function(input) {
-    return input.replace(cssClass, "-");
-  };
-})();
+  return input.replace(cssClass, "-").toLowerCase();
+};
+
+// create a data tables column CSS class name based on input
+Backdraft.Utils.toColumnCSSClass = function(input) {
+  return "column-" + Backdraft.Utils.toCSSClass(input);
+};
+
+// extract the column CSS class from a list of classes, returns undefined if not found
+Backdraft.Utils.extractColumnCSSClass = function(classNames) {
+  var matches = classNames.match(/(?:^|\s)column-(?:[^\s]+)/);
+  if (matches && matches[0]) {
+    return matches[0].trim();
+  } else {
+    return undefined;
+  }
+};
+
 
   var App = (function() {
 
@@ -497,8 +511,8 @@ _.extend(Plugin.factory, {
   var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
-    this.columnIndexByTitle = new Backbone.Model();
-    this.columnConfigByTitle = new Backbone.Model();
+    this.columnIndexById = new Backbone.Model();
+    this.columnConfigById = new Backbone.Model();
     this._computeColumnConfig();
     this._computeColumnLookups();
     this._computeSortingConfig();
@@ -537,6 +551,7 @@ _.extend(Plugin.factory, {
         return !columnConfig.present();
       }
     });
+    this.columnsConfig = this._addAttrsToColumnsWhenMissing(this.columnsConfig);
 
     // make the bulk column the first one if present
     this.columnsConfig = _.sortBy(this.columnsConfig, function (columnConfig) {
@@ -579,19 +594,21 @@ _.extend(Plugin.factory, {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
-      // column index can be provided as the column title, convert to index
-      if (_.isString(columnIndex)) columnIndex = this.columnIndexByTitle.get(columnIndex);
+      // column index can be provided as the column id, so convert to index
+      if (_.isString(columnIndex)) {
+        columnIndex = this.columnIndexById.get(columnIndex);
+      }
       return [ columnIndex, direction ];
     }, this);
   },
 
   _computeColumnLookups: function() {
-    this.columnIndexByTitle.clear();
-    this.columnConfigByTitle.clear();
+    this.columnIndexById.clear();
+    this.columnConfigById.clear();
     _.each(this.columnsConfig, function(col, index) {
-      if (col.title) {
-        this.columnIndexByTitle.set(col.title, index);
-        this.columnConfigByTitle.set(col.title, col);
+      if (col.id) {
+        this.columnIndexById.set(col.id, index);
+        this.columnConfigById.set(col.id, col);
       }
     }, this);
   },
@@ -610,6 +627,16 @@ _.extend(Plugin.factory, {
         return columnType;
       }
     });
+  },
+
+  _addAttrsToColumnsWhenMissing: function(columnsConfig) {
+    _.each(columnsConfig, function(columnConfig) {
+      if (columnConfig.attr || columnConfig.title) {
+        columnConfig.id = columnConfig.attr || Backdraft.Utils.toCSSClass(columnConfig.title);
+      }
+    });
+
+    return columnsConfig;
   }
 });
 
@@ -625,8 +652,8 @@ _.extend(Plugin.factory, {
   applyVisibilityPreferences: function() {
     var prefs = {};
     _.each(this.columnsConfig(), function(config) {
-      if (config.title) {
-        prefs[config.title] = config.visible;
+      if (config.id) {
+        prefs[config.id] = config.visible;
       }
     });
     this.visibility.set(prefs);
@@ -648,8 +675,8 @@ _.extend(Plugin.factory, {
     return this._configGenerator.columnsConfig;
   },
 
-  columnConfigForTitle: function(title) {
-    return this._configGenerator.columnConfigByTitle.get(title);
+  columnConfigForId: function(id) {
+    return this._configGenerator.columnConfigById.get(id);
   },
 
   columnsSwapped: function(fromIndex, toIndex) {
@@ -672,18 +699,18 @@ _.extend(Plugin.factory, {
     }, this);
   },
 
-  _applyVisibilitiesToDataTable: function(titleStateMap) {
-    _.each(titleStateMap, function(state, title) {
+  _applyVisibilitiesToDataTable: function(columnIdStateMap) {
+    _.each(columnIdStateMap, function(state, id) {
       // last argument of false signifies not to redraw the table
-      this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexByTitle.get(title), state, false);
+      this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexById.get(id), state, false);
     }, this);
   },
 
   _visibilitySummary: function() {
     var summary = { visible: [], hidden: [] };
-    _.each(this.visibility.attributes, function(state, title) {
-      if (state) summary.visible.push(title);
-      else       summary.hidden.push(title);
+    _.each(this.visibility.attributes, function(state, id) {
+      if (state) summary.visible.push(id);
+      else       summary.hidden.push(id);
     });
     return summary;
   }
@@ -1378,8 +1405,8 @@ _.extend(Plugin.factory, {
       return this;
     },
 
-    renderColumn: function(title) {
-      var config = this._columnManager.columnConfigForTitle(title);
+    renderColumn: function(id) {
+      var config = this._columnManager.columnConfigForId(id);
       if (!config) {
         throw new Error("column not found");
       }
@@ -1416,36 +1443,36 @@ _.extend(Plugin.factory, {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnRequired: function(state, title) {
-      if (!state && this._columnManager.columnConfigForTitle(title).required) {
+    columnRequired: function(state, id) {
+      if (!state && this._columnManager.columnConfigForId(id).required) {
         throw new Error("can not disable visibility when column is required");
       }
     },
 
-    columnVisibility: function(title, state) {
+    columnVisibility: function(attr, state) {
       if (arguments.length === 1) {
         // getter
-        return this._columnManager.visibility.get(title);
+        return this._columnManager.visibility.get(attr);
       } else {
-        this.columnRequired(state, title);
-        this._columnManager.visibility.set(title, state);
-        state && this.renderColumn(title);
+        this.columnRequired(state, attr);
+        this._columnManager.visibility.set(attr, state);
+        state && this.renderColumn(attr);
       }
     },
 
-    // takes a hash of { columnTitle: columnState, ... }
+    // takes a hash of { columnAttr: columnState, ... }
     setColumnVisibilities: function(columns) {
       _.each(columns, this.columnRequired, this);
       this._columnManager.visibility.set(columns);
-      _.each(columns, function(state, title) {
-        state && this.renderColumn(title);
+      _.each(columns, function(state, attr) {
+        state && this.renderColumn(attr);
       }, this);
     },
 
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
-        if (column.title) {
-          this.columnVisibility(column.title, column.visible);
+        if (column.id) {
+          this.columnVisibility(column.id, column.visible);
         }
       }, this);
     },
@@ -1498,7 +1525,7 @@ _.extend(Plugin.factory, {
       var columns = this.columnsConfig();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        this.child("filter-" + columns[c].attr).disableFilter(errorMessage);
+        this.child("filter-" + columns[c].id).disableFilter(errorMessage);
       }
     },
 
@@ -1506,7 +1533,7 @@ _.extend(Plugin.factory, {
       var columns = this.columnsConfig();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        this.child("filter-" + columns[c].attr).enableFilter();
+        this.child("filter-" + columns[c].id).enableFilter();
       }
     },
 
@@ -1784,21 +1811,31 @@ _.extend(Plugin.factory, {
 
       // We make a filter for each column header
       table.dataTable.find("thead th").each(function (index) {
-        // here we use the text in the header to get the column config by title
+        // here we use the CSS in the header to get the column config by attr
         // there isn't a better way to do this currently
-        var title = this.textContent || this.innerText;
-        var col = cg.columnConfigByTitle.attributes[title];
+        var col;
+        var columnClassName = Backdraft.Utils.extractColumnCSSClass(this.className);
+        if (columnClassName) {
+          cg.columnsConfig.forEach(function(currentColConfig){
+            if (currentColConfig.id && Backdraft.Utils.toColumnCSSClass(currentColConfig.id) === columnClassName) {
+              col = currentColConfig;
+            }
+          })
+        }
+        else {
+          // TODO: FAIL!!!
+        }
 
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+col.attr, new DataTableFilter({
+            table.child("filter-"+col.id, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+col.attr).render().$el);
+            $(this).append(table.child("filter-"+col.id).render().$el);
           }
         }
       });
@@ -2174,11 +2211,11 @@ _.extend(Plugin.factory, {
     },
 
     _dataTableCreate : function() {
-      try {
+      //try {
         ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
-      } catch(ex) {
-        throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
-      }
+      //} catch(ex) {
+      //  throw new Error("Unable to create ServerSide dataTable. Does your layout template have the 'r' setting for showing the processing status? Exception: " + ex.message);
+      //}
 
       // hide inefficient filter
       this.$(".dataTables_filter").css("visibility", "hidden");
@@ -2968,7 +3005,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
      *  @return {string} Html string
      */
     fnGetColumnSelectList : function() {
-
+      // TODO: This looks like it will be broken, need to investigate
       var tp,i;
       var availableFields = this.s.dt.aoColumns;
       var html ='<div class="selcol1">';
@@ -4181,7 +4218,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
     // add standard column types
     app.view.dataTable.columnType(function(columnType) {
   columnType.configMatcher(function(config) {
-    return config.bulk === true;
+    return config.bulk;
   });
 
   columnType.nodeMatcher(function(config) {
@@ -4215,41 +4252,72 @@ $.extend( $.fn.dataTableExt.oPagination, {
 });
     app.view.dataTable.columnType(function(columnType) {
   columnType.configMatcher(function(config) {
-    return !!config.attr;
+    return (config.attr || config.title);
   });
 
   columnType.nodeMatcher(function(config) {
-    return "." + Backdraft.Utils.toCSSClass(config.title);
+    return "." + Backdraft.Utils.toColumnCSSClass(config.id);
   });
 
   columnType.definition(function(dataTable, config) {
+    var ignore = function() {
+      return "";
+    };
+
     return {
       bSortable: config.sort,
       bSearchable: config.search,
       asSorting: config.sortDir,
       sTitle: config.title,
-      sClass : Backdraft.Utils.toCSSClass(config.title),
+      sClass : Backdraft.Utils.toColumnCSSClass(config.id),
       mData: function(source, type, val) {
-        return dataTable.collection.get(source).get(config.attr);
+        var rowModel = dataTable.collection.get(source);
+
+        if (config.attr) {
+          // if attr was provided, we expect to find the value in the model by that key
+          //  otherwise return undefined and let DataTables show a warning for missing data
+          //  because likely that means a contract mismatch bug
+          return rowModel.get(config.id);
+        } else {
+          // when no attr is provided, return the entire rowModel so that renderers and sortBy etc
+          // callbacks have access to the full model and all the attributes
+          return rowModel;
+        }
       },
       mRender : function(data, type, full) {
-        // note data is based on the result of mData
-        if (type === "display") {
-          // nothing to display so that the view can provide its own UI
-          return "";
+        if (config.attr) {
+          if (type === "display") {
+            // nothing to display so that the view can provide its own UI
+            return "";
+          } else {
+            return data;
+          }
         } else {
-          return data;
+          // note data is based on the result of mData
+          if (type === "sort") {
+            return (config.sortBy || ignore)(data);
+          } else if (type === "type") {
+            return (config.sortBy || ignore)(data);
+          } else if (type === "display") {
+            // renderers will fill content
+            return ignore();
+          } else if (type === "filter") {
+            return (config.searchBy || ignore)(data);
+          } else {
+            // note dataTables can call in with undefined type
+            return ignore();
+          }
         }
       }
     };
   });
 
   columnType.renderer(function(cell, config) {
-    var renderer = this.renderers[config.title];
+    var renderer = this.renderers[config.id];
     if (renderer) {
       renderer.apply(this, arguments);
     } else {
-       cell.text(this.model.get(config.attr));
+       cell.text(this.model.get(config.id));
     }
   });
 });

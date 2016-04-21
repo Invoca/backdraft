@@ -62,8 +62,8 @@ var LocalDataTable = (function() {
       return this;
     },
 
-    renderColumn: function(title) {
-      var config = this._columnManager.columnConfigForTitle(title);
+    renderColumn: function(id) {
+      var config = this._columnManager.columnConfigForId(id);
       if (!config) {
         throw new Error("column not found");
       }
@@ -100,36 +100,36 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    columnRequired: function(state, title) {
-      if (!state && this._columnManager.columnConfigForTitle(title).required) {
+    columnRequired: function(state, id) {
+      if (!state && this._columnManager.columnConfigForId(id).required) {
         throw new Error("can not disable visibility when column is required");
       }
     },
 
-    columnVisibility: function(title, state) {
+    columnVisibility: function(attr, state) {
       if (arguments.length === 1) {
         // getter
-        return this._columnManager.visibility.get(title);
+        return this._columnManager.visibility.get(attr);
       } else {
-        this.columnRequired(state, title);
-        this._columnManager.visibility.set(title, state);
-        state && this.renderColumn(title);
+        this.columnRequired(state, attr);
+        this._columnManager.visibility.set(attr, state);
+        state && this.renderColumn(attr);
       }
     },
 
-    // takes a hash of { columnTitle: columnState, ... }
+    // takes a hash of { columnAttr: columnState, ... }
     setColumnVisibilities: function(columns) {
       _.each(columns, this.columnRequired, this);
       this._columnManager.visibility.set(columns);
-      _.each(columns, function(state, title) {
-        state && this.renderColumn(title);
+      _.each(columns, function(state, attr) {
+        state && this.renderColumn(attr);
       }, this);
     },
 
     restoreColumnVisibility: function() {
       _.each(this.columnsConfig(), function(column) {
-        if (column.title) {
-          this.columnVisibility(column.title, column.visible);
+        if (column.id) {
+          this.columnVisibility(column.id, column.visible);
         }
       }, this);
     },
@@ -182,7 +182,7 @@ var LocalDataTable = (function() {
       var columns = this.columnsConfig();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        this.child("filter-" + columns[c].attr).disableFilter(errorMessage);
+        this.child("filter-" + columns[c].id).disableFilter(errorMessage);
       }
     },
 
@@ -190,7 +190,7 @@ var LocalDataTable = (function() {
       var columns = this.columnsConfig();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        this.child("filter-" + columns[c].attr).enableFilter();
+        this.child("filter-" + columns[c].id).enableFilter();
       }
     },
 
@@ -468,21 +468,31 @@ var LocalDataTable = (function() {
 
       // We make a filter for each column header
       table.dataTable.find("thead th").each(function (index) {
-        // here we use the text in the header to get the column config by title
+        // here we use the CSS in the header to get the column config by attr
         // there isn't a better way to do this currently
-        var title = this.textContent || this.innerText;
-        var col = cg.columnConfigByTitle.attributes[title];
+        var col;
+        var columnClassName = Backdraft.Utils.extractColumnCSSClass(this.className);
+        if (columnClassName) {
+          cg.columnsConfig.forEach(function(currentColConfig){
+            if (currentColConfig.id && Backdraft.Utils.toColumnCSSClass(currentColConfig.id) === columnClassName) {
+              col = currentColConfig;
+            }
+          })
+        }
+        else {
+          // TODO: FAIL!!!
+        }
 
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+col.attr, new DataTableFilter({
+            table.child("filter-"+col.id, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+col.attr).render().$el);
+            $(this).append(table.child("filter-"+col.id).render().$el);
           }
         }
       });
