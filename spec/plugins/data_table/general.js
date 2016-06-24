@@ -391,25 +391,25 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // when nothing specified, sort asc by default
-      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 0)).toEqual(["Bob", "Joe", "Zebra"]);
 
 
       // when clicking on a 'desc' specified one, sort desc by default
-      table.$("thead th.column-age .DataTables_sort_wrapper").click();
+      table.$("thead th.column-age .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
 
       // a second click should go to 'asc'
-      table.$("thead th.column-age .DataTables_sort_wrapper").click();
+      table.$("thead th.column-age .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
 
 
       // when clicking on a 'asc' specified one, sort asc by default
-      table.$("thead th.column-zip .DataTables_sort_wrapper").click();
+      table.$("thead th.column-zip .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       // a second click should go to 'desc''
-      table.$("thead th.column-zip .DataTables_sort_wrapper").click();
+      table.$("thead th.column-zip .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 2)).toEqual(["90000", "33333", "10000"]);
     });
 
@@ -448,11 +448,11 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // should be based on name order
-      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 0)).toEqual(["A", "B", "C"]);
 
       // sort by the callback method
-      table.$("thead th.column-user-age .DataTables_sort_wrapper").click();
+      table.$("thead th.column-user-age .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 0)).toEqual(["B", "A", "C"]);
     });
 
@@ -491,7 +491,7 @@ describe("DataTable Plugin", function() {
       table.render();
 
       // all names are present
-      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 0)).toEqual(["A", "B", "C"]);
 
       // filter the table
@@ -1121,10 +1121,10 @@ describe("DataTable Plugin", function() {
       }
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", true);
-      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(getCells()).toEqual(["C", "B", "A"]);
       table.lock("sort", false);
-      table.$("thead th.column-name .DataTables_sort_wrapper").click();
+      table.$("thead th.column-name .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(getCells()).toEqual(["A", "B", "C"]);
     });
 
