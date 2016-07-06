@@ -429,13 +429,12 @@ var LocalDataTable = (function() {
       this.dataTable.find("thead th").each(function(index) {
         $(this).off("click.DT");
         $(this).off("keypress.DT");
-        // put the header text in a div
-        var nDiv = document.createElement('div');
-        nDiv.className = "DataTables_sort_wrapper";
-        $(this).contents().appendTo(nDiv);
-        this.appendChild(nDiv);
+
+        var wrapper = $("<div class='DataTables_sort_wrapper'><div class='DataTables_sort_interceptor'></div></div>");
+        $(this).contents().appendTo(wrapper.find(".DataTables_sort_interceptor"));
+        $(this).append(wrapper);
         // handle clicking on div as sorting
-        $('.DataTables_sort_wrapper', this).on("click", function(event) {
+        $('.DataTables_sort_interceptor', this).on("click", function(event) {
           if (self.lock("sort")) {
             event.stopImmediatePropagation();
           }
