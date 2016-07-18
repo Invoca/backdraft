@@ -1789,7 +1789,6 @@ _.extend(Plugin.factory, {
             event.stopImmediatePropagation();
           }
         });
-
         // default sort handler for column with index
         self.dataTable.fnSortListener($('.DataTables_sort_wrapper', this), index);
       });
@@ -1903,6 +1902,7 @@ _.extend(Plugin.factory, {
         cache.unset(model);
         row.close();
       });
+      this.selectionManager.process(model, false);
       this._triggerChangeSelection();
     },
 

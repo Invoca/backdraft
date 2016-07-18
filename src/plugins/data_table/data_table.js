@@ -552,6 +552,7 @@ var LocalDataTable = (function() {
         cache.unset(model);
         row.close();
       });
+      this.selectionManager.process(model, false);
       this._triggerChangeSelection();
     },
 
