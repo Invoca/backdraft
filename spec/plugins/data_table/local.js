@@ -408,6 +408,19 @@ describe("DataTable Plugin", function() {
         table.filter("89");
       });
 
+      it("should adjust bulk selection after a model is removed from the collection", function() {
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        var model = collection.find(function(m) {
+          return m.id === 89;
+        });
+        table.filter("hi 88");
+        table.selectAllVisible(true);
+        expect(table.selectedModels().length).toEqual(1);
+        collection.remove(model);
+        expect(table.selectedModels().length).toEqual(0);
+      });
+
       it("should uncheck the header bulk checkbox when a filter is applied and the result set is empty", function(done) {
         table = new app.Views.T({ collection : collection });
         table.render();
