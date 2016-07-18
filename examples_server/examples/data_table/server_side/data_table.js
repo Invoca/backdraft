@@ -69,11 +69,11 @@ Backdraft.app("TableExample", function(app) {
     columns : [
       { bulk : true },
       { attr : "name", title : "Name" },
-      { title : "random" }
+      { title : "Random Hotness" }
     ],
 
     renderers : {
-      "random" : function(node, config) {
+      "random-hotness" : function(node, config) {
         node.text(Math.random());
       }
     }

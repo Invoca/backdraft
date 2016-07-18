@@ -1,8 +1,8 @@
 var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   initialize: function(table) {
     this.table = table;
-    this.columnIndexByTitle = new Backbone.Model();
-    this.columnConfigByTitle = new Backbone.Model();
+    this.columnIndexById = new Backbone.Model();
+    this.columnConfigById = new Backbone.Model();
     this._computeColumnConfig();
     this._computeColumnLookups();
     this._computeSortingConfig();
@@ -15,6 +15,21 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     this._computeColumnLookups();
   },
 
+  columnsReordered: function() {
+    this._computeColumnLookups();
+  },
+
+  _getUrlFilterParams: function() {
+    var urlParamString = window.location.href.split("?")[1];
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+      return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
+    }
+    else {
+      return []
+    }
+  },
+
+
   _computeColumnConfig: function() {
     this.dataTableColumns = [];
     this.columnsConfig = _.clone(_.result(this.table.rowClass.prototype, "columns"));
@@ -26,6 +41,19 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
         return !columnConfig.present();
       }
     });
+    this.columnsConfig = this._addAttrsToColumnsWhenMissing(this.columnsConfig);
+
+    // make the bulk column the first one if present
+    this.columnsConfig = _.sortBy(this.columnsConfig, function (columnConfig) {
+      return !columnConfig.bulk;
+    });
+
+    this._getUrlFilterParams().forEach(function(element, index, array){
+      var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
+      if (columnConfigIndex >= 0) {
+        this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
+      }
+    }.bind(this));
 
     _.each(this._determineColumnTypes(), function(columnType, index) {
       var config = this.columnsConfig[index];
@@ -49,25 +77,34 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
     }, this);
   },
 
-  _computeSortingConfig: function() {
+  _computeSortingConfig: function(sorting) {
     var columnIndex, direction;
-    this.dataTableSorting = _.map(this.table.sorting, function(sortConfig) {
+    var sortingInfo = sorting || this.table.sorting;
+    this.dataTableSorting = _.map(sortingInfo, function(sortConfig) {
       columnIndex = sortConfig[0];
       direction = sortConfig[1];
 
-      // column index can be provided as the column title, convert to index
-      if (_.isString(columnIndex)) columnIndex = this.columnIndexByTitle.get(columnIndex);
+      // column index can be provided as the column id, so convert to index
+      if (_.isString(columnIndex)) {
+        var foundColumnIndex = this.columnIndexById.get(columnIndex);
+        if (typeof foundColumnIndex === "undefined") {
+          throw new Error("Could not find columnIndex by column ID: " + columnIndex);
+        }
+
+        columnIndex = foundColumnIndex;
+      }
+
       return [ columnIndex, direction ];
     }, this);
   },
 
   _computeColumnLookups: function() {
-    this.columnIndexByTitle.clear();
-    this.columnConfigByTitle.clear();
+    this.columnIndexById.clear();
+    this.columnConfigById.clear();
     _.each(this.columnsConfig, function(col, index) {
-      if (col.title) {
-        this.columnIndexByTitle.set(col.title, index);
-        this.columnConfigByTitle.set(col.title, col);
+      if (col.id) {
+        this.columnIndexById.set(col.id, index);
+        this.columnConfigById.set(col.id, col);
       }
     }, this);
   },
@@ -86,5 +123,15 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
         return columnType;
       }
     });
+  },
+
+  _addAttrsToColumnsWhenMissing: function(columnsConfig) {
+    _.each(columnsConfig, function(columnConfig) {
+      if (columnConfig.attr || columnConfig.title) {
+        columnConfig.id = columnConfig.attr || Backdraft.Utils.toCSSClass(columnConfig.title);
+      }
+    });
+
+    return columnsConfig;
   }
 });
