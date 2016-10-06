@@ -278,6 +278,43 @@ describe("DataTable Plugin", function() {
     });
   });
 
+  describe("grand totals row", function() {
+    beforeEach(function() {
+      table = new app.Views.T({ collection : collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithTotals());
+    });
+
+    it("should be defined", function() {
+      expect(table.$("table").length).toEqual(1);
+      expect(table.$("tfoot").length).toEqual(1);
+    });
+
+    it("should have cells defined", function() {
+      expect(table.$('tfoot tr td').length > 2).toBeTruthy();
+    });
+
+    it("should have a grand totals row defined", function() {
+      expect(table.$('tfoot tr td').eq(0).text()).toEqual("Grand totals");
+    });
+
+    it("should correctly render grand totals row data", function() {
+      var grandTotalsCells = table.$('tfoot tr td');
+      expect(grandTotalsCells.length).toEqual(4);
+      expect(grandTotalsCells.eq(0).text()).toEqual("Grand totals");
+      expect(grandTotalsCells.eq(1).text()).toEqual("");
+      expect(grandTotalsCells.eq(2).text()).toEqual("11460000");
+      expect(grandTotalsCells.eq(3).text()).toEqual("150");
+    });
+
+    // it("should keep grand totals cell leftmost", function() {
+    // });
+
+    // it("should correctly render grand totals row data after reorder", function() {
+    // });
+
+  });
+
   describe("server side removal", function() {
     it("should reload the collection to the page", function() {
       table = new app.Views.T({ collection : collection });
