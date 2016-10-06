@@ -31,6 +31,32 @@ describe("DataTable Plugin", function() {
     };
   };
 
+  MockResponse.prototype.getWithTotals = function() {
+    return {
+      status : 200,
+      responseText : JSON.stringify({
+        sEcho: this.echo++,
+        iTotalRecords: 100,
+        iTotalDisplayRecords: 100,
+        aaData: [
+          { name: '1 - hey hey 1', cost: '', type: '' },
+          { name: '2 - hey hey 2', cost: '', type: '' },
+          { name: '3 - hey hey 3', cost: '', type: '' },
+          { name: '4 - hey hey 4', cost: '', type: '' },
+          { name: '5 - hey hey 5', cost: '', type: '' },
+          { name: '6 - hey hey 6', cost: '', type: '' },
+          { name: '7 - hey hey 7', cost: '', type: '' },
+          { name: '8 - hey hey 8', cost: '', type: '' },
+          { name: '9 - hey hey 9', cost: '', type: '' },
+          { name: '10 - hey hey 10', cost: '', type: '' }
+        ],
+        total: [
+          {name: null, cost: 100, type: null}
+        ]
+      })
+    };
+  };
+
   MockResponse.prototype.getBadKey = function() {
     return {
       status : 200,
