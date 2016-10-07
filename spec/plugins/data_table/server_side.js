@@ -39,20 +39,18 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
-          { name: '1 - hey hey 1', cost: '', type: '' },
-          { name: '2 - hey hey 2', cost: '', type: '' },
-          { name: '3 - hey hey 3', cost: '', type: '' },
-          { name: '4 - hey hey 4', cost: '', type: '' },
-          { name: '5 - hey hey 5', cost: '', type: '' },
-          { name: '6 - hey hey 6', cost: '', type: '' },
-          { name: '7 - hey hey 7', cost: '', type: '' },
-          { name: '8 - hey hey 8', cost: '', type: '' },
-          { name: '9 - hey hey 9', cost: '', type: '' },
-          { name: '10 - hey hey 10', cost: '', type: '' }
+          { name: 'Jon doe 1',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 2',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 3',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 4',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 5',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 6',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 7',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 8',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 9',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
+          { name: 'Jon doe 10', cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"}
         ],
-        total: [
-          {name: null, cost: 100, type: null}
-        ]
+        total: {name: null, cost: 1000, type: null, description: null, resale_value: 500 }
       })
     };
   };
@@ -280,6 +278,36 @@ describe("DataTable Plugin", function() {
 
   describe("grand totals row", function() {
     beforeEach(function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { attr : "name", title : "Name", id: "name"},
+          { attr : "cost", title : "Cost", id: "cost"},
+          { attr : "type", title : "Type", id: "type"},
+          { attr : "description", title : "description", id: "description"},
+          { attr : "resale_value", title : "Resale value", id: "resale_value"},
+        ],
+
+        renderers: {
+          "cost": function(node, config) {
+            node.html("$"+this.model.get(config.id));
+          },
+          "resale_value": function(node, config) {
+            node.html("$"+this.model.get(config.id));
+          }
+        },
+      });
+
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        serverSide : true,
+        sorting : [['name', 'desc']],
+        filteringEnabled: true,
+        serverSideFiltering : true,
+        isNontotalsColumn: function(col) {
+          return (col.id !== "cost" && col.id !== "resale_value");
+        },
+      });
+
       table = new app.Views.T({ collection : collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithTotals());
@@ -288,6 +316,7 @@ describe("DataTable Plugin", function() {
     it("should be defined", function() {
       expect(table.$("table").length).toEqual(1);
       expect(table.$("tfoot").length).toEqual(1);
+      expect(table.rowClassName).toEqual("R");
     });
 
     it("should have cells defined", function() {
@@ -300,19 +329,39 @@ describe("DataTable Plugin", function() {
 
     it("should correctly render grand totals row data", function() {
       var grandTotalsCells = table.$('tfoot tr td');
-      expect(grandTotalsCells.length).toEqual(4);
+      expect(grandTotalsCells.length).toEqual(5);
       expect(grandTotalsCells.eq(0).text()).toEqual("Grand totals");
-      expect(grandTotalsCells.eq(1).text()).toEqual("");
-      expect(grandTotalsCells.eq(2).text()).toEqual("11460000");
-      expect(grandTotalsCells.eq(3).text()).toEqual("150");
+      expect(grandTotalsCells.eq(1).text()).toEqual("$1000");
+      expect(grandTotalsCells.eq(2).text()).toEqual("");
+      expect(grandTotalsCells.eq(3).text()).toEqual("");
+      expect(grandTotalsCells.eq(4).text()).toEqual("$500");
     });
 
-    // it("should keep grand totals cell leftmost", function() {
-    // });
+    it("should correctly render grand totals row data after reorder", function() {
+      expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
+      table._colReorder.fnOrder([1,0,2,3,4]);
+      table._colReorder.s.dropCallback(1, 0);
+      expect(table._colReorder.fnGetCurrentOrder()).toEqual([1,0,2,3,4]);
+      var grandTotalsCells = table.$('tfoot tr td');
+      expect(grandTotalsCells.eq(0).text()).toEqual("$1000");
+      expect(grandTotalsCells.eq(1).text()).toEqual("Grand totals");
+      expect(grandTotalsCells.eq(2).text()).toEqual("");
+      expect(grandTotalsCells.eq(3).text()).toEqual("");
+      expect(grandTotalsCells.eq(4).text()).toEqual("$500");
+    });
 
-    // it("should correctly render grand totals row data after reorder", function() {
-    // });
-
+    it("should keep grand totals row leftmost", function() {
+      expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
+      table._colReorder.fnOrder([3, 0, 1, 2, 4]);
+      table._colReorder.s.dropCallback(3, 0);
+      expect(table._colReorder.fnGetCurrentOrder()).toEqual([3, 0, 1, 2, 4]);
+      var grandTotalsCells = table.$('tfoot tr td');
+      expect(grandTotalsCells.eq(0).text()).toEqual("Grand totals");
+      expect(grandTotalsCells.eq(1).text()).toEqual("");
+      expect(grandTotalsCells.eq(2).text()).toEqual("$1000");
+      expect(grandTotalsCells.eq(3).text()).toEqual("");
+      expect(grandTotalsCells.eq(4).text()).toEqual("$500");
+    });
   });
 
   describe("server side removal", function() {

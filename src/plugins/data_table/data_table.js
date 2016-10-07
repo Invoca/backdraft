@@ -243,6 +243,47 @@ var LocalDataTable = (function() {
       });
     },
 
+    _renderGrandTotalsRow: function() {
+      var hasGrandTotalsCell = false;
+      // if dataTable is available AND we have a totals row
+      if (this.dataTable && this.totalsRow) {
+        // If we don't have a footer rendered, render it
+        if (this.dataTable.find("tfoot").length < 1) {
+          this.dataTable.append("<tfoot><tr></tr></tfoot>");
+        }
+        // Iterate over the current columns config
+        var grandTotalsRowCellNodes = _.map(this.columnsConfig(), function(col) {
+          // If a column is visible, render its total
+          if (this.columnVisibility(col.id) || col.bulk) {
+            /***
+              TODO: Add some sort of warning if the user has a totals property BUT
+              doesn't have a isNontotalsColumn predicate test.
+            ***/
+            if (this.isNontotalsColumn && this.isNontotalsColumn(col)) {
+              // If column is a non totals column, draw "Grand totals" on the first one and the rest are empty
+              if (hasGrandTotalsCell) {
+                return $("<td></td>");
+              } else {
+                hasGrandTotalsCell = true;
+                return $("<td>Grand totals</td>");
+              }
+            } else { // If the column is NOT a nonTotalsRow column
+              // Create a jQuery node for it, render and return
+              var node = $("<td></td>");
+              col.renderer.apply(this.totalsRow, [node, col]);
+              return node;
+            }
+          }
+        }, this);
+        // Clear footer
+        this.dataTable.find("tfoot tr").html("");
+        // Populate
+        grandTotalsRowCellNodes.forEach(function($td) {
+          this.dataTable.find("tfoot tr").append($td);
+        }.bind(this));
+      }
+    },
+
     // Changes or resets the column order.
     // When called with no args, returns the current order.
     // Call with { reset : true } to have it restore column order to initial configuration
@@ -500,14 +541,17 @@ var LocalDataTable = (function() {
     // events
     _onColumnReorder : function() {
       this.trigger("reorder");
+      this._renderGrandTotalsRow();
     },
 
     _onDraw : function() {
       this.trigger("draw", arguments);
+      this._renderGrandTotalsRow();
     },
 
     _onColumnVisibilityChange: function(summary) {
       this.dataTable.find(".dataTables_empty").attr("colspan", summary.visible.length);
+      this._renderGrandTotalsRow();
     },
 
     _onBulkHeaderClick : function(event) {

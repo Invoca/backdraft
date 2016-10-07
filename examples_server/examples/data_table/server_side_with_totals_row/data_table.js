@@ -60,7 +60,9 @@ Backdraft.app("TableExample", function(app) {
 
     grandtotalsRow: true,
 
-    footer: true
+    isNontotalsColumn: function(col) {
+      return col.id !== "income";
+    },
 
   });
 
@@ -74,14 +76,23 @@ Backdraft.app("TableExample", function(app) {
       { bulk : true },
       { attr : "name", title : "Name" },
       { attr : "address", title : "address" },
-      { attr : "income", title : "Yearly income" },
+      { attr : "income", title : "Yearly income"},
       { title : "Random Hotness" }
     ],
 
     renderers : {
       "random-hotness" : function(node, config) {
         node.text(Math.random());
-      }
+      },
+      "name" : function(node, config) {
+        node.text("name: " + this.model.get(config.attr));
+      },
+      "address" : function(node, config) {
+        node.text("addr: " + this.model.get(config.attr));
+      },
+      "income" : function(node, config) {
+        node.text("$"+this.model.get(config.attr));
+      },
     }
 
   });
