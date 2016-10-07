@@ -251,35 +251,28 @@ var LocalDataTable = (function() {
         if (this.dataTable.find("tfoot").length < 1) {
           this.dataTable.append("<tfoot><tr></tr></tfoot>");
         }
+
+        // Clear the footer
+        var $grandTotalsRow = this.dataTable.find("tfoot tr");
+        $grandTotalsRow.html("");
+
         // Iterate over the current columns config
-        var grandTotalsRowCellNodes = _.map(this.columnsConfig(), function(col) {
-          // If a column is visible, render its total
+        this.columnsConfig().forEach(function(col) {
           if (this.columnVisibility(col.id) || col.bulk) {
-            /***
-              TODO: Add some sort of warning if the user has a totals property BUT
-              doesn't have a isNontotalsColumn predicate test.
-            ***/
             if (this.isNontotalsColumn && this.isNontotalsColumn(col)) {
               // If column is a non totals column, draw "Grand totals" on the first one and the rest are empty
               if (hasGrandTotalsCell) {
-                return $("<td></td>");
+                $grandTotalsRow.append($("<td></td>"));
               } else {
                 hasGrandTotalsCell = true;
-                return $("<td>Grand totals</td>");
+                $grandTotalsRow.append($("<td>Grand totals</td>"));
               }
-            } else { // If the column is NOT a nonTotalsRow column
-              // Create a jQuery node for it, render and return
+            } else {
               var node = $("<td></td>");
               col.renderer.apply(this.totalsRow, [node, col]);
-              return node;
+              $grandTotalsRow.append(node);
             }
           }
-        }, this);
-        // Clear footer
-        this.dataTable.find("tfoot tr").html("");
-        // Populate
-        grandTotalsRowCellNodes.forEach(function($td) {
-          this.dataTable.find("tfoot tr").append($td);
         }.bind(this));
       }
     },

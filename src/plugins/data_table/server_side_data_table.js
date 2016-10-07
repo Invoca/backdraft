@@ -186,10 +186,6 @@ var ServerSideDataTable = (function() {
           // collection, so we must perform the check at this point as well.
           if (_.isUndefined(json.sEcho)) return;
           if (json.sEcho * 1 < oSettings.iDraw) return;
-          /***
-            TODO: Add some sort of warning if the user has a totals property BUT
-            doesn't have a isNontotalsColumn predicate test?
-          ***/
           if (json.total) {
             self.totalsRow = new self.rowClass({ model: new Backbone.Model(json.total)});
           }
