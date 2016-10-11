@@ -1615,7 +1615,7 @@ _.extend(Plugin.factory, {
                 $grandTotalsRow.append($("<td></td>"));
               } else {
                 hasGrandTotalsCell = true;
-                $grandTotalsRow.append($("<td>Grand totals</td>"));
+                $grandTotalsRow.append($("<td>Grand total</td>"));
               }
             } else {
               var node = $("<td></td>");
