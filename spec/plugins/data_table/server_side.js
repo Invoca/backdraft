@@ -250,6 +250,36 @@ describe("DataTable Plugin", function() {
       expect(_.pluck(finishArgs[4], "name")).toContain("sEcho");
       expect(_.pluck(finishArgs[4], "name")).toContain("column_attrs[]");
     });
+
+    it("should reset collection on server response and set parse to true so that collection or models can override default attribute parsing", function() {
+      app.model("ModelWithParse", {
+        parse: function(response) {
+          var data = response;
+
+          if (response.name.match(/hey hey 10/)) {
+            data.name = "PARSED NAME: " + data.name;
+          }
+
+          return data;
+        }
+      });
+
+      app.collection("CollectionOfModelWithParse", {
+        model : app.Models.ModelWithParse,
+        url : "/somewhere"
+      });
+
+      collection = new app.Collections.CollectionOfModelWithParse();
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+
+      jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
+
+      expect(collection.models.length).toEqual(10);
+      expect(collection.models[0].get('name')).toEqual("1 - hey hey 1", "Unparsed name");
+      expect(collection.models[9].get('name')).toEqual("PARSED NAME: 10 - hey hey 10", "Parsed name");
+    });
   });
 
   describe("server side removal", function() {

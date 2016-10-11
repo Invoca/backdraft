@@ -2150,7 +2150,8 @@ _.extend(Plugin.factory, {
               // calling fnCallback is what will actually cause the data to be populated
               json.aaData = data;
               fnCallback(json)
-            }
+            },
+            parse: true
           });
         },
         complete: function(xhr, status) {
