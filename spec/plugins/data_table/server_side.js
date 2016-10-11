@@ -324,13 +324,13 @@ describe("DataTable Plugin", function() {
     });
 
     it("should have a grand totals row defined", function() {
-      expect(table.$('tfoot tr td').eq(0).text()).toEqual("Grand totals");
+      expect(table.$('tfoot tr td').eq(0).text()).toEqual("Grand Total");
     });
 
     it("should correctly render grand totals row data using renderers", function() {
       var grandTotalsCells = table.$('tfoot tr td');
       expect(grandTotalsCells.length).toEqual(5);
-      expect(grandTotalsCells.eq(0).text()).toEqual("Grand totals");
+      expect(grandTotalsCells.eq(0).text()).toEqual("Grand Total");
       expect(grandTotalsCells.eq(1).text()).toEqual("$10000");
       expect(grandTotalsCells.eq(2).text()).toEqual("");
       expect(grandTotalsCells.eq(3).text()).toEqual("");
@@ -344,7 +344,7 @@ describe("DataTable Plugin", function() {
       expect(table._colReorder.fnGetCurrentOrder()).toEqual([1,0,2,3,4]);
       var grandTotalsCells = table.$('tfoot tr td');
       expect(grandTotalsCells.eq(0).text()).toEqual("$10000");
-      expect(grandTotalsCells.eq(1).text()).toEqual("Grand totals");
+      expect(grandTotalsCells.eq(1).text()).toEqual("Grand Total");
       expect(grandTotalsCells.eq(2).text()).toEqual("");
       expect(grandTotalsCells.eq(3).text()).toEqual("");
       expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
@@ -356,7 +356,7 @@ describe("DataTable Plugin", function() {
       table._colReorder.s.dropCallback(3, 0);
       expect(table._colReorder.fnGetCurrentOrder()).toEqual([3, 0, 1, 2, 4]);
       var grandTotalsCells = table.$('tfoot tr td');
-      expect(grandTotalsCells.eq(0).text()).toEqual("Grand totals");
+      expect(grandTotalsCells.eq(0).text()).toEqual("Grand Total");
       expect(grandTotalsCells.eq(1).text()).toEqual("");
       expect(grandTotalsCells.eq(2).text()).toEqual("$10000");
       expect(grandTotalsCells.eq(3).text()).toEqual("");

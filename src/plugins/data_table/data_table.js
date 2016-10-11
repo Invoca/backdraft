@@ -265,7 +265,7 @@ var LocalDataTable = (function() {
                 $grandTotalsRow.append($("<td></td>"));
               } else {
                 hasGrandTotalsCell = true;
-                $grandTotalsRow.append($("<td>Grand total</td>"));
+                $grandTotalsRow.append($("<td>Grand Total</td>"));
               }
             } else {
               var node = $("<td></td>");
