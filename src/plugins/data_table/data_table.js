@@ -243,6 +243,40 @@ var LocalDataTable = (function() {
       });
     },
 
+    _renderGrandTotalsRow: function() {
+      var hasGrandTotalsCell = false;
+      // if dataTable is available AND we have a totals row
+      if (this.dataTable && this.totalsRow) {
+        // If we don't have a footer rendered, render it
+        if (this.dataTable.find("tfoot").length < 1) {
+          this.dataTable.append("<tfoot><tr></tr></tfoot>");
+        }
+
+        // Clear the footer
+        var $grandTotalsRow = this.dataTable.find("tfoot tr");
+        $grandTotalsRow.html("");
+
+        // Iterate over the current columns config
+        this.columnsConfig().forEach(function(col) {
+          if (this.columnVisibility(col.id) || col.bulk) {
+            if (this.isNontotalsColumn && this.isNontotalsColumn(col)) {
+              // If column is a non totals column, draw "Grand totals" on the first one and the rest are empty
+              if (hasGrandTotalsCell) {
+                $grandTotalsRow.append($("<td></td>"));
+              } else {
+                hasGrandTotalsCell = true;
+                $grandTotalsRow.append($("<td>Grand Total</td>"));
+              }
+            } else {
+              var node = $("<td></td>");
+              col.renderer.apply(this.totalsRow, [node, col]);
+              $grandTotalsRow.append(node);
+            }
+          }
+        }.bind(this));
+      }
+    },
+
     // Changes or resets the column order.
     // When called with no args, returns the current order.
     // Call with { reset : true } to have it restore column order to initial configuration
@@ -500,14 +534,17 @@ var LocalDataTable = (function() {
     // events
     _onColumnReorder : function() {
       this.trigger("reorder");
+      this._renderGrandTotalsRow();
     },
 
     _onDraw : function() {
       this.trigger("draw", arguments);
+      this._renderGrandTotalsRow();
     },
 
     _onColumnVisibilityChange: function(summary) {
       this.dataTable.find(".dataTables_empty").attr("colspan", summary.visible.length);
+      this._renderGrandTotalsRow();
     },
 
     _onBulkHeaderClick : function(event) {
