@@ -2192,7 +2192,8 @@ _.extend(Plugin.factory, {
               json.aaData = data;
               fnCallback(json);
               self._renderGrandTotalsRow();
-            }
+            },
+            parse: true
           });
         },
         complete: function(xhr, status) {
