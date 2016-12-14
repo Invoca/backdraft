@@ -1627,34 +1627,63 @@ _.extend(Plugin.factory, {
       }
     },
 
+    _renderHeaderGroup: function() {
+      if (this.rowClass.prototype.columnGroupDefinitions) {
+        var columnGroups = this.rowClass.prototype.columnGroupDefinitions;
+        var tr = this.$("table").find('thead tr.header-groups-row');
+        if (tr.length === 0) {
+          tr = $('<tr class="header-groups-row">');
+        } else {
+          tr.empty();
+        }
+
+        var uniqueHeaderGroupDataIndex = {};
+
+        _.each(this._columnManager._visibilitySummary().visible, function(col) {
+          var columnConfig = _.findWhere(this._columnManager.columnsConfig(), { attr: col });
+          var headerGroupDataIndex = columnConfig.headerGroupDataIndex;
+          var columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex" : headerGroupDataIndex } );
+
+          if (columnGroupConfig && !uniqueHeaderGroupDataIndex[headerGroupDataIndex]) {
+            uniqueHeaderGroupDataIndex[headerGroupDataIndex] = true;
+            tr.append('<th colspan="' + columnGroupConfig.colspan + '" rowspan="1" class="header-groups">' + columnGroupConfig.headerName + '</th>');
+          }
+        }.bind(this));
+
+        this.$("table").find('thead').prepend(tr);
+      }
+    },
+
     // Changes or resets the column order.
     // When called with no args, returns the current order.
     // Call with { reset : true } to have it restore column order to initial configuration
     // Provide array of indexes as first argument to have it reordered by that
     _changeColumnOrder: function(order) {
-      var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
-      if (_.isArray(order)) {
-        this._colReorder.fnOrder(order);
-      } else if (_.has(order, 'reset') && order.reset) {
-        this._colReorder.fnReset();
-      } else {
-        return this._colReorder.fnOrder();
-      }
-
-      // restore columnsConfig order to match the underlying order from dataTable
-      var columnsConfig = this.columnsConfig();
-      var columnsConfigOrig = _.clone(columnsConfig);
-      // reset config
-      columnsConfig.splice(0, columnsConfig.length);
-      // fill in config in correct order
-      _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
-        var oldIndex = columnsOrig.indexOf(tableColumn);
-        if (oldIndex != -1) {
-          columnsConfig.push(columnsConfigOrig[oldIndex]);
+      if (this._colReorder) {
+        var columnsOrig = _.clone(this.dataTable.fnSettings().aoColumns);
+        if (_.isArray(order)) {
+          this._colReorder.fnOrder(order);
+        } else if (_.has(order, 'reset') && order.reset) {
+          this._colReorder.fnReset();
+        } else {
+          return this._colReorder.fnOrder();
         }
-      });
 
-      this._columnManager.columnsReordered();
+        // restore columnsConfig order to match the underlying order from dataTable
+        var columnsConfig = this.columnsConfig();
+        var columnsConfigOrig = _.clone(columnsConfig);
+        // reset config
+        columnsConfig.splice(0, columnsConfig.length);
+        // fill in config in correct order
+        _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
+          var oldIndex = columnsOrig.indexOf(tableColumn);
+          if (oldIndex != -1) {
+            columnsConfig.push(columnsConfigOrig[oldIndex]);
+          }
+        });
+
+        this._columnManager.columnsReordered();
+      }
     },
 
     _allMatchingModels : function() {
@@ -1715,9 +1744,13 @@ _.extend(Plugin.factory, {
       this._setupSelect2PaginationAttributes();
       this._installSortInterceptors();
       this.filteringEnabled && this._setupFiltering();
-      this.reorderableColumns && this._enableReorderableColumns();
+      if (this.reorderableColumns && !this.rowClass.prototype.columnGroupDefinitions) {
+        this._enableReorderableColumns();
+      }
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
       this._columnManager.applyVisibilityPreferences();
+      this._renderHeaderGroup();
+
       if (this.collection.length) this._onReset(this.collection);
       // if resizeable, add resizeable class
       if (this._colReorder && this._colReorder.s.allowResize) {
@@ -1890,11 +1923,13 @@ _.extend(Plugin.factory, {
     _onDraw : function() {
       this.trigger("draw", arguments);
       this._renderGrandTotalsRow();
+      this._renderHeaderGroup();
     },
 
     _onColumnVisibilityChange: function(summary) {
       this.dataTable.find(".dataTables_empty").attr("colspan", summary.visible.length);
       this._renderGrandTotalsRow();
+      this._renderHeaderGroup();
     },
 
     _onBulkHeaderClick : function(event) {

@@ -452,4 +452,72 @@ describe("DataTable Plugin", function() {
       });
     });
   });
+
+  describe("header group", function() {
+    var buildAndAppendTable = function() {
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        paginate : false
+      });
+      collection.reset([{ id : 1, firstName : "Billy", lastName: "Bob" }]);
+
+      table = new app.Views.T({ collection : collection });
+      $("body").append(table.render().$el);
+    };
+
+    var columns = function() {
+      return [
+        { attr : "bulk",      bulk  : true,         headerGroupDataIndex: "bulk" },
+        { attr : "firstName", title : "First Name", headerGroupDataIndex: "user" },
+        { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+      ]
+    };
+
+    describe("present", function() {
+
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : columns,
+          columnGroupDefinitions: [
+            { "headerName" : "",          "colspan" : 1, headerGroupDataIndex: "bulk" },
+            { "headerName" : "User Info", "colspan" : 2, headerGroupDataIndex: "user" }
+          ]
+        });
+
+        buildAndAppendTable();
+      });
+
+      it("should build a single header group row when columnGroupDefinitions is supplied, using headerGroupDataIndex to match up between columns and columnGroupDefinitions", function() {
+        expect(table.$(".header-groups-row").length).toEqual(1);
+        expect(table.$(".header-groups-row").text()).toEqual("User Info");
+        expect(table.$(".header-groups-row").children()[1].attributes.colspan.value).toEqual("2");
+        expect(table._colReorder).toEqual(undefined);
+      });
+
+      it("should disable column sorting (_colReorder) when using a header group", function() {
+        expect(table.$(".header-groups-row").length).toEqual(1);
+        expect(table._colReorder).toEqual(undefined);
+      });
+    });
+
+    describe("not present", function() {
+
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : columns
+        });
+
+        buildAndAppendTable();
+      });
+
+      it("should omit header group row when columnGroupDefinitions is not supplied", function() {
+        expect(table.$(".header-groups-row").length).toEqual(0);
+      });
+
+      it("should allow column sorting (_colReorder) when not using a header group", function() {
+        expect(table.$(".header-groups-row").length).toEqual(0);
+        expect(table._colReorder).not.toEqual(undefined);
+      });
+    });
+  })
 });
