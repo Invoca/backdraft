@@ -135,13 +135,13 @@ var LocalDataTable = (function() {
     },
 
     columnOrder: function(order) {
-      if (this.reorderableColumns) {
+      if (this._reorderableColumnsEnabled()) {
         this._changeColumnOrder(order);
       }
     },
 
     restoreColumnOrder: function() {
-      if (this.reorderableColumns) {
+      if (this._reorderableColumnsEnabled()) {
         this._changeColumnOrder({ reset: true});
       }
     },
@@ -278,7 +278,7 @@ var LocalDataTable = (function() {
     },
 
     _renderHeaderGroup: function() {
-      if (this.rowClass.prototype.columnGroupDefinitions) {
+      if (!_.isEmpty(this.rowClass.prototype.columnGroupDefinitions)) {
         var columnGroups = this.rowClass.prototype.columnGroupDefinitions;
         var tr = this.$("table").find('thead tr.header-groups-row');
         if (tr.length === 0) {
@@ -294,9 +294,15 @@ var LocalDataTable = (function() {
           var headerGroupDataIndex = columnConfig.headerGroupDataIndex;
           var columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex" : headerGroupDataIndex } );
 
+          if (columnGroupConfig === undefined || headerGroupDataIndex === undefined) {
+            Backdraft.Utils.log('Unable to find a matching headerGroupDataIndex for ' + columnConfig.attr);
+            columnGroupConfig = { colspan: 1, headerName: '' };
+            headerGroupDataIndex = columnConfig.title;
+          }
+
           if (columnGroupConfig && !uniqueHeaderGroupDataIndex[headerGroupDataIndex]) {
             uniqueHeaderGroupDataIndex[headerGroupDataIndex] = true;
-            tr.append('<th colspan="' + columnGroupConfig.colspan + '" rowspan="1" class="header-groups">' + columnGroupConfig.headerName + '</th>');
+            tr.append('<th colspan="' + columnGroupConfig.colspan + '" class="header-groups">' + columnGroupConfig.headerName + '</th>');
           }
         }.bind(this));
 
@@ -394,7 +400,7 @@ var LocalDataTable = (function() {
       this._setupSelect2PaginationAttributes();
       this._installSortInterceptors();
       this.filteringEnabled && this._setupFiltering();
-      if (this.reorderableColumns && !this.rowClass.prototype.columnGroupDefinitions) {
+      if (this._reorderableColumnsEnabled()) {
         this._enableReorderableColumns();
       }
       this._columnManager.on("change:visibility", this._onColumnVisibilityChange);
@@ -430,6 +436,11 @@ var LocalDataTable = (function() {
       _.defer(function() {
         self.bulkCheckbox.prop("checked", self._areAllVisibleRowsSelected());
       });
+    },
+
+    // Do not enable when  columnGroupDefinitions is defined and not empty.
+    _reorderableColumnsEnabled : function() {
+      return this.reorderableColumns && _.isEmpty(this.rowClass.prototype.columnGroupDefinitions);
     },
 
     _initPaginationHandling : function() {
