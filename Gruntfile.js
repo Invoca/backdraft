@@ -15,6 +15,7 @@ module.exports = function(grunt) {
   };
 
   var exampleServer = require("./lib/example_server");
+  var specServer = require("./lib/spec_server");
 
   grunt.initConfig({
 
@@ -22,14 +23,16 @@ module.exports = function(grunt) {
 
     pkg: grunt.file.readJSON('package.json'),
 
-    jasmine : {
-      specs : {
-        src : [
+    jasmine: {
+      specs: {
+        src: [
           "dist/backdraft.js"
         ],
-        options : {
-          keepRunner : true,
-          outfile : ".grunt/_SpecRunner.html",
+        options: {
+          keepRunner: true,
+          outfile: ".grunt/_SpecRunner.html",
+          summary: true,
+          display: process.env["GRUNT_QUIET"] === "true" ? 'none' : 'short',
           vendor : [
             "vendor/json2.js",
             "vendor/jquery-1.10.2.js",
@@ -42,7 +45,7 @@ module.exports = function(grunt) {
             "vendor/jquery.dataTables-1.9.4.js",
             "vendor/jquery.dataTables.errorMode.js"
           ],
-          specs : [
+          specs: [
             "spec/**/*.js"
           ]
         }
@@ -76,7 +79,8 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask("servers", function() {
-    exampleServer(9873);
+    exampleServer(9888);
+    specServer(9738);
   });
 
   grunt.registerTask("spec", [ "build", "jasmine:specs" ]);
