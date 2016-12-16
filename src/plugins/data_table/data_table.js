@@ -294,7 +294,7 @@ var LocalDataTable = (function() {
           var headerGroupDataIndex = columnConfig.headerGroupDataIndex;
           var columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex" : headerGroupDataIndex } );
 
-          if (columnGroupConfig === undefined || headerGroupDataIndex === undefined) {
+          if (!columnGroupConfig || !headerGroupDataIndex) {
             Backdraft.Utils.log('Unable to find a matching headerGroupDataIndex for ' + columnConfig.attr);
             columnGroupConfig = { colspan: 1, headerName: '' };
             headerGroupDataIndex = columnConfig.title;
