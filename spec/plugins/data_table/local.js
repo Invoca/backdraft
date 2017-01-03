@@ -30,6 +30,12 @@ describe("DataTable Plugin", function() {
         table.render();
       });
 
+      afterEach(function() {
+        if (table) {
+          table.close();
+        }
+      });
+
       describe("collection is reset", function() {
         beforeEach(function() {
           collection.reset([ { name : "Bob" }, { name : "Joe" } ]);
@@ -452,4 +458,158 @@ describe("DataTable Plugin", function() {
       });
     });
   });
+
+  describe("header group", function() {
+    var buildAndAppendTable = function() {
+      if (table) { table.close(); };
+
+      app.view.dataTable("T", {
+        rowClassName : "R",
+        paginate : false
+      });
+      collection.reset([{ id : 1, firstName : "Billy", lastName: "Bob", income: "1000" }]);
+
+      table = new app.Views.T({ collection : collection });
+      $("body").append(table.render().$el);
+    };
+
+    var getHeaderGroupText = function(table) {
+      return table.$(".header-groups").map(function() {
+        return $(this).text();
+      }).get();
+    };
+
+    var getHeaderText = function(table) {
+      return table.$("thead tr th").not('.header-groups').map(function() {
+        return $(this).text();
+      }).get();
+    };
+
+    var columns = function() {
+      return [
+        { attr : "income",    title : "Income",     headerGroupDataIndex: "financial" },
+        { attr : "firstName", title : "First Name", headerGroupDataIndex: "user" },
+        { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+      ]
+    };
+
+    describe("present", function() {
+
+      describe("", function() {
+
+        beforeEach(function () {
+          app.view.dataTable.row("R", {
+            columns: columns(),
+            columnGroupDefinitions: [
+              {"headerName": "Financial", "colspan": 1, headerGroupDataIndex: "financial"},
+              {"headerName": "User Info", "colspan": 2, headerGroupDataIndex: "user"}
+            ]
+          });
+
+          buildAndAppendTable();
+        });
+
+        it("should build a single header group row when columnGroupDefinitions is supplied, using headerGroupDataIndex to match up between columns and columnGroupDefinitions", function () {
+          expect(table.$(".header-groups-row").length).toEqual(1);
+          expect(getHeaderGroupText(table)).toEqual(['Financial', 'User Info']);
+          expect(table.$(".header-groups-row").children()[1].attributes.colspan.value).toEqual("2");
+          expect(table._colReorder).toEqual(undefined);
+        });
+
+        it("should disable column sorting (_colReorder) when using a header group", function () {
+          expect(table.$(".header-groups-row").length).toEqual(1);
+          expect(table._colReorder).toEqual(undefined);
+        });
+
+        it("should hide corresponding header group when child column is set visible false", function () {
+          expect(table.$(".header-groups-row").length).toEqual(1);
+          expect(getHeaderGroupText(table)).toEqual(['Financial', 'User Info']);
+          expect(getHeaderText(table)).toEqual(["Income", "First Name", "Last Name"]);
+
+          table.columnVisibility("income", false);
+          expect(getHeaderText(table)).toEqual(['First Name', 'Last Name']);
+          expect(getHeaderGroupText(table)).toEqual(['User Info']);
+        });
+
+      });
+
+      describe("no match for headerGroupDataIndex", function() {
+        beforeEach(function () {
+          spyOn(Backdraft.Utils, 'log').and.callThrough();
+        });
+
+        var buildTableAndExpectMismatchedColumn = function() {
+          buildAndAppendTable();
+          expect(Backdraft.Utils.log.calls.mostRecent().args[0]).toMatch(/Unable to find a matching headerGroupDataIndex for/)
+          expect(table.$(".header-groups-row").length).toEqual(1);
+        };
+
+        it("should gracefully render the column title when headerGroupDataIndex is not matched in columnGroupDefinitions", function() {
+          app.view.dataTable.row("R", {
+            columns : [
+              { attr : "income",    title : "Income",     headerGroupDataIndex: "financial" },
+              { attr : "firstName", title : "First Name", headerGroupDataIndex: "BOGUS" },
+              { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+            ],
+
+            columnGroupDefinitions: [
+              { "headerName" : "Financial", "colspan" : 1, headerGroupDataIndex: "financial" },
+              { "headerName" : "User Info", "colspan" : 2, headerGroupDataIndex: "user" }
+            ]
+          });
+
+          buildTableAndExpectMismatchedColumn();
+          expect(getHeaderGroupText(table)).toEqual([ 'Financial', '', 'User Info' ]);
+        });
+
+        it("should gracefully render the column title when headerGroupDataIndex is not matched in columns", function() {
+          app.view.dataTable.row("R", {
+            columns : [
+              { attr : "income",    title : "Income",     headerGroupDataIndex: "financial" },
+              { attr : "firstName", title : "First Name", headerGroupDataIndex: "user" },
+              { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+            ],
+
+            columnGroupDefinitions: [
+              { "headerName" : "Financial", "colspan" : 1, headerGroupDataIndex: "financial" },
+              { "headerName" : "User Info", "colspan" : 2, headerGroupDataIndex: "BOGUS" }
+            ]
+          });
+
+          buildTableAndExpectMismatchedColumn();
+          expect(getHeaderGroupText(table)).toEqual([ 'Financial', '', '' ]);
+        });
+      });
+    });
+
+    describe("not present", function() {
+
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : columns
+        });
+
+        buildAndAppendTable();
+      });
+
+      it("should allow column sorting (_colReorder) when not using a header group", function() {
+        expect(table.$(".header-groups-row").length).toEqual(0);
+        expect(table._colReorder).not.toEqual(undefined);
+      });
+
+      it("should omit header group row when columnGroupDefinitions is not supplied", function() {
+        expect(table.$(".header-groups-row").length).toEqual(0);
+      });
+
+      it("should omit header group row when columnGroupDefinitions is empty", function() {
+        app.view.dataTable.row("R", {
+          columns : columns,
+          columnGroupDefinitions: []
+        });
+
+        buildAndAppendTable();
+        expect(table.$(".header-groups-row").length).toEqual(0);
+      });
+    });
+  })
 });
