@@ -165,15 +165,17 @@ Thank you to all [the contributors](https://github.com/invoca/backdraft/contribu
 
 To publish a new version
 
-1. Ensure the following:
+1. Ensure the following are done:
 
-* Green build
+  * Green build
+  * Code Reviewed
+  * Tested
 
-2. Do `npm version <update_type>` (patch|minor|major)
+1. Update version: `npm version <update_type>` (patch|minor|major)
 
-3. `npm publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
+1. Publish to NPM registry: `npm publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
 
-4. Ensure this version gets **merged to master**
+1. Ensure this version gets **merged to master**
 
 License
 -------
