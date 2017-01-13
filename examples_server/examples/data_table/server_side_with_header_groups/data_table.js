@@ -40,7 +40,7 @@ Backdraft.app("TableExample", function(app) {
 
     model : app.Models.Book,
 
-    url : "/server_side_data?total=1"
+    url : "/server_side_data"
 
   });
 
@@ -54,13 +54,9 @@ Backdraft.app("TableExample", function(app) {
 
     rowClassName : "BookRow",
 
-    layout : "<'table-wrapper-with-footer'>t<'row'<'col-xs-4'p><'col-xs-4'r><'col-xs-4'i>><'row'<'col-xs-4'F>>",
+    layout : "<'table-wrapper-with-footer'>t<'row'<'col-xs-4'p><'col-xs-4'r><'col-xs-4'i>>",
 
-    serverSide : true,
-
-    isNontotalsColumn: function(col) {
-      return col.id !== "income";
-    },
+    serverSide : true
 
   });
 
@@ -71,17 +67,19 @@ Backdraft.app("TableExample", function(app) {
   app.view.dataTable.row("BookRow", {
 
     columns : [
-      { bulk : true },
-      { attr : "name", title : "Name" },
-      { attr : "address", title : "address" },
-      { attr : "income", title : "Yearly income"},
-      { title : "Random Hotness" }
+      { attr  : "bulk",           bulk  : true,             headerGroupDataIndex: "bulk" },
+      { attr  : "name",           title : "Name",           headerGroupDataIndex: "user" },
+      { attr  : "address",        title : "address",        headerGroupDataIndex: "user" },
+      { attr  : "income",         title : "Yearly income",  headerGroupDataIndex: "financial" },
+    ],
+
+    columnGroupDefinitions: [
+      { "headerName" : "",          "colspan" : 1, headerGroupDataIndex: "bulk" },
+      { "headerName" : "User",      "colspan" : 2, headerGroupDataIndex: "user" },
+      { "headerName" : "Financial", "colspan" : 1, headerGroupDataIndex: "financial" },
     ],
 
     renderers : {
-      "random-hotness" : function(node, config) {
-        node.text(Math.random());
-      },
       "name" : function(node, config) {
         node.text("name: " + this.model.get(config.attr));
       },
