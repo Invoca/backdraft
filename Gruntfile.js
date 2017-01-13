@@ -61,15 +61,6 @@ module.exports = function(grunt) {
         files : [ "src/**/*.js", "spec/**/*.js" ],
         tasks : [ "build", "jasmine:specs" ]
       }
-    },
-
-    docco: {
-      docs: {
-        src: ["dist/backdraft.js"],
-        options: {
-          output: 'docs/'
-        }
-      }
     }
 
   });

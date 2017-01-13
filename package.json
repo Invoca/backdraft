@@ -1,14 +1,19 @@
 {
   "name": "backdraft",
   "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Plugin-based UI application framework built on top of and extending Backbone",
+  "main": "src/app.js",
+  "files": [
+    "dist/backdraft.js"
+  ],
   "scripts": {
-    "test": "grunt spec"
+    "setup": "npm install -g grunt-cli",
+    "test": "grunt spec",
+    "prepublish": "grunt build"
   },
   "author": "Invoca",
   "license": "MIT",
-  "repository": "https://github.com/Invoca/backdraft/",
+  "repository": "https://github.com/invoca/backdraft/",
   "devDependencies": {
     "grunt": "~0.4.4",
     "grunt-contrib-concat": "^0.5.1",
@@ -17,7 +22,6 @@
     "grunt-contrib-jst": "^0.5.1",
     "express": "^4.1.0",
     "morgan": "^1.0.0",
-    "serve-index": "^1.6.4",
-    "grunt-docco": "^0.3.3"
+    "serve-index": "^1.6.4"
   }
 }
