@@ -1,5 +1,5 @@
 # Backdraft
-Wrapper around Backbone providing integration with [DataTables](https://www.datatables.net/), as well as other utilities for creating Backbone views and models. 
+Wrapper around Backbone providing integration with [DataTables](https://www.datatables.net/), as well as other utilities for creating Backbone views and models.
 Written as a plugin-based framework, where the DataTables integration is a plugin itself, and Backdraft can be further extended with your own plugins.
 
 ## Usage
@@ -115,7 +115,7 @@ Then activate the app at load time:
 * We're using curly braces ``{{ }}`` for underscore templating instead of angle brackets ``<% %>`` to not conflict with other templating conventions.
 
 ### Examples
-If you run `grunt`, an local server will be launched with live examples at [localhost:9873](http://localhost:9873). 
+If you run `grunt`, an local server will be launched with live examples at [localhost:9873](http://localhost:9873).
 
 
 ## Develop & Contribute
@@ -124,18 +124,17 @@ If you run `grunt`, an local server will be launched with live examples at [loca
 To develop a Backdraft plugin or modify Backdraft, the following setup needs to be done first (this assumes a Mac running OS 10.9+):
 
 * Install NVM, the Node Version Manager https://github.com/creationix/nvm
- *  ```curl https://raw.githubusercontent.com/creationix/nvm/v0.10.0/install.sh | sh```
+ *  ```curl https://raw.githubusercontent.com/creationix/nvm/v0.32.1/install.sh | sh```
 * Open a new tab in your terminal
 * Install Node.js with:
- *  ``` nvm install v0.10.26```
+ *  ``` nvm install v7.2.1```
 * Set it as the default Node.js version
- * ```nvm alias default 0.10.26```
-* Install grunt-cli
- * ```npm install -g grunt-cli```
+ * ```nvm alias default 7.2.1```
 * Install dependencies
 
   ```
   cd backdraft
+  npm run setup
   npm install
   ```
 
@@ -144,15 +143,14 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
 Run the grunt task from the main directory to have the source and test files watched and tests auto-run when any modifications are done
 
     grunt
-    
+
 You can also specifically run tests with:
 
     grunt spec
-    
+
 See all available commands with:
 
     grunt --help
-
 
 ### Contributing
 
@@ -162,6 +160,22 @@ If you'd like to contribute a feature or bugfix: Thanks! To make sure your chang
 2. Please add tests. We will not accept any patch that is not tested. (It's rare when explicit tests aren't needed.) Please see existing tests for examples and structure.
 
 Thank you to all [the contributors](https://github.com/invoca/backdraft/contributors)!
+
+### Publishing - admins
+
+To publish a new version
+
+1. Ensure the following are done:
+
+  * Green build
+  * Code Reviewed
+  * Tested
+
+1. Update version: `npm version <update_type>` (patch|minor|major)
+
+1. Publish to NPM registry: `npm publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
+
+1. Ensure this version gets **merged to master**
 
 License
 -------
