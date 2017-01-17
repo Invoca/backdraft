@@ -65,7 +65,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask("build", function() {
-    var UglifyJS = require("uglify-js");
+    var UglifyJS = require("uglifyjs");
     var result = UglifyJS.minify(inline("src/backdraft.js"), {
       fromString: true,
       compress: false,
