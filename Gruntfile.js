@@ -3,7 +3,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-contrib-jasmine");
   grunt.loadNpmTasks("grunt-contrib-jst");
   grunt.loadNpmTasks("grunt-contrib-watch");
-  grunt.loadNpmTasks("grunt-docco");
 
   // register delimeters other than the default erb ones so that we go into an infinite loop
   grunt.template.addDelimiters("inline", "{%", "%}");
@@ -66,7 +65,13 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask("build", function() {
-    grunt.file.write("dist/backdraft.js", inline("src/backdraft.js"));
+    var UglifyJS = require("uglify-js");
+    var result = UglifyJS.minify(inline("src/backdraft.js"), {
+      fromString: true,
+      compress: false,
+      mangle: false
+    });
+    grunt.file.write("dist/backdraft.js", result.code);
   });
 
   grunt.registerTask("servers", function() {

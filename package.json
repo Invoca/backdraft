@@ -15,13 +15,13 @@
   "license": "MIT",
   "repository": "https://github.com/invoca/backdraft/",
   "devDependencies": {
-    "grunt": "~0.4.4",
-    "grunt-contrib-concat": "^0.5.1",
-    "grunt-contrib-jasmine": "^1.0.0",
-    "grunt-contrib-watch": "^0.5.3",
-    "grunt-contrib-jst": "^0.5.1",
     "express": "^4.1.0",
+    "grunt": "~0.4.4",
+    "grunt-contrib-jasmine": "^1.0.0",
+    "grunt-contrib-jst": "^0.5.1",
+    "grunt-contrib-watch": "^0.5.3",
     "morgan": "^1.0.0",
-    "serve-index": "^1.6.4"
+    "serve-index": "^1.6.4",
+    "uglifyjs": "^2.4.10"
   }
 }

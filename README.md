@@ -179,4 +179,4 @@ To publish a new version
 
 License
 -------
-Backdraft is Copyright © 2014-2015 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.
+Backdraft is Copyright © 2014-2017 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.
