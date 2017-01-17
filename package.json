@@ -4,7 +4,8 @@
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "main": "src/app.js",
   "files": [
-    "dist/backdraft.js"
+    "dist/backdraft.js",
+    "dist/backdraft.min.js"
   ],
   "scripts": {
     "setup": "npm install -g grunt-cli",
@@ -22,6 +23,6 @@
     "grunt-contrib-watch": "^0.5.3",
     "morgan": "^1.0.0",
     "serve-index": "^1.6.4",
-    "uglifyjs": "^2.4.10"
+    "uglify-js": "^2.7.5"
   }
 }
