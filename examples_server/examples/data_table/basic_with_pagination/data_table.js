@@ -29,7 +29,7 @@ Backdraft.app("TableExample", function(app) {
 Backdraft.app("TableExample", function(app) {
 
   app.model("Book", {
-    
+
   });
 
 });
@@ -39,7 +39,7 @@ Backdraft.app("TableExample", function(app) {
   app.collection("Books", {
 
     model : app.Models.Book
-    
+
   });
 
 });
@@ -58,7 +58,7 @@ Backdraft.app("TableExample", function(app) {
 
     paginateLengthMenu: [5, 10, 20],
 
-    sorting: [["Name", "desc"]]
+    sorting: [["name", "desc"]]
 
   });
 

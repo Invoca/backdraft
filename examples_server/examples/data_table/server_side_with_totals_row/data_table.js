@@ -54,7 +54,7 @@ Backdraft.app("TableExample", function(app) {
 
     rowClassName : "BookRow",
 
-    layout : "<'table-wrapper-with-footer'>t<'row'<'col-xs-4'p><'col-xs-4'r><'col-xs-4'i>><'row'<'col-xs-4'F>>",
+    layout : "<'table-wrapper-with-footer't><'row'<'col-xs-4'p><'col-xs-4'r><'col-xs-4'i>>",
 
     serverSide : true,
 

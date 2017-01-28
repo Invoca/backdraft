@@ -1211,7 +1211,7 @@
         //Martin Marchetta: Fixed col resizing when the scroller is enabled.
         var visibleColumnIndex;
         //First determine if this plugin is being used along with the smart scroller...
-        if ($('div.dataTables_scrollBody').lenggthll) {
+        if ($('div.dataTables_scrollBody').length) {
           //...if so, when resizing the header, also resize the table's body (when enabling the Scroller, the table's header and
           //body are split into different tables, so the column resizing doesn't work anymore)
           if ($('div.dataTables_scrollBody').length > 0) {
