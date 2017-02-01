@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" class="bs">
+<head>
+  <meta charset="utf-8">
+  <title>Backdraft DataTable Examples</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <link rel="shortcut icon" href="#">
+  <link type="text/css" href="../../../vendor/bootstrap-3.1.1-dist/css/bootstrap.css" rel="stylesheet" />
+  <link type="text/css" href="../../../vendor/dataTables.bootstrap.css" rel="stylesheet" />
+  <link type="text/css" href="../../../vendor/dataTables.colReorder.css" rel="stylesheet" />
+
+  <style>
+    .dataTable th {
+      min-width: 500px;
+    }
+
+    tfoot td {
+      background-color: #eee;
+    }
+
+    #example-filters {
+      padding: 10px;
+      margin: 10px 0;
+      background-color: #ADD8E6;
+    }
+
+    .fixed-horizontally {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+<h3 style="text-align:center" class="fixed-horizontally">Large Table with a scrollbar enabled on browser and fixed elements</h3>
+
+<div class="container-fluid">
+  <div id="example-filters" class="fixed-horizontally">
+    Sample filters area that should be fixed to viewport width and NOT scroll
+  </div>
+
+  <div id="example-area"></div>
+
+  <p>
+    <a href="index.html">Back to Column Reorder Index</a>
+  </p>
+
+  <!-- libraries -->
+  <script type="text/javascript" src="../../../vendor/json2.js"></script>
+  <script type="text/javascript" src="../../../vendor/jquery-1.10.2.js"></script>
+  <script type="text/javascript" src="../../../vendor/underscore-1.8.3.js"></script>
+  <script type="text/javascript" src="../../../vendor/backbone-1.1.2.js"></script>
+  <script type="text/javascript" src="../../../vendor/jquery.dataTables-1.9.4.js"></script>
+  <script type="text/javascript" src="../../../dist/backdraft.js"></script>
+
+  <!-- demo -->
+  <script type="text/javascript" src="data_table.js"></script>
+  <script type="text/javascript">
+    Backdraft.app("TableExample").activate($("#example-area"));
+  </script>
+
+  <script>
+    var body = $('body');
+    var table = $('.dataTables_wrapper .table-wrapper-with-footer');
+    var fixedElements = $('.fixed-horizontally');
+
+    function onWheel(e) {
+      if (e.originalEvent.ctrlKey) {
+        return true
+      }
+
+      var deltaX = e.originalEvent.deltaX;
+      var deltaY = e.originalEvent.deltaY;
+
+      if (deltaX !== 0) {
+        var currentLeft = body.scrollLeft();
+        body.scrollLeft(currentLeft + deltaX);
+      }
+
+      if (deltaY !== 0) {
+        var currentTop = body.scrollTop();
+        body.scrollTop(currentTop + deltaY);
+      }
+
+      return false;
+    }
+
+    function onScroll() {
+      console.log("onScroll " + window.scrollX);
+      fixedElements.css({
+        'margin-left': 0 + window.scrollX
+      });
+
+      table.css({
+        'margin-left': 0 - window.scrollX
+      });
+    }
+
+    $(window).on('scroll', onScroll);
+    body.on('wheel', onWheel);
+  </script>
+
+</body>
+</html>

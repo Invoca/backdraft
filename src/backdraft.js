@@ -11,6 +11,7 @@
   }
 
   {%= inline("src/utils/class.js") %}
+  {%= inline("src/utils/dom_visibility.js") %}
   {%= inline("src/utils/css.js") %}
   {%= inline("src/utils/logging.js") %}
 
