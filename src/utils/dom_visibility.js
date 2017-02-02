@@ -15,9 +15,9 @@ Backdraft.Utils.DomVisibility = Backdraft.Utils.Class.extend({
 
     return (x + width) <= ($('body').outerWidth() + this.windowOffset());
   },
-  
+
   windowOffset: function() {
-    return $(window).scrollLeft();
+    return $('body').scrollLeft();
   }
 });
 
@@ -25,10 +25,10 @@ Backdraft.Utils.Coordinates = {
   absolutePointAtViewportEdge: function(edge, x, buffer) {
     switch(edge) {
       case 'left':
-        return x - $(window).scrollLeft() <= buffer;
+        return x - $('body').scrollLeft() <= buffer;
 
       case 'right':
-        return x - $(window).scrollLeft() >= $('body').outerWidth() - buffer;
+        return x - $('body').scrollLeft() >= $('body').outerWidth() - buffer;
 
       default:
         throw new Error("unsupported edge value: " + edge);

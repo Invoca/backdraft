@@ -1294,16 +1294,16 @@
 
         /* check if table should scroll */
         if (this.s.autoScrollTargetWidth > 0) {
-          var tableWrapper = $(this.s.dt.nTableWrapper).find('.table-wrapper-with-footer');
+          var scrollableContainer;
           var startingScrollOffset;
           var scrollDelta;
 
           var moreToRight = false, moreToLeft = false;
-          if (tableWrapper.css('overflow-x') === 'auto') {
-            scrollableContainer = tableWrapper;
-            startingScrollOffset = tableWrapper.scrollLeft();
-            moreToRight = tableWrapper.scrollLeft() < $(this.s.dt.nTable).width() - tableWrapper.width();
-            moreToLeft = tableWrapper.scrollLeft() > 0;
+          if ($(this.s.dt.nTable).parent().css('overflow-x') === 'auto') {
+            scrollableContainer = $(this.s.dt.nTable).parent();
+            startingScrollOffset = scrollableContainer.scrollLeft();
+            moreToRight = scrollableContainer.scrollLeft() < $(this.s.dt.nTable).width() - scrollableContainer.width();
+            moreToLeft = scrollableContainer.scrollLeft() > 0;
           } else {
             scrollableContainer = $(window);
             var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);

@@ -814,6 +814,177 @@ describe("DataTable Plugin", function() {
       });
     });
 
+    describe("autoscroll on dragging of columns", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2" },
+            { attr : "attr3", title : "Attr3" },
+            { attr : "attr4", title : "Attr4" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R"
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        $('body').append(table.$el);
+        $('body').css('margin', 0);
+        $('body').scrollLeft(0);
+      });
+
+      afterEach(function() {
+        table.remove();
+      });
+
+      function stubDragMode(table) {
+        table._colReorder.dom.drag = {
+          css: function() {}
+        };
+        table._colReorder.dom.pointer = {
+          css: function() {}
+        };
+      }
+
+      function triggerMouseMoveEvent(table, options) {
+        var event = jQuery.Event("mousemove.ColReorder");
+        event.pageX = options.mouseX;
+
+        // the below didn't work, so just calling the mouse move callback directly
+        // $(document).trigger(event);
+        table._colReorder._fnMouseMove(event);
+      }
+
+      describe("when table overflow is off - using browser scroll", function() {
+        it("should scroll body right if dragging column and mouse is near right edge and more of table", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+          expect($('body').scrollLeft()).toEqual(0);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 50 });
+
+          expect($('body').scrollLeft()).toEqual(10, "After the move event");
+        });
+
+        it("should not scroll body right if dragging column and mouse is beyond the edge buffer", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+          expect($('body').scrollLeft()).toEqual(0);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 101 });
+
+          expect($('body').scrollLeft()).toEqual(0, "After the move event");
+        });
+
+        it("should not scroll body right if dragging column and mouse is at the edge but table is all the way in view", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+
+          // now scroll to end of it
+          $('body').scrollLeft(3000);
+          var originalScroll = $('body').scrollLeft();
+
+          expect($('body').scrollLeft()).toEqual(originalScroll, "Before the move event");
+
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: originalScroll + $('body').outerWidth() - 50 });
+
+          expect($('body').scrollLeft()).toEqual(originalScroll, "After the move event should be " + originalScroll);
+        });
+
+        it("should scroll body left if dragging column and mouse is at the left edge and table is not all in view", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          $('body').scrollLeft(200);
+
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: 50 });
+
+          expect($('body').scrollLeft()).toEqual(190, "After the move event");
+        });
+
+        it("should not scroll body left if dragging column and mouse is at the left edge and table is all in view", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          $('body').scrollLeft(0);
+
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: 50 });
+
+          expect($('body').scrollLeft()).toEqual(0, "After the move event");
+        });
+      });
+
+      describe("when table overflow is auto - scrollbar on table", function() {
+        it("should scroll table right if dragging column and mouse is at the right edge and table is not all in view", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          var wrapper = table.$el.children("div:first");
+          wrapper.css({ overflowX: "auto" });
+          expect($('body').scrollLeft()).toEqual(0);
+          expect(wrapper.scrollLeft()).toEqual(0);
+
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 50 });
+
+          expect($('body').scrollLeft()).toEqual(0, "Don't move the window scroll");
+          expect(wrapper.scrollLeft()).toEqual(10, "Should move the table wrapper scroll");
+        });
+
+        it("should not scroll table right if dragging column and mouse is at the right edge and but table is all in view", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          var wrapper = table.$el.children("div:first");
+          wrapper.css({ overflowX: "auto" });
+          expect($('body').scrollLeft()).toEqual(0);
+          expect(wrapper.scrollLeft(3000));
+
+          var originalScroll = wrapper.scrollLeft();
+
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 50 });
+
+          expect($('body').scrollLeft()).toEqual(0, "Don't move the window scroll");
+          expect(wrapper.scrollLeft()).toEqual(originalScroll, "Should move the table wrapper scroll");
+        });
+
+        it("should scroll table left if dragging column and mouse is at the left edge and table is not all in view", function() {
+          expect(table._colReorder.s.allowReorder).toEqual(true);
+
+          // make the table really wide
+          table.$el.find("table").width(3000);
+          var wrapper = table.$el.children("div:first");
+          wrapper.css({ overflowX: "auto" });
+          expect($('body').scrollLeft()).toEqual(0);
+          expect(wrapper.scrollLeft(3000));
+
+          var originalScroll = wrapper.scrollLeft();
+
+          stubDragMode(table);
+          triggerMouseMoveEvent(table, { mouseX: 50 });
+
+          expect($('body').scrollLeft()).toEqual(0, "Don't move the window scroll");
+          expect(wrapper.scrollLeft()).toEqual(originalScroll - 10, "Should move the table wrapper scroll");
+        });
+      });
+    });
+
     describe("provide an interface to access the column configuration", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
