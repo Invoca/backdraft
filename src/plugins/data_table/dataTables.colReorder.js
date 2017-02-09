@@ -433,7 +433,7 @@
        * @type     integer
        * @default  10
        */
-      "autoScrollIncrementSize": 10,
+      "autoScrollIncrementSize": 15,
 
       /**
        * Resize the table when columns are resized

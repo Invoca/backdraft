@@ -867,7 +867,7 @@ describe("DataTable Plugin", function() {
           stubDragMode(table);
           triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 50 });
 
-          expect($('body').scrollLeft()).toEqual(10, "After the move event");
+          expect($('body').scrollLeft()).toEqual(15, "After the move event");
         });
 
         it("should not scroll body right if dragging column and mouse is beyond the edge buffer", function() {
@@ -910,7 +910,7 @@ describe("DataTable Plugin", function() {
           stubDragMode(table);
           triggerMouseMoveEvent(table, { mouseX: 50 });
 
-          expect($('body').scrollLeft()).toEqual(190, "After the move event");
+          expect($('body').scrollLeft()).toEqual(185, "After the move event");
         });
 
         it("should not scroll body left if dragging column and mouse is at the left edge and table is all in view", function() {
@@ -942,7 +942,7 @@ describe("DataTable Plugin", function() {
           triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 50 });
 
           expect($('body').scrollLeft()).toEqual(0, "Don't move the window scroll");
-          expect(wrapper.scrollLeft()).toEqual(10, "Should move the table wrapper scroll");
+          expect(wrapper.scrollLeft()).toEqual(15, "Should move the table wrapper scroll");
         });
 
         it("should not scroll table right if dragging column and mouse is at the right edge and but table is all in view", function() {
@@ -980,7 +980,7 @@ describe("DataTable Plugin", function() {
           triggerMouseMoveEvent(table, { mouseX: 50 });
 
           expect($('body').scrollLeft()).toEqual(0, "Don't move the window scroll");
-          expect(wrapper.scrollLeft()).toEqual(originalScroll - 10, "Should move the table wrapper scroll");
+          expect(wrapper.scrollLeft()).toEqual(originalScroll - 15, "Should move the table wrapper scroll");
         });
       });
     });
