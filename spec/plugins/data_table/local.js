@@ -284,7 +284,7 @@ describe("DataTable Plugin", function() {
         table.page("next");
       });
 
-      it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function() {
+      it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function(done) {
         table = new app.Views.T({ collection : collection });
         table.render();
         table.selectAllVisible(true);
@@ -294,10 +294,12 @@ describe("DataTable Plugin", function() {
         // we need to test this using an async strategy because the checkbox is toggled async as well
         table.dataTable.on("page", function() {
           _.defer(function() {
-            table.page("previous");
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
+            done();
           });
         });
+
+        table.page("previous");
       });
 
       describe("selectedIds", function() {

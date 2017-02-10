@@ -418,6 +418,24 @@
       "minResizeWidth": 10,
 
       /**
+       * The width from edge of browser where table will start autoscrolling if mouse is dragging and enters the region
+       * If set to 0, no auto scrolling will be done
+       * @property autoScrollTargetWidth
+       * @type     integer
+       * @default  100
+       */
+      "autoScrollTargetWidth": 100,
+
+      /**
+       * The pixel amount to autoscroll during column reorder drag events (per received mouse move event)
+       * Higher numbers mean a faster autoscroll, not recommended to go below 5
+       * @property autoScrollIncrementSize
+       * @type     integer
+       * @default  10
+       */
+      "autoScrollIncrementSize": 15,
+
+      /**
        * Resize the table when columns are resized
        * @property bResizeTable
        * @type     boolean
@@ -1272,6 +1290,53 @@
             return;
           }
           this._fnCreateDragNode();
+        }
+
+        /* check if table should scroll */
+        if (this.s.autoScrollTargetWidth > 0) {
+          var scrollableContainer;
+          var startingScrollOffset;
+          var scrollDelta;
+
+          var moreToRight = false, moreToLeft = false;
+          if ($(this.s.dt.nTable).parent().css('overflow-x') === 'auto') {
+            scrollableContainer = $(this.s.dt.nTable).parent();
+            startingScrollOffset = scrollableContainer.scrollLeft();
+            moreToRight = scrollableContainer.scrollLeft() < $(this.s.dt.nTable).width() - scrollableContainer.width();
+            moreToLeft = scrollableContainer.scrollLeft() > 0;
+          } else {
+            scrollableContainer = $(window);
+            var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);
+            startingScrollOffset = visibilityChecker.windowOffset();
+            moreToRight = !visibilityChecker.rightEdgeInView();
+            moreToLeft = !visibilityChecker.leftEdgeInView();
+          }
+
+          if (
+            Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+              'right',
+              e.pageX,
+              this.s.autoScrollTargetWidth
+            ) && moreToRight) {
+
+            scrollDelta = this.s.autoScrollIncrementSize;
+          } else if (
+            Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+              'left',
+              e.pageX,
+              this.s.autoScrollTargetWidth
+            ) && moreToLeft) {
+
+            scrollDelta = 0 - this.s.autoScrollIncrementSize;
+          }
+
+          if (scrollDelta) {
+            scrollableContainer.scrollLeft(startingScrollOffset + scrollDelta);
+          }
+
+          // scrollLeft fires an event that isn't processed til after this mouseMove event is finished
+          //  so we're always resetting the dropzone targets cache so that later mouseMove's "fix" up the dropzones
+          this._fnRegions();
         }
 
         /* Position the element - we respect where in the element the click occured */
