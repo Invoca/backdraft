@@ -342,16 +342,16 @@ describe("DataTable Plugin", function() {
         ],
 
         renderers: {
-          "cost": function(node, config, options) {
+          "cost": function(node, config) {
             var value = "<br>";
-            if (options && options.total && this.hasUniques) {
+            if (this.isTotals && this.hasUniques) {
               value = "$" + this.model.get(config.id + ".unique") + value;
             }
             node.html(value + "$" + this.model.get(config.id));
           },
-          "resale_value": function(node, config, options) {
+          "resale_value": function(node, config) {
             var value = "<br>";
-            if (options && options.total && this.hasUniques) {
+            if (this.isTotals && this.hasUniques) {
               value = "$" + this.model.get(config.id + ".unique") + value;
             }
             node.html(value + "$" + this.model.get(config.id));
@@ -436,16 +436,54 @@ describe("DataTable Plugin", function() {
         jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithUniques());
       });
 
-      it("should render Total Gross/Net as the grand total title", function() {
-        var titleCell = table.$('tfoot tr td').eq(0);
+      it("should render title from grandTotalsRenderer if it exists for column", function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "name", title : "asdfdasdfas", id: "name", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
+            { attr : "cost", title : "Cost", id: "cost", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
+            { attr : "type", title : "Type", id: "type", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
+            { attr : "description", title : "description", id: "description"},
+            { attr : "resale_value", title : "Resale value", id: "resale_value"},
+          ],
+
+          renderers: {
+            "cost": function(node, config) {
+              var value = "<br>";
+              if (this.isTotals && this.hasUniques) {
+                value = "$" + this.model.get(config.id + ".unique") + value;
+              }
+              node.html(value + "$" + this.model.get(config.id));
+            },
+            "resale_value": function(node, config) {
+              var value = "<br>";
+              if (this.isTotals && this.hasUniques) {
+                value = "$" + this.model.get(config.id + ".unique") + value;
+              }
+              node.html(value + "$" + this.model.get(config.id));
+            }
+          },
+        });
+
+        collection = new app.Collections.Col();
+        var table1 = new app.Views.T({ collection : collection });
+        table1.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithUniques());
+
+        var titleCell = table1.$('tfoot tr td').eq(0);
         expect(titleCell.html()).toEqual("Total Gross<br>Total Net");
+        expect(titleCell.hasClass('.grand-total-title')).toEqual(true);
+      });
+
+      it("should render title as 'Grand Total' if grandTotalsRenderer does not exist for column", function() {
+        var titleCell = table.$('tfoot tr td').eq(0);
+        expect(titleCell.html()).toEqual("Grand Total");
         expect(titleCell.hasClass('.grand-total-title')).toEqual(true);
       });
 
       it("should properly display totals rows in the grand total row", function() {
         var grandTotalsCells = table.$('tfoot tr td');
         expect(grandTotalsCells.length).toEqual(5);
-        expect(grandTotalsCells.eq(0).html()).toEqual("Total Gross<br>Total Net");
+        expect(grandTotalsCells.eq(0).html()).toEqual("Grand Total");
         expect(grandTotalsCells.eq(1).html()).toEqual("$10020<br>$10000");
         expect(grandTotalsCells.eq(2).text()).toEqual("");
         expect(grandTotalsCells.eq(3).text()).toEqual("");
