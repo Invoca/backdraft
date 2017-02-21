@@ -188,6 +188,7 @@ var ServerSideDataTable = (function() {
           if (json.sEcho * 1 < oSettings.iDraw) return;
           if (json.total) {
             self.totalsRow = new self.rowClass({ model: new Backbone.Model(json.total)});
+            self.totalsRow.hasUniques = self.hasUniqueValues();
           }
 
 

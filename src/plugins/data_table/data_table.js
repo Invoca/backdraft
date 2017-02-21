@@ -100,6 +100,26 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
+    hasUniqueValues: function() {
+      var hasUniques = false;
+
+      if (this.totalsRow && this.totalsRow.model) {
+        var totals = this.totalsRow.model.attributes;
+        var columns = this.totalsRow.model.keys();
+
+        _.each(columns, function(column) {
+          if (columns.indexOf(column + ".unique") !== -1) {
+            if (!(totals[column] instanceof Array) && totals[column] != totals[column + '.unique']) {
+              hasUniques = true;
+              return false;
+            }
+          }
+        });
+      }
+
+      return hasUniques;
+    },
+
     columnRequired: function(state, id) {
       if (!state && this._columnManager.columnConfigForId(id).required) {
         throw new Error("can not disable visibility when column is required");
@@ -262,14 +282,15 @@ var LocalDataTable = (function() {
             if (this.isNontotalsColumn && this.isNontotalsColumn(col)) {
               // If column is a non totals column, draw "Grand totals" on the first one and the rest are empty
               if (hasGrandTotalsCell) {
-                $grandTotalsRow.append($("<td></td>"));
+                $grandTotalsRow.append($("<td>"));
               } else {
                 hasGrandTotalsCell = true;
-                $grandTotalsRow.append($("<td>Grand Total</td>"));
+                var grandTotalsCellText = this.totalsRow.hasUniques ? "Total Gross*<br>Total Net" : "Grand Total";
+                $grandTotalsRow.append($("<td>").addClass('.grand-total-title').html(grandTotalsCellText));
               }
             } else {
               var node = $("<td></td>");
-              col.renderer.apply(this.totalsRow, [node, col]);
+              col.renderer.apply(this.totalsRow, [node, col, { total: true }]);
               $grandTotalsRow.append(node);
             }
           }

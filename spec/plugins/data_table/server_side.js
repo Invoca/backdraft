@@ -39,18 +39,42 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
-          { name: 'Jon doe 1',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 2',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 3',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 4',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 5',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 6',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 7',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 8',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 9',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"},
-          { name: 'Jon doe 10', cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50"}
+          { name: 'Jon doe 1',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 2',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 3',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 4',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 5',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 6',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 7',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 8',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 9',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 10', cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" }
         ],
-        total: {name: null, cost: 10000, type: null, description: null, resale_value: 5000 }
+        total: { name: null, cost: 10000, type: null, description: null, resale_value: 5000 }
+      })
+    };
+  };
+
+  MockResponse.prototype.getWithUniques = function() {
+    return {
+      status : 200,
+      responseText : JSON.stringify({
+        sEcho: this.echo++,
+        iTotalRecords: 100,
+        iTotalDisplayRecords: 100,
+        aaData: [
+          { name: 'Jon doe 1',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 2',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 3',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 4',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 5',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 6',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 7',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 8',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 9',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 10', cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" }
+        ],
+        total: { name: null, cost: 10000, 'cost.unique': 10020, type: null, description: null, resale_value: 5000, 'resale_value.unique': 5010 }
       })
     };
   };
@@ -318,11 +342,19 @@ describe("DataTable Plugin", function() {
         ],
 
         renderers: {
-          "cost": function(node, config) {
-            node.html("$"+this.model.get(config.id));
+          "cost": function(node, config, options) {
+            var value = "<br>";
+            if (options && options.total && this.hasUniques) {
+              value = "$" + this.model.get(config.id + ".unique") + value;
+            }
+            node.html(value + "$" + this.model.get(config.id));
           },
-          "resale_value": function(node, config) {
-            node.html("$"+this.model.get(config.id));
+          "resale_value": function(node, config, options) {
+            var value = "<br>";
+            if (options && options.total && this.hasUniques) {
+              value = "$" + this.model.get(config.id + ".unique") + value;
+            }
+            node.html(value + "$" + this.model.get(config.id));
           }
         },
       });
@@ -339,58 +371,86 @@ describe("DataTable Plugin", function() {
       });
 
       table = new app.Views.T({ collection : collection });
-      table.render();
-      jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithTotals());
     });
 
-    it("should be defined", function() {
-      expect(table.$("table").length).toEqual(1);
-      expect(table.$("tfoot").length).toEqual(1);
-      expect(table.rowClassName).toEqual("R");
+    describe("without uniques", function() {
+      beforeEach(function() {
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithTotals());
+      });
+
+      it("should be defined", function() {
+        expect(table.$("table").length).toEqual(1);
+        expect(table.$("tfoot").length).toEqual(1);
+        expect(table.rowClassName).toEqual("R");
+      });
+
+      it("should have cells defined", function() {
+        expect(table.$('tfoot tr td').length > 2).toBeTruthy();
+      });
+
+      it("should have a grand totals row defined", function() {
+        expect(table.$('tfoot tr td').eq(0).text()).toEqual("Grand Total");
+      });
+
+      it("should correctly render grand totals row data using renderers", function() {
+        var grandTotalsCells = table.$('tfoot tr td');
+        expect(grandTotalsCells.length).toEqual(5);
+        expect(grandTotalsCells.eq(0).text()).toEqual("Grand Total");
+        expect(grandTotalsCells.eq(1).text()).toEqual("$10000");
+        expect(grandTotalsCells.eq(2).text()).toEqual("");
+        expect(grandTotalsCells.eq(3).text()).toEqual("");
+        expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
+      });
+
+      it("should correctly render grand totals row data after reorder", function() {
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
+        table._colReorder.fnOrder([1,0,2,3,4]);
+        table._colReorder.s.dropCallback(1, 0);
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([1,0,2,3,4]);
+        var grandTotalsCells = table.$('tfoot tr td');
+        expect(grandTotalsCells.eq(0).text()).toEqual("$10000");
+        expect(grandTotalsCells.eq(1).text()).toEqual("Grand Total");
+        expect(grandTotalsCells.eq(2).text()).toEqual("");
+        expect(grandTotalsCells.eq(3).text()).toEqual("");
+        expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
+      });
+
+      it("should keep grand totals row leftmost", function() {
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
+        table._colReorder.fnOrder([3, 0, 1, 2, 4]);
+        table._colReorder.s.dropCallback(3, 0);
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([3, 0, 1, 2, 4]);
+        var grandTotalsCells = table.$('tfoot tr td');
+        expect(grandTotalsCells.eq(0).text()).toEqual("Grand Total");
+        expect(grandTotalsCells.eq(1).text()).toEqual("");
+        expect(grandTotalsCells.eq(2).text()).toEqual("$10000");
+        expect(grandTotalsCells.eq(3).text()).toEqual("");
+        expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
+      });
     });
 
-    it("should have cells defined", function() {
-      expect(table.$('tfoot tr td').length > 2).toBeTruthy();
-    });
+    describe("with uniques", function() {
+      beforeEach(function() {
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithUniques());
+      });
 
-    it("should have a grand totals row defined", function() {
-      expect(table.$('tfoot tr td').eq(0).text()).toEqual("Grand Total");
-    });
+      it("should render Total Gross/Net as the grand total title", function() {
+        var titleCell = table.$('tfoot tr td').eq(0);
+        expect(titleCell.html()).toEqual("Total Gross*<br>Total Net");
+        expect(titleCell.hasClass('.grand-total-title')).toEqual(true);
+      });
 
-    it("should correctly render grand totals row data using renderers", function() {
-      var grandTotalsCells = table.$('tfoot tr td');
-      expect(grandTotalsCells.length).toEqual(5);
-      expect(grandTotalsCells.eq(0).text()).toEqual("Grand Total");
-      expect(grandTotalsCells.eq(1).text()).toEqual("$10000");
-      expect(grandTotalsCells.eq(2).text()).toEqual("");
-      expect(grandTotalsCells.eq(3).text()).toEqual("");
-      expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
-    });
-
-    it("should correctly render grand totals row data after reorder", function() {
-      expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
-      table._colReorder.fnOrder([1,0,2,3,4]);
-      table._colReorder.s.dropCallback(1, 0);
-      expect(table._colReorder.fnGetCurrentOrder()).toEqual([1,0,2,3,4]);
-      var grandTotalsCells = table.$('tfoot tr td');
-      expect(grandTotalsCells.eq(0).text()).toEqual("$10000");
-      expect(grandTotalsCells.eq(1).text()).toEqual("Grand Total");
-      expect(grandTotalsCells.eq(2).text()).toEqual("");
-      expect(grandTotalsCells.eq(3).text()).toEqual("");
-      expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
-    });
-
-    it("should keep grand totals row leftmost", function() {
-      expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
-      table._colReorder.fnOrder([3, 0, 1, 2, 4]);
-      table._colReorder.s.dropCallback(3, 0);
-      expect(table._colReorder.fnGetCurrentOrder()).toEqual([3, 0, 1, 2, 4]);
-      var grandTotalsCells = table.$('tfoot tr td');
-      expect(grandTotalsCells.eq(0).text()).toEqual("Grand Total");
-      expect(grandTotalsCells.eq(1).text()).toEqual("");
-      expect(grandTotalsCells.eq(2).text()).toEqual("$10000");
-      expect(grandTotalsCells.eq(3).text()).toEqual("");
-      expect(grandTotalsCells.eq(4).text()).toEqual("$5000");
+      it("should properly display totals rows in the grand total row", function() {
+        var grandTotalsCells = table.$('tfoot tr td');
+        expect(grandTotalsCells.length).toEqual(5);
+        expect(grandTotalsCells.eq(0).html()).toEqual("Total Gross*<br>Total Net");
+        expect(grandTotalsCells.eq(1).html()).toEqual("$10020<br>$10000");
+        expect(grandTotalsCells.eq(2).text()).toEqual("");
+        expect(grandTotalsCells.eq(3).text()).toEqual("");
+        expect(grandTotalsCells.eq(4).html()).toEqual("$5010<br>$5000");
+      });
     });
   });
 
