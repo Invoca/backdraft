@@ -285,7 +285,7 @@ var LocalDataTable = (function() {
                 $grandTotalsRow.append($("<td>"));
               } else {
                 hasGrandTotalsCell = true;
-                var grandTotalsCellText = this.totalsRow.hasUniques ? "Total Gross*<br>Total Net" : "Grand Total";
+                var grandTotalsCellText = this.totalsRow.hasUniques ? "Total Gross<br>Total Net" : "Grand Total";
                 $grandTotalsRow.append($("<td>").addClass('.grand-total-title').html(grandTotalsCellText));
               }
             } else {

@@ -438,14 +438,14 @@ describe("DataTable Plugin", function() {
 
       it("should render Total Gross/Net as the grand total title", function() {
         var titleCell = table.$('tfoot tr td').eq(0);
-        expect(titleCell.html()).toEqual("Total Gross*<br>Total Net");
+        expect(titleCell.html()).toEqual("Total Gross<br>Total Net");
         expect(titleCell.hasClass('.grand-total-title')).toEqual(true);
       });
 
       it("should properly display totals rows in the grand total row", function() {
         var grandTotalsCells = table.$('tfoot tr td');
         expect(grandTotalsCells.length).toEqual(5);
-        expect(grandTotalsCells.eq(0).html()).toEqual("Total Gross*<br>Total Net");
+        expect(grandTotalsCells.eq(0).html()).toEqual("Total Gross<br>Total Net");
         expect(grandTotalsCells.eq(1).html()).toEqual("$10020<br>$10000");
         expect(grandTotalsCells.eq(2).text()).toEqual("");
         expect(grandTotalsCells.eq(3).text()).toEqual("");
