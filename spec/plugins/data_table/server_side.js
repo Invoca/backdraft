@@ -471,13 +471,11 @@ describe("DataTable Plugin", function() {
 
         var titleCell = table1.$('tfoot tr td').eq(0);
         expect(titleCell.html()).toEqual("Total Gross<br>Total Net");
-        expect(titleCell.hasClass('.grand-total-title')).toEqual(true);
       });
 
       it("should render title as 'Grand Total' if grandTotalsRenderer does not exist for column", function() {
         var titleCell = table.$('tfoot tr td').eq(0);
         expect(titleCell.html()).toEqual("Grand Total");
-        expect(titleCell.hasClass('.grand-total-title')).toEqual(true);
       });
 
       it("should properly display totals rows in the grand total row", function() {

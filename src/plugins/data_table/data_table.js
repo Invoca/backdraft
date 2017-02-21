@@ -266,7 +266,6 @@ var LocalDataTable = (function() {
                 $grandTotalsRow.append(node);
               } else {
                 hasGrandTotalsCell = true;
-                node.addClass('.grand-total-title');
                 col.grandTotalRenderer ? col.grandTotalRenderer.apply(this.totalsRow, [node, col]) : node.text("Grand Total");
                 $grandTotalsRow.append(node);
               }
