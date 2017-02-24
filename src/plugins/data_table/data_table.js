@@ -259,17 +259,18 @@ var LocalDataTable = (function() {
         // Iterate over the current columns config
         this.columnsConfig().forEach(function(col) {
           if (this.columnVisibility(col.id) || col.bulk) {
+            var node = $("<td>");
+            // If column is a non totals column, draw "Grand totals" on the first one and the rest are empty
             if (this.isNontotalsColumn && this.isNontotalsColumn(col)) {
-              // If column is a non totals column, draw "Grand totals" on the first one and the rest are empty
               if (hasGrandTotalsCell) {
-                $grandTotalsRow.append($("<td></td>"));
+                $grandTotalsRow.append(node);
               } else {
                 hasGrandTotalsCell = true;
-                $grandTotalsRow.append($("<td>Grand Total</td>"));
+                col.grandTotalRenderer ? col.grandTotalRenderer.apply(this.totalsRow, [node, col]) : node.text("Grand Total");
+                $grandTotalsRow.append(node);
               }
             } else {
-              var node = $("<td></td>");
-              col.renderer.apply(this.totalsRow, [node, col]);
+              (col.grandTotalRenderer || col.renderer).apply(this.totalsRow, [node, col]);
               $grandTotalsRow.append(node);
             }
           }

@@ -187,7 +187,7 @@ var ServerSideDataTable = (function() {
           if (_.isUndefined(json.sEcho)) return;
           if (json.sEcho * 1 < oSettings.iDraw) return;
           if (json.total) {
-            self.totalsRow = new self.rowClass({ model: new Backbone.Model(json.total)});
+            self.totalsRow = new self.rowClass({ model: new Backbone.Model(json.total), totals: true });
           }
 
 

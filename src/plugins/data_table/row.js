@@ -5,6 +5,8 @@ var Row = (function() {
   var Row = Base.View.extend({
     initialize: function(options) {
       this.columnsConfig = options.columnsConfig;
+      this.isTotals = options.totals;
+      this.hasUniques = this._hasUniqueValues();
       this.$el.data("row", this);
     },
 
@@ -48,7 +50,27 @@ var Row = (function() {
       } else if (node.length > 1) {
         throw new Error("multiple nodes were matched");
       }
-    }
+    },
+
+    _hasUniqueValues: function() {
+      var hasUniques = false;
+
+      if (this.isTotals) {
+        var columns = this.model.keys();
+
+        _.each(columns, function (column) {
+          if (column && columns.indexOf(column + ".unique") !== -1) {
+            var columnVal = this.model.get(column);
+            if (!(columnVal instanceof Array) && columnVal != this.model.get(column + '.unique')) {
+              hasUniques = true;
+              return false;
+            }
+          }
+        }.bind(this));
+      }
+
+      return hasUniques;
+    },
 
   }, {
 
