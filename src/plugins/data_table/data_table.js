@@ -100,6 +100,11 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
+    getPageLimit: function() {
+      this._lockManager.ensureUnlocked("bulk");
+      return this.dataTable.fnSettings()._iDisplayLength;
+    },
+
     columnRequired: function(state, id) {
       if (!state && this._columnManager.columnConfigForId(id).required) {
         throw new Error("can not disable visibility when column is required");
