@@ -1391,7 +1391,7 @@ describe("DataTable Plugin", function() {
     });
   });
 
-  describe("getPageLimit", function() {
+  describe("pageLimit", function() {
     it("should get the current page limit selection from fnSettings", function() {
       app.view.dataTable.row("abc", {
         columns : [

@@ -100,8 +100,7 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
-    getPageLimit: function() {
-      this._lockManager.ensureUnlocked("bulk");
+    pageLimit: function() {
       return this.dataTable.fnSettings()._iDisplayLength;
     },
 
