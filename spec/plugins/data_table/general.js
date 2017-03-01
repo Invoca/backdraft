@@ -1404,7 +1404,7 @@ describe("DataTable Plugin", function() {
 
       var table = new app.Views.def({ collection: collection }).render();
       table.dataTable.fnSettings()._iDisplayLength = 50;
-      expect(table.getPageLimit()).toEqual(50);
+      expect(table.pageLimit()).toEqual(50);
     });
   });
 });
