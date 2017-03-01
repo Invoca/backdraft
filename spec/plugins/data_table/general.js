@@ -1390,4 +1390,21 @@ describe("DataTable Plugin", function() {
       expect(table.totalRecordsCount()).toEqual(99);
     });
   });
+
+  describe("pageLimit", function() {
+    it("should get the current page limit selection from fnSettings", function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "id", title: "Id" }
+        ]
+      });
+      app.view.dataTable("def", {
+        rowClassName : "abc"
+      });
+
+      var table = new app.Views.def({ collection: collection }).render();
+      table.dataTable.fnSettings()._iDisplayLength = 50;
+      expect(table.pageLimit()).toEqual(50);
+    });
+  });
 });

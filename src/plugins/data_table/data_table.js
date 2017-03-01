@@ -100,6 +100,10 @@ var LocalDataTable = (function() {
       return this.dataTable.fnSettings().fnRecordsTotal();
     },
 
+    pageLimit: function() {
+      return this.dataTable.fnSettings()._iDisplayLength;
+    },
+
     columnRequired: function(state, id) {
       if (!state && this._columnManager.columnConfigForId(id).required) {
         throw new Error("can not disable visibility when column is required");
