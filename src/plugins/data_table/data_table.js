@@ -58,6 +58,7 @@ var LocalDataTable = (function() {
       this._enableRowHighlight();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
+      this._colReorder && this._colReorder._fnSetupStickyTableHeader.call(this._colReorder, this._colReorder.s.iStickyTableHeader);
       this.trigger("render");
       return this;
     },
@@ -241,6 +242,7 @@ var LocalDataTable = (function() {
         bResizeTableWrapper: false,
         allowHeaderDoubleClick: false,
         allowResize: self.resizableColumns,
+        iStickyTableHeader: self.stickyTableHeader,
         // iFixedColumns configures how many columns should be unmovable starting from left
         // if the first column is the bulk column we make it unmovable
         iFixedColumns: this.$el.find(this.BULK_COLUMN_HEADER_CHECKBOX_SELECTOR).length

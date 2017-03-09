@@ -444,6 +444,14 @@
       "bResizeTable": true,
 
       /**
+       * Stick table header to a top offset of pixels
+       * @property iStickyTableHeader
+       * @type     integer
+       * @default  null
+       */
+      "iStickyTableHeader": null,
+
+      /**
        * Resize the table when columns are resized
        * @property bResizeTable
        * @type     boolean
@@ -697,6 +705,11 @@
         this.s.dropCallback = this.s.init.fnReorderCallback;
       }
 
+      /* Sticky thead option */
+      if (this.s.init.iStickyTableHeader) {
+        this.s.iStickyTableHeader = this.s.init.iStickyTableHeader;
+      }
+
       /* Allow reorder */
       if (typeof this.s.init.allowReorder != 'undefined') {
         this.s.allowReorder = this.s.init.allowReorder;
@@ -920,6 +933,184 @@
       this.s.dt.oInstance.oApi._fnSaveState(this.s.dt);
     },
 
+    /**
+     * Initialize sticky table header
+     *  @method  _fnSetupStickyTableHeader
+     *  @param   Int offsetTop number of pixels from top to stick header
+     *  @returns void
+     *  @private
+     */
+     "_fnSetupStickyTableHeader" : function(offsetTop) {
+       if (!offsetTop) { return } else if (offsetTop === true) {
+         offsetTop = 0;
+       }
+
+       // User must trigger 'tableLoaded' event after DataTable has been appended to DOM
+       // We need this to calculate offsets correctly
+       $(window).off('tableLoaded', start.bind(this));
+       $(window).on('tableLoaded', start.bind(this));
+
+       function start() {
+         var th, minWidth, minX;
+         var $window           = $(window);
+         var navbarHeight      = offsetTop;
+         var tableWrapper      = $(this.s.dt.nTableWrapper.children[0]);
+         var table             = $(this.s.dt.nTable);
+         var thead             = $(this.s.dt.nTHead);
+         var theadTop          = tableWrapper.offset().top;
+         var tbody             = $(this.s.dt.nTBody);
+         var tbodyTr           = tbody.children('tr');
+         var theadTh           = thead.children('tr').children('th');
+         var tableBorderOffset = tableWrapper.css('border-left') ? parseInt(tableWrapper.css('border-left').match('.*px')[0].replace('px', '')) : 0;
+         var tableLeftOffset   = tableWrapper.offset() ? tableWrapper.offset().left + tableBorderOffset : 0;
+         var stuck             = false;
+         var headerWidths      = $.map(this.s.dt.aoHeader[0], function (th) {
+           return getComputedStyle(th.cell).width
+         });
+
+         toggleListeners('off');
+
+         theadTh.off('mouseup', handleMouseUp);
+         theadTh.on('mouseup', handleMouseUp);
+
+         $window.off('scroll', handleWindowScroll.bind(this));
+         $window.on('scroll', handleWindowScroll.bind(this));
+
+         function handleMouseUp() {
+           $(document).on('mousemove.ColReorder');
+           $(window).off('mousemove', handleMouseMove);
+         }
+
+         function handleWindowScroll() {
+           if (!stuck && $window.scrollTop() > theadTop - navbarHeight) {
+             toggleListeners('on');
+             theadTh  = thead.children('tr').children('th');
+             theadTop = tableWrapper.offset().top;
+
+             thead.css({
+               position: 'fixed',
+               top: navbarHeight,
+               width: tableWrapper.width(),
+               overflow: 'hidden',
+               'border-bottom': '1px solid #eaeaea',
+               left: tableLeftOffset,
+               'z-index': 1
+             });
+
+             matchHeaderWidths();
+             handleTableScroll();
+
+             table.css({
+               'margin-top': thead.height()
+             });
+
+             theadTh.each(function (i) {
+               var minWidth = parseInt($(this).css('min-width').replace('px', '')) + 5;
+               var newWidth = (headerWidths[i] > minWidth) ? headerWidths[i] : minWidth;
+
+               $(this).css({
+                 width: newWidth
+               });
+             });
+
+             tbodyTr.each(function (i) {
+               $(this).children('td').each(function(i) {
+                 $(this).css({
+                   width: headerWidths[i]
+                 });
+               });
+             });
+
+             stuck = true;
+           } else if (stuck && $window.scrollTop() < theadTop - navbarHeight) {
+             toggleListeners('off');
+
+             thead.css({
+               position: 'inherit',
+               top: 'inherit',
+               left: 'initial',
+               'border-bottom': 'inherit'
+             });
+
+             table.css({
+               'margin-top': 'inherit'
+             });
+
+             stuck = false;
+           }
+         }
+
+         function toggleListeners(status) {
+           resizeCells();
+           tableWrapper[status]('scroll', handleTableScroll);
+           theadTh[status]('mousedown',   supportColumnResize);
+         }
+
+         function handleTableScroll() {
+           thead.scrollLeft(tableWrapper.scrollLeft() - 1);
+         }
+
+         function supportColumnResize() {
+           th = $(this);
+           if (th.css('cursor') === 'col-resize') {
+             $window.on('mousemove', handleMouseMove);
+           }
+         }
+
+         function handleMouseMove(e) {
+           th = $(e.target).closest('th');
+           var minWidth = (th.css('min-width') && parseInt(th.css('min-width').replace('px', ''))) || th.width();
+           var buffer   = th.children('.DataTables_sort_wrapper').width() + 50;
+
+           if (minWidth >= buffer) {
+             resizeCells();
+           } else {
+             $(document).off('mousemove.ColReorder');
+
+             th.css({
+               width: buffer,
+               'min-width': buffer  // Browser fix
+             });
+
+             resizeCells();
+           }
+         }
+
+         function resetHeaderWidths() {
+           headerWidths = $.map(theadTh, function (th) {
+             return th.getBoundingClientRect().width
+           });
+         }
+
+         function matchHeaderWidths() {
+           tbodyTr = tbody.children('tr');
+
+           var newWidths = tbodyTr.first().children('td').map(function(i) {
+             return $(this)[0].getBoundingClientRect().width
+           });
+
+           theadTh.each(function(i) {
+             $(this).css({
+               width: newWidths[i],
+               'min-width': newWidths[i]  // Browser fix
+             });
+           });
+         }
+
+         function resizeCells() {
+           resetHeaderWidths();
+
+           tbodyTr.each(function (i) {
+             $(this).children('td').each(function(i) {
+               $(this).css({
+                 width:       headerWidths[i],
+                 'min-width': headerWidths[i]  // Browser fix
+               });
+             });
+           });
+         }
+       }
+     },
 
     /**
      * Because we change the indexes of columns in the table, relative to their starting point
