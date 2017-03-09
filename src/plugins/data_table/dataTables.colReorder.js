@@ -992,33 +992,15 @@
                top: navbarHeight,
                width: tableWrapper.width(),
                overflow: 'hidden',
-               'border-bottom': '1px solid #eaeaea',
                left: tableLeftOffset,
                'z-index': 1
-             });
+             }).addClass('stuck');
 
              matchHeaderWidths();
              handleTableScroll();
 
              table.css({
                'margin-top': thead.height()
-             });
-
-             theadTh.each(function (i) {
-               var minWidth = parseInt($(this).css('min-width').replace('px', '')) + 5;
-               var newWidth = (headerWidths[i] > minWidth) ? headerWidths[i] : minWidth;
-
-               $(this).css({
-                 width: newWidth
-               });
-             });
-
-             tbodyTr.each(function (i) {
-               $(this).children('td').each(function(i) {
-                 $(this).css({
-                   width: headerWidths[i]
-                 });
-               });
              });
 
              stuck = true;
@@ -1028,9 +1010,8 @@
              thead.css({
                position: 'inherit',
                top: 'inherit',
-               left: 'initial',
-               'border-bottom': 'inherit'
-             });
+               left: 'initial'
+             }).removeClass('stuck');
 
              table.css({
                'margin-top': 'inherit'
@@ -1170,8 +1151,8 @@
       var thead = $(nTh).closest('thead');
       // listen to mousemove event for resize
       if (this.s.allowResize) {
-        //$(nTh).bind('mousemove.ColReorder', function (e) {
-        thead.bind('mousemove.ColReorder', function (e) {
+        $(nTh).bind('mousemove.ColReorder', function (e) {
+        //thead.bind('mousemove.ColReorder', function (e) {
           var nTable = that.s.dt.nTable;
           if (that.dom.drag === null && that.dom.resize === null) {
             /* Store information about the mouse position */
