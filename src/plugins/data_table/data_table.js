@@ -58,7 +58,6 @@ var LocalDataTable = (function() {
       this._enableRowHighlight();
       this.paginate && this._initPaginationHandling();
       this._triggerChangeSelection();
-      this._colReorder && this._colReorder._fnSetupStickyTableHeader.call(this._colReorder, this._colReorder.s.iStickyTableHeader);
       this.trigger("render");
       return this;
     },

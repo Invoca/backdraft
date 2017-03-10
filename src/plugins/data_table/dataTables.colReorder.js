@@ -708,6 +708,7 @@
       /* Sticky thead option */
       if (this.s.init.iStickyTableHeader) {
         this.s.iStickyTableHeader = this.s.init.iStickyTableHeader;
+        this._fnSetupStickyTableHeader.call(this, this.s.iStickyTableHeader);
       }
 
       /* Allow reorder */
@@ -953,7 +954,6 @@
        function start() {
          var th, minWidth, minX;
          var $window           = $(window);
-         var navbarHeight      = offsetTop;
          var tableWrapper      = $(this.s.dt.nTableWrapper.children[0]);
          var table             = $(this.s.dt.nTable);
          var thead             = $(this.s.dt.nTHead);
@@ -961,7 +961,7 @@
          var tbody             = $(this.s.dt.nTBody);
          var tbodyTr           = tbody.children('tr');
          var theadTh           = thead.children('tr').children('th');
-         var tableBorderOffset = tableWrapper.css('border-left') ? parseInt(tableWrapper.css('border-left').match('.*px')[0].replace('px', '')) : 0;
+         var tableBorderOffset = getHorizontalBorderOffset(tableWrapper);
          var tableLeftOffset   = tableWrapper.offset() ? tableWrapper.offset().left + tableBorderOffset : 0;
          var stuck             = false;
          var headerWidths      = $.map(this.s.dt.aoHeader[0], function (th) {
@@ -982,14 +982,14 @@
          }
 
          function handleWindowScroll() {
-           if (!stuck && $window.scrollTop() > theadTop - navbarHeight) {
+           if (!stuck && $window.scrollTop() > theadTop - offsetTop) {
              toggleListeners('on');
              theadTh  = thead.children('tr').children('th');
              theadTop = tableWrapper.offset().top;
 
              thead.css({
                position: 'fixed',
-               top: navbarHeight,
+               top: offsetTop,
                width: tableWrapper.width(),
                overflow: 'hidden',
                left: tableLeftOffset,
@@ -1004,7 +1004,7 @@
              });
 
              stuck = true;
-           } else if (stuck && $window.scrollTop() < theadTop - navbarHeight) {
+           } else if (stuck && $window.scrollTop() < theadTop - offsetTop) {
              toggleListeners('off');
 
              thead.css({
@@ -1089,6 +1089,19 @@
                });
              });
            });
+         }
+
+         function getHorizontalBorderOffset($el) {
+           var horizontalBorders = ['border', 'border-left'], border = 0;
+           for (var i = 0; i < horizontalBorders.length; i++) {
+             var match;
+             if ((match = $el.css(horizontalBorders[i]).match('.*px')) && match.length > 0) {
+               border = parseInt(match[0].replace('px', ''));
+               break;
+             }
+           }
+
+           return border;
          }
        }
      },
