@@ -2,6 +2,12 @@
 Wrapper around Backbone providing integration with [DataTables](https://www.datatables.net/), as well as other utilities for creating Backbone views and models.
 Written as a plugin-based framework, where the DataTables integration is a plugin itself, and Backdraft can be further extended with your own plugins.
 
+## Install
+
+```
+npm install backdraft-app
+```
+
 ## Usage
 First, define a new Backdraft app and what plugins it will use:
 
@@ -163,9 +169,9 @@ Thank you to all [the contributors](https://github.com/invoca/backdraft/contribu
 
 ### Publishing - admins
 
-To publish a new version
+To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), do the following
 
-1. Ensure the following are done:
+1. Ensure the following are complete:
 
   * Green build
   * Code Reviewed
@@ -173,9 +179,11 @@ To publish a new version
 
 1. Update version: `npm version <update_type>` (patch|minor|major)
 
+1. A commit is made with a version bump, so `git push`
+
 1. Publish to NPM registry: `npm publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
 
-1. Ensure this version gets **merged to master**
+1. If on a branch, ensure this version gets **merged to master**
 
 License
 -------
