@@ -67,13 +67,21 @@ module.exports = function(grunt) {
   grunt.registerTask("build", function() {
     var UglifyJS = require("uglify-js");
     var originalSource = inline("src/backdraft.js");
-    var result = UglifyJS.minify(originalSource, {
-      fromString: true,
-      compress: true,
-      mangle: false
-    });
-    grunt.file.write("dist/backdraft.js", originalSource);
-    grunt.file.write("dist/backdraft.min.js", result.code);
+
+    try {
+      var result = UglifyJS.minify(originalSource, {
+        fromString: true,
+        compress: true,
+        mangle: false
+      });
+
+      grunt.file.write("dist/backdraft.js", originalSource);
+      grunt.file.write("dist/backdraft.min.js", result.code);
+    } catch(ex) {
+      console.log(ex);
+      throw new Error("Error building backdraft");
+    }
+
   });
 
   grunt.registerTask("servers", function() {
