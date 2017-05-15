@@ -436,6 +436,14 @@
       "autoScrollIncrementSize": 15,
 
       /**
+       * Truncate column headers on resize
+       * @property bTruncateHeaders
+       * @type     boolean
+       * @default  true
+       */
+      "bTruncateHeaders": true,
+
+      /**
        * Resize the table when columns are resized
        * @property bResizeTable
        * @type     boolean
@@ -445,7 +453,7 @@
 
       /**
        * Resize the table when columns are resized
-       * @property bResizeTable
+       * @property bResizeTableWrapper
        * @type     boolean
        * @default  false
        */
@@ -1264,6 +1272,13 @@
               $($(tableScroller)[0].childNodes[0]).css('min-width',newTableWidth);
             }
           }
+        }
+
+        debugger;
+        if (this.s.bTruncateHeaders) {
+          var sortInterceptor = $(nTh).find("div.DataTables_sort_interceptor");
+          var newInterceptorWidth = newWidth - ($(nTh).innerWidth() - $(nTh).width());
+          sortInterceptor.css({ 'max-width': newInterceptorWidth });
         }
 
         if (this.s.bResizeTable) {
