@@ -527,8 +527,10 @@
     ColReorder.aoInstances.push(this);
 
 
+    var tableElement = $(this.s.dt.nTable)
+
     if (this.s.bResizeTableWrapper) {
-      $(this.s.dt.nTableWrapper).width($(this.s.dt.nTable).width());
+      tableElement.width(tableElement.width());
 
       // make sure the headers are the same width as the rest of table
       oDTSettings.aoDrawCallback.push({
@@ -542,9 +544,18 @@
     // fix the width and add table layout fixed.
     if (this.s.bAddFixed) {
       // Set the table to minimum size so that it doesn't stretch too far
-      $(this.s.dt.nTable).width("10px");
-      $(this.s.dt.nTable).width($(this.s.dt.nTable).width()).css('table-layout','fixed');
+      tableElement.width("10px");
+      tableElement.width(tableElement.width()).css('table-layout','fixed');
     }
+
+    if (this.s.allowResize && this.s.bTruncateHeaders) {
+      tableElement.find("thead th div.DataTables_sort_interceptor").css({
+        "text-overflow": "ellipsis",
+        "white-space":   "nowrap",
+        "overflow":      "hidden"
+      });
+    }
+
     return this;
   };
 
@@ -741,6 +752,10 @@
 
       if (typeof this.s.init.bResizeTableWrapper != 'undefined') {
         this.s.bResizeTableWrapper = this.s.init.bResizeTableWrapper;
+      }
+
+      if (typeof this.s.init.bTruncateHeaders != 'undefined') {
+        this.s.bTruncateHeaders = this.s.init.bTruncateHeaders;
       }
 
       if (typeof this.s.init.bAddFixed != 'undefined') {
@@ -1106,6 +1121,7 @@
      *  @private
      */
     "_fnMouseDown": function (e, nTh, i) {
+      // TODO: ajacobs check if this is allowing us to resize bulk actions
       var that = this;
       var target, offset, idx, nThNext, nThPrev;
       /* are we resizing a column ? */
@@ -1274,10 +1290,12 @@
           }
         }
 
-        debugger;
         if (this.s.bTruncateHeaders) {
           var sortInterceptor = $(nTh).find("div.DataTables_sort_interceptor");
           var newInterceptorWidth = newWidth - ($(nTh).innerWidth() - $(nTh).width());
+          if (newInterceptorWidth < this.s.minResizeWidth) {
+            newInterceptorWidth = this.s.minResizeWidth;
+          }
           sortInterceptor.css({ 'max-width': newInterceptorWidth });
         }
 

@@ -62,7 +62,7 @@ var LocalDataTable = (function() {
       return this;
     },
 
-    renderColumnrenderColumn: function(id) {
+    renderColumn: function(id) {
       var config = this._columnManager.columnConfigForId(id);
       if (!config) {
         throw new Error("column not found");
@@ -126,7 +126,7 @@ var LocalDataTable = (function() {
       _.each(columns, this.columnRequired, this);
       this._columnManager.visibility.set(columns);
       _.each(columns, function(state, attr) {
-        state && this.(attr);
+        state && this.renderColumn(attr);
       }, this);
     },
 
@@ -238,7 +238,6 @@ var LocalDataTable = (function() {
           self._onColumnReorder();
         },
         bAddFixed: false,
-        //bResizeTable: false,
         bResizeTableWrapper: false,
         allowHeaderDoubleClick: false,
         allowResize: self.resizableColumns,

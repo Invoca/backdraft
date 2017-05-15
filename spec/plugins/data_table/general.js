@@ -1138,6 +1138,123 @@ describe("DataTable Plugin", function() {
       table.renderColumn("attr2");
       expect(cellsForColumn(table, "column-attr2")).toEqual(["A2", "B2", "C2", "D2"]);
     });
+
+    describe("truncating columns", function() {
+      beforeEach(function() {
+        app.view.dataTable.row("R", {
+          columns : [
+            { attr : "attr1", title : "Attr1" },
+            { attr : "attr2", title : "Attr2" },
+            { attr : "attr3", title : "Attr3" },
+            { attr : "attr4", title : "Attr4" }
+          ]
+        });
+        app.view.dataTable("T", {
+          rowClassName : "R",
+          resizableColumns: true
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        $('body').append(table.$el);
+      });
+
+      afterEach(function() {
+        table.remove();
+      });
+
+      function stubResizeMode(table) {
+        table._colReorder.dom.drag = {
+          css: function() {}
+        };
+        table._colReorder.dom.pointer = {
+          css: function() {}
+        };
+        table._colReorder.dom.resize = true;
+        table._colReorder.s.mouse.resizeElem = $('thead th').get(0);
+        table._colReorder.s.mouse.startWidth = $('thead th').innerWidth();
+        table._colReorder.s.mouse.startX = 0;
+      }
+
+      function triggerMouseMoveEvent(table, options) {
+        var event = jQuery.Event("mousemove.ColReorder");
+        event.pageX = options.mouseX;
+
+        // the below didn't work, so just calling the mouse move callback directly
+        // $(document).trigger(event);
+        table._colReorder._fnMouseMove(event);
+      }
+
+      it("should set truncate columns flag to true by default", function() {
+        expect(table._colReorder.s.allowResize).toEqual(true, "ColReorder allowResize");
+        expect(table._colReorder.s.bTruncateHeaders).toEqual(true, "ColReorder bTruncateHeaders");
+      });
+
+      it("should apply css to all columns to allow for truncate if also allowed to resize columns", function() {
+        var interceptors = table.$el.find("thead th div.DataTables_sort_interceptor");
+
+        expect(interceptors.length).toEqual(4);
+        interceptors.each(function() {
+          expect($(this).attr('style')).toEqual("text-overflow: ellipsis; white-space: nowrap; overflow: hidden;");
+        });
+      });
+
+      it("should not apply truncate css if not allowed to resize columns", function() {
+        table.remove();
+
+        app.view.dataTable("T", {
+          rowClassName : "R",
+          resizableColumns: false
+        });
+
+        table = new app.Views.T({ collection : collection });
+        table.render();
+        $('body').append(table.$el);
+
+        expect(table._colReorder.s.allowResize).toEqual(false, "ColReorder allowResize");
+        expect(table._colReorder.s.bTruncateHeaders).toEqual(true, "ColReorder bTruncateHeaders");
+        var interceptors = table.$el.find("thead th div.DataTables_sort_interceptor");
+
+        expect(interceptors.length).toEqual(4);
+        interceptors.each(function() {
+          expect($(this).attr('style')).toEqual(undefined);
+        });
+      });
+
+      it("should set the max width to the DataTables_sort_interceptor on resize", function() {
+        var startWidth = $('thead th').innerWidth();
+
+        stubResizeMode(table);
+        triggerMouseMoveEvent(table, { mouseX: -10 });
+        var endWidth = startWidth - 10;
+        expect(parseInt($('thead th .DataTables_sort_interceptor').css('max-width'))).toEqual(endWidth, "max-width equal to new width of column (startWidth - 10)");
+      });
+
+      it("should remove padding between the sort interceptor and column", function() {
+        var column = $('thead th');
+        column.css("padding-right", "10px");
+        var startWidth = column.innerWidth();
+
+        stubResizeMode(table);
+        triggerMouseMoveEvent(table, { mouseX: -10 });
+        var endWidth = startWidth - 20;
+        expect(parseInt($('thead th .DataTables_sort_interceptor').css('max-width'))).toEqual(endWidth, "max-width equal to new width of column minus the padding (startWidth - 10 - 10)");
+      });
+
+      it("should allow the DataTables_sort_interceptor to overflow", function() {
+        stubResizeMode(table);
+        triggerMouseMoveEvent(table, { mouseX: -30 });
+        var interceptor = $('thead th .DataTables_sort_interceptor');
+        expect(interceptor.get(0).scrollWidth > interceptor.width()).toEqual(true, "has overflow");
+      });
+
+      it("should respect min resize width on the sort interceptor", function() {
+        stubResizeMode(table);
+        triggerMouseMoveEvent(table, { mouseX: -3000 });
+        var interceptor = $('thead th .DataTables_sort_interceptor');
+        expect(parseInt(interceptor.css('max-width'))).toEqual(table._colReorder.s.minResizeWidth, "respect min resize width");
+      });
+    });
   });
 
   describe("sorting", function() {
