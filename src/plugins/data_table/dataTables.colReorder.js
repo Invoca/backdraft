@@ -527,7 +527,7 @@
     ColReorder.aoInstances.push(this);
 
 
-    var tableElement = $(this.s.dt.nTable)
+    var tableElement = $(this.s.dt.nTable);
 
     if (this.s.bResizeTableWrapper) {
       tableElement.width(tableElement.width());
@@ -1292,7 +1292,8 @@
 
         if (this.s.bTruncateHeaders) {
           var sortInterceptor = $(nTh).find("div.DataTables_sort_interceptor");
-          var newInterceptorWidth = newWidth - ($(nTh).innerWidth() - $(nTh).width());
+          var sortWrapper
+          var newInterceptorWidth = newWidth - this._fnColumnPaddingWidth(nTh);
           if (newInterceptorWidth < this.s.minResizeWidth) {
             newInterceptorWidth = this.s.minResizeWidth;
           }
@@ -1405,6 +1406,24 @@
           this._fnRegions();
         }
       }
+    },
+
+    /**
+     * Finish off the mouse drag and insert the column where needed
+     *  @method  _fnColumnPaddingWidth
+     *  @param   column
+     *  @returns int
+     *  @private
+     */
+    "_fnColumnPaddingWidth": function(column) {
+      var findPadding = function(element) {
+        return $(element).innerWidth() - $(element).width();
+      }
+      var columnPadding = findPadding(column);
+
+      var sortWrapperPadding= findPadding($(column).find(".DataTables_sort_wrapper"));
+
+      return columnPadding + sortWrapperPadding;
     },
 
 
