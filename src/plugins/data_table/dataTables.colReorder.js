@@ -1237,9 +1237,9 @@
           // browser fix
           $(nThNext).css('min-width',newWidthNoScrollX);
         }
-        $(nTh).width(newWidth);
+
         //browser fix
-        $(nTh).css('min-width',newWidth);
+        $(nTh).css({ 'width': newWidth, 'min-width': newWidth });
 
         //Martin Marchetta: Resize the header too (if sScrollX is enabled)
         if (scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length) {
@@ -1292,7 +1292,6 @@
 
         if (this.s.bTruncateHeaders) {
           var sortInterceptor = $(nTh).find("div.DataTables_sort_interceptor");
-          var sortWrapper
           var newInterceptorWidth = newWidth - this._fnColumnPaddingWidth(nTh);
           if (newInterceptorWidth < this.s.minResizeWidth) {
             newInterceptorWidth = this.s.minResizeWidth;
@@ -1306,6 +1305,11 @@
           // browser fix
           $(nTh).closest('table').css('min-width',tableMove);
           this.s.fnResizeTableCallback($(nTh).closest('table'),tableMove,moveLength);
+        }
+
+        // to prevent continuous scrolling to the left when the column is no longer resizing
+        if (newWidth > this.s.minResizeWidth) {
+          this._fnScrollTableOnDrag(e);
         }
 
         ////////////////////////
@@ -1326,52 +1330,7 @@
           this._fnCreateDragNode();
         }
 
-        /* check if table should scroll */
-        if (this.s.autoScrollTargetWidth > 0) {
-          var scrollableContainer;
-          var startingScrollOffset;
-          var scrollDelta;
-
-          var moreToRight = false, moreToLeft = false;
-          if ($(this.s.dt.nTable).parent().css('overflow-x') === 'auto') {
-            scrollableContainer = $(this.s.dt.nTable).parent();
-            startingScrollOffset = scrollableContainer.scrollLeft();
-            moreToRight = scrollableContainer.scrollLeft() < $(this.s.dt.nTable).width() - scrollableContainer.width();
-            moreToLeft = scrollableContainer.scrollLeft() > 0;
-          } else {
-            scrollableContainer = $(window);
-            var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);
-            startingScrollOffset = visibilityChecker.windowOffset();
-            moreToRight = !visibilityChecker.rightEdgeInView();
-            moreToLeft = !visibilityChecker.leftEdgeInView();
-          }
-
-          if (
-            Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
-              'right',
-              e.pageX,
-              this.s.autoScrollTargetWidth
-            ) && moreToRight) {
-
-            scrollDelta = this.s.autoScrollIncrementSize;
-          } else if (
-            Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
-              'left',
-              e.pageX,
-              this.s.autoScrollTargetWidth
-            ) && moreToLeft) {
-
-            scrollDelta = 0 - this.s.autoScrollIncrementSize;
-          }
-
-          if (scrollDelta) {
-            scrollableContainer.scrollLeft(startingScrollOffset + scrollDelta);
-          }
-
-          // scrollLeft fires an event that isn't processed til after this mouseMove event is finished
-          //  so we're always resetting the dropzone targets cache so that later mouseMove's "fix" up the dropzones
-          this._fnRegions();
-        }
+        this._fnScrollTableOnDrag(e);
 
         /* Position the element - we respect where in the element the click occured */
         this.dom.drag.css({
@@ -1421,11 +1380,66 @@
       }
       var columnPadding = findPadding(column);
 
-      var sortWrapperPadding= findPadding($(column).find(".DataTables_sort_wrapper"));
+      var sortWrapperPadding = findPadding($(column).find(".DataTables_sort_wrapper"));
 
       return columnPadding + sortWrapperPadding;
     },
 
+    /**
+     * Scroll table when reaching the end of the view port
+     *  @method  _fnScrollTableOnDrag
+     *  @param   event e Mouse event
+     *  @returns null
+     *  @private
+     */
+    "_fnScrollTableOnDrag": function(e) {
+      /* check if table should scroll */
+      if (this.s.autoScrollTargetWidth > 0) {
+        var scrollableContainer;
+        var startingScrollOffset;
+        var scrollDelta;
+
+        var moreToRight = false, moreToLeft = false;
+        if ($(this.s.dt.nTable).parent().css('overflow-x') === 'auto') {
+          scrollableContainer = $(this.s.dt.nTable).parent();
+          startingScrollOffset = scrollableContainer.scrollLeft();
+          moreToRight = scrollableContainer.scrollLeft() < $(this.s.dt.nTable).width() - scrollableContainer.width();
+          moreToLeft = scrollableContainer.scrollLeft() > 0;
+        } else {
+          scrollableContainer = $(window);
+          var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);
+          startingScrollOffset = visibilityChecker.windowOffset();
+          moreToRight = !visibilityChecker.rightEdgeInView();
+          moreToLeft = !visibilityChecker.leftEdgeInView();
+        }
+
+        if (
+          Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+            'right',
+            e.pageX,
+            this.s.autoScrollTargetWidth
+          ) && moreToRight) {
+
+          scrollDelta = this.s.autoScrollIncrementSize;
+        } else if (
+          Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+            'left',
+            e.pageX,
+            this.s.autoScrollTargetWidth
+          ) && moreToLeft) {
+
+          scrollDelta = 0 - this.s.autoScrollIncrementSize;
+        }
+
+        if (scrollDelta) {
+          scrollableContainer.scrollLeft(startingScrollOffset + scrollDelta);
+        }
+
+        // scrollLeft fires an event that isn't processed til after this mouseMove event is finished
+        //  so we're always resetting the dropzone targets cache so that later mouseMove's "fix" up the dropzones
+        this._fnRegions();
+      }
+    },
 
     /**
      * Finish off the mouse drag and insert the column where needed

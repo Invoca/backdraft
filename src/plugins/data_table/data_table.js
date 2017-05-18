@@ -347,6 +347,10 @@ var LocalDataTable = (function() {
       }
     },
 
+    _columnElements: function() {
+      return this.$("table").find("thead tr th");
+    },
+
     _allMatchingModels : function() {
       // returns all models matching the current filter criteria, regardless of pagination
       // since we are using deferred rendering, the dataTable.$ and dataTable._ methods don't return all
