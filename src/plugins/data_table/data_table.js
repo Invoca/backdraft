@@ -347,8 +347,9 @@ var LocalDataTable = (function() {
       }
     },
 
-    _columnElements: function() {
-      return this.$("table").find("thead tr th");
+    _columnElements: function(selector) {
+      var selectorString = selector || "";
+      return this.$("table").find("thead tr th" + selectorString);
     },
 
     _allMatchingModels : function() {

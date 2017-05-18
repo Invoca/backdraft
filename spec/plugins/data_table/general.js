@@ -1252,7 +1252,7 @@ describe("DataTable Plugin", function() {
         stubResizeMode(table);
         triggerMouseMoveEvent(table, { mouseX: -3000 });
         var interceptor = $('thead th .DataTables_sort_interceptor');
-        expect(parseInt(interceptor.css('max-width'))).toEqual(table._colReorder.s.minResizeWidth, "respect min resize width");
+        expect(parseInt(interceptor.css('max-width'))).toEqual(table._colReorder.s.minResizeWidth + 1, "respect min resize width");
       });
     });
   });

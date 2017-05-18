@@ -1294,7 +1294,8 @@
           var sortInterceptor = $(nTh).find("div.DataTables_sort_interceptor");
           var newInterceptorWidth = newWidth - this._fnColumnPaddingWidth(nTh);
           if (newInterceptorWidth < this.s.minResizeWidth) {
-            newInterceptorWidth = this.s.minResizeWidth;
+            // need it to be just above the min width, or else the truncate fails
+            newInterceptorWidth = this.s.minResizeWidth + 1;
           }
           sortInterceptor.css({ 'max-width': newInterceptorWidth });
         }
@@ -1376,7 +1377,7 @@
      */
     "_fnColumnPaddingWidth": function(column) {
       var findPadding = function(element) {
-        return $(element).innerWidth() - $(element).width();
+        return $(element).outerWidth() - $(element).width();
       }
       var columnPadding = findPadding(column);
 
