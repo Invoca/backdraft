@@ -1121,7 +1121,6 @@
      *  @private
      */
     "_fnMouseDown": function (e, nTh, i) {
-      // TODO: ajacobs check if this is allowing us to resize bulk actions
       var that = this;
       var target, offset, idx, nThNext, nThPrev;
       /* are we resizing a column ? */
