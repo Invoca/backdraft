@@ -71,7 +71,7 @@
   function fnDomSwitch(nParent, iFrom, iTo) {
     var anTags = [];
     for (var i = 0, iLen = nParent.childNodes.length; i < iLen; i++) {
-      if (nParent.childNodes[i].nodeType == 1) {
+      if (nParent.childNodes[i].nodeType === 1) {
         anTags.push(nParent.childNodes[i]);
       }
     }
@@ -108,7 +108,7 @@
     var i, iLen, j, jLen, iCols = oSettings.aoColumns.length, nTrs, oCol;
 
     /* Sanity check in the input */
-    if (iFrom == iTo) {
+    if (iFrom === iTo) {
       /* Pointless reorder */
       return;
     }
@@ -243,7 +243,7 @@
       "aiInvertMapping": aiInvertMapping
     }]);
 
-    if (typeof oSettings.oInstance._oPluginFixedHeader != 'undefined') {
+    if (typeof oSettings.oInstance._oPluginFixedHeader !== 'undefined') {
       oSettings.oInstance._oPluginFixedHeader.fnUpdate();
     }
   };
@@ -292,7 +292,7 @@
     if (this instanceof ColReorder === false) {
       // Get a ColReorder instance - effectively a static method
       for (var i = 0, iLen = ColReorder.aoInstances.length; i < iLen; i++) {
-        if (ColReorder.aoInstances[i].s.dt == oDTSettings) {
+        if (ColReorder.aoInstances[i].s.dt === oDTSettings) {
           return ColReorder.aoInstances[i];
         }
       }
@@ -717,22 +717,22 @@
       }
 
       /* Allow reorder */
-      if (typeof this.s.init.allowReorder != 'undefined') {
+      if (typeof this.s.init.allowReorder !== 'undefined') {
         this.s.allowReorder = this.s.init.allowReorder;
       }
 
       /* Allow resize */
-      if (typeof this.s.init.allowResize != 'undefined') {
+      if (typeof this.s.init.allowResize !== 'undefined') {
         this.s.allowResize = this.s.init.allowResize;
       }
 
       /* Allow header double click */
-      if (typeof this.s.init.allowHeaderDoubleClick != 'undefined') {
+      if (typeof this.s.init.allowHeaderDoubleClick !== 'undefined') {
         this.s.allowHeaderDoubleClick = this.s.init.allowHeaderDoubleClick;
       }
 
       /* Allow header contextmenu */
-      if (typeof this.s.init.headerContextMenu == 'function') {
+      if (typeof this.s.init.headerContextMenu === 'function') {
         this.s.headerContextMenu = this.s.init.headerContextMenu;
       }
       else if (this.s.init.headerContextMenu) {
@@ -742,27 +742,27 @@
         this.s.headerContextMenu = false;
       }
 
-      if (typeof this.s.init.minResizeWidth != 'undefined') {
+      if (typeof this.s.init.minResizeWidth !== 'undefined') {
         this.s.minResizeWidth = this.s.init.minResizeWidth;
       }
 
-      if (typeof this.s.init.bResizeTable != 'undefined') {
+      if (typeof this.s.init.bResizeTable !== 'undefined') {
         this.s.bResizeTable = this.s.init.bResizeTable;
       }
 
-      if (typeof this.s.init.bResizeTableWrapper != 'undefined') {
+      if (typeof this.s.init.bResizeTableWrapper !== 'undefined') {
         this.s.bResizeTableWrapper = this.s.init.bResizeTableWrapper;
       }
 
-      if (typeof this.s.init.bTruncateHeaders != 'undefined') {
+      if (typeof this.s.init.bTruncateHeaders !== 'undefined') {
         this.s.bTruncateHeaders = this.s.init.bTruncateHeaders;
       }
 
-      if (typeof this.s.init.bAddFixed != 'undefined') {
+      if (typeof this.s.init.bAddFixed !== 'undefined') {
         this.s.bAddFixed = this.s.init.bAddFixed;
       }
 
-      if (typeof this.s.init.fnResizeTableCallback == 'function') {
+      if (typeof this.s.init.fnResizeTableCallback === 'function') {
         this.s.fnResizeTableCallback = this.s.init.fnResizeTableCallback;
       }
 
@@ -788,15 +788,15 @@
       }
 
       /* State loading, overrides the column order given */
-      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColReorder != 'undefined' &&
-        this.s.dt.oLoadedState.ColReorder.length == this.s.dt.aoColumns.length) {
+      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColReorder !== 'undefined' &&
+        this.s.dt.oLoadedState.ColReorder.length === this.s.dt.aoColumns.length) {
         aiOrder = this.s.dt.oLoadedState.ColReorder;
       }
 
       /* Load Column Sizes */
       var asSizes = null;
-      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColSizes != 'undefined' &&
-        this.s.dt.oLoadedState.ColSizes.length == this.s.dt.aoColumns.length) {
+      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColSizes !== 'undefined' &&
+        this.s.dt.oLoadedState.ColSizes.length === this.s.dt.aoColumns.length) {
         asSizes = this.s.dt.oLoadedState.ColSizes;
       }
 
@@ -917,7 +917,7 @@
      *  @private
      */
     "_fnOrderColumns": function (a) {
-      if (a.length != this.s.dt.aoColumns.length) {
+      if (a.length !== this.s.dt.aoColumns.length) {
         this.s.dt.oInstance.oApi._fnLog(this.s.dt, 1, "ColReorder - array reorder does not " +
           "match known number of columns. Skipping.");
         return;
@@ -925,7 +925,7 @@
 
       for (var i = 0, iLen = a.length; i < iLen; i++) {
         var currIndex = $.inArray(i, a);
-        if (i != currIndex) {
+        if (i !== currIndex) {
           /* Reorder our switching array */
           fnArraySwitch(a, currIndex, i);
 
@@ -1007,7 +1007,7 @@
           var nTable = that.s.dt.nTable;
           if (that.dom.drag === null && that.dom.resize === null) {
             /* Store information about the mouse position */
-            var nThTarget = e.target.nodeName == "TH" ? e.target : $(e.target).parents('TH')[0];
+            var nThTarget = e.target.nodeName === "TH" ? e.target : $(e.target).parents('TH')[0];
             var offset = $(nThTarget).offset();
             var nLength = $(nThTarget).innerWidth();
 
@@ -1124,13 +1124,13 @@
       var that = this;
       var target, offset, idx, nThNext, nThPrev;
       /* are we resizing a column ? */
-      if ($(nTh).css('cursor') == 'col-resize') {
+      if ($(nTh).css('cursor') === 'col-resize') {
         // are we at the right or left?
         this.s.mouse.startX = e.pageX;
         this.s.tableWidth = $(nTh).closest("table").width();
 
         // If we are at the left end, we expand the previous column
-        if (this.dom.resizeCol == "left") {
+        if (this.dom.resizeCol === "left") {
           nThPrev = $(nTh).prev();
           this.s.mouse.startWidth = $(nThPrev).outerWidth();
           this.s.mouse.resizeElem = $(nThPrev);
@@ -1259,7 +1259,7 @@
             //Since some columns might have been hidden, find the correct one to resize in the table's body
             var currentColumnIndex;
             visibleColumnIndex = -1;
-            for (currentColumnIndex = -1; currentColumnIndex < this.s.dt.aoColumns.length - 1 && currentColumnIndex != colResized; currentColumnIndex++) {
+            for (currentColumnIndex = -1; currentColumnIndex < this.s.dt.aoColumns.length - 1 && currentColumnIndex !== colResized; currentColumnIndex++) {
               if (this.s.dt.aoColumns[currentColumnIndex + 1].bVisible)
                 visibleColumnIndex++;
             }
@@ -1486,7 +1486,7 @@
         var scrollXEnabled;
         var resizeCol = this.dom.resizeCol;
         /*
-         if (resizeCol == 'right') {
+         if (resizeCol === 'right') {
          colResized++;
          }
          */
@@ -1574,7 +1574,7 @@
          * position is just to it's immediate left or right, so we only incremement the counter for
          * other columns
          */
-        if (i != this.s.mouse.fromIndex) {
+        if (i !== this.s.mouse.fromIndex) {
           iToPoint++;
         }
 
@@ -1854,7 +1854,7 @@
    */
   ColReorder.fnReset = function (oTable) {
     for (var i = 0, iLen = ColReorder.aoInstances.length; i < iLen; i++) {
-      if (ColReorder.aoInstances[i].s.dt.oInstance == oTable) {
+      if (ColReorder.aoInstances[i].s.dt.oInstance === oTable) {
         ColReorder.aoInstances[i].fnReset();
       }
     }
@@ -1889,8 +1889,8 @@
   /*
    * Register a new feature with DataTables
    */
-  if (typeof $.fn.dataTable == "function" &&
-    typeof $.fn.dataTableExt.fnVersionCheck == "function" &&
+  if (typeof $.fn.dataTable === "function" &&
+    typeof $.fn.dataTableExt.fnVersionCheck === "function" &&
     $.fn.dataTableExt.fnVersionCheck('1.9.3')) {
     $.fn.dataTableExt.aoFeatures.push({
       "fnInit": function (settings) {
