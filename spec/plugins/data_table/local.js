@@ -615,7 +615,7 @@ describe("DataTable Plugin", function() {
     });
   });
 
-  describe("_columnElements", function() {
+  describe("columnElements", function() {
     beforeEach(function() {
       app.view.dataTable.row("R", {
         columns : [
@@ -637,11 +637,11 @@ describe("DataTable Plugin", function() {
 
     it("should provide all of the column header elements", function() {
       var expectedHeaders = table.$('table').find('thead tr th');
-      expect(expectedHeaders).toEqual(table._columnElements());
+      expect(expectedHeaders).toEqual(table.columnElements());
     });
 
     it("should allow custom selectors", function() {
-      expect(table.$('table').find('thead tr th:not(.bulk)')).toEqual(table._columnElements(":not(.bulk)"));
+      expect(table.$('table').find('thead tr th:not(.bulk)')).toEqual(table.columnElements(":not(.bulk)"));
     });
   });
 });

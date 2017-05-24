@@ -530,7 +530,7 @@
     var tableElement = $(this.s.dt.nTable);
 
     if (this.s.bResizeTableWrapper) {
-      tableElement.width(tableElement.width());
+      $(this.s.dt.nTableWrapper).width(tableElement.width());
 
       // make sure the headers are the same width as the rest of table
       oDTSettings.aoDrawCallback.push({
