@@ -613,5 +613,35 @@ describe("DataTable Plugin", function() {
         expect(table.$(".header-groups-row").length).toEqual(0);
       });
     });
-  })
+  });
+
+  describe("columnElements", function() {
+    beforeEach(function() {
+      app.view.dataTable.row("R", {
+        columns : [
+          { bulk : true },
+          { attr : "name", title : "Name" }
+        ]
+      });
+      app.view.dataTable("T", {
+        rowClassName : "R"
+      });
+
+      table = new app.Views.T({ collection : collection });
+      table.render();
+    });
+
+    afterEach(function() {
+      table.close();
+    });
+
+    it("should provide all of the column header elements", function() {
+      var expectedHeaders = table.$('table').find('thead tr th');
+      expect(expectedHeaders).toEqual(table.columnElements());
+    });
+
+    it("should allow custom selectors", function() {
+      expect(table.$('table').find('thead tr th:not(.bulk)')).toEqual(table.columnElements(":not(.bulk)"));
+    });
+  });
 });

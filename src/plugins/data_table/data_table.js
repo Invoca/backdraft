@@ -226,6 +226,11 @@ var LocalDataTable = (function() {
       this._onColumnFilter();
     },
 
+    columnElements: function(selector) {
+      var selectorString = selector || "";
+      return this.$("table").find("thead tr th" + selectorString);
+    },
+
     // Private APIs
 
     _enableReorderableColumns: function() {

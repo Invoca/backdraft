@@ -71,7 +71,7 @@
   function fnDomSwitch(nParent, iFrom, iTo) {
     var anTags = [];
     for (var i = 0, iLen = nParent.childNodes.length; i < iLen; i++) {
-      if (nParent.childNodes[i].nodeType == 1) {
+      if (nParent.childNodes[i].nodeType === 1) {
         anTags.push(nParent.childNodes[i]);
       }
     }
@@ -108,7 +108,7 @@
     var i, iLen, j, jLen, iCols = oSettings.aoColumns.length, nTrs, oCol;
 
     /* Sanity check in the input */
-    if (iFrom == iTo) {
+    if (iFrom === iTo) {
       /* Pointless reorder */
       return;
     }
@@ -243,7 +243,7 @@
       "aiInvertMapping": aiInvertMapping
     }]);
 
-    if (typeof oSettings.oInstance._oPluginFixedHeader != 'undefined') {
+    if (typeof oSettings.oInstance._oPluginFixedHeader !== 'undefined') {
       oSettings.oInstance._oPluginFixedHeader.fnUpdate();
     }
   };
@@ -292,7 +292,7 @@
     if (this instanceof ColReorder === false) {
       // Get a ColReorder instance - effectively a static method
       for (var i = 0, iLen = ColReorder.aoInstances.length; i < iLen; i++) {
-        if (ColReorder.aoInstances[i].s.dt == oDTSettings) {
+        if (ColReorder.aoInstances[i].s.dt === oDTSettings) {
           return ColReorder.aoInstances[i];
         }
       }
@@ -436,6 +436,14 @@
       "autoScrollIncrementSize": 15,
 
       /**
+       * Truncate column headers on resize
+       * @property bTruncateHeaders
+       * @type     boolean
+       * @default  true
+       */
+      "bTruncateHeaders": true,
+
+      /**
        * Resize the table when columns are resized
        * @property bResizeTable
        * @type     boolean
@@ -445,7 +453,7 @@
 
       /**
        * Resize the table when columns are resized
-       * @property bResizeTable
+       * @property bResizeTableWrapper
        * @type     boolean
        * @default  false
        */
@@ -519,8 +527,10 @@
     ColReorder.aoInstances.push(this);
 
 
+    var tableElement = $(this.s.dt.nTable);
+
     if (this.s.bResizeTableWrapper) {
-      $(this.s.dt.nTableWrapper).width($(this.s.dt.nTable).width());
+      $(this.s.dt.nTableWrapper).width(tableElement.width());
 
       // make sure the headers are the same width as the rest of table
       oDTSettings.aoDrawCallback.push({
@@ -534,9 +544,18 @@
     // fix the width and add table layout fixed.
     if (this.s.bAddFixed) {
       // Set the table to minimum size so that it doesn't stretch too far
-      $(this.s.dt.nTable).width("10px");
-      $(this.s.dt.nTable).width($(this.s.dt.nTable).width()).css('table-layout','fixed');
+      tableElement.width("10px");
+      tableElement.width(tableElement.width()).css('table-layout','fixed');
     }
+
+    if (this.s.allowResize && this.s.bTruncateHeaders) {
+      tableElement.find("thead th div.DataTables_sort_interceptor").css({
+        "text-overflow": "ellipsis",
+        "white-space":   "nowrap",
+        "overflow":      "hidden"
+      });
+    }
+
     return this;
   };
 
@@ -698,22 +717,22 @@
       }
 
       /* Allow reorder */
-      if (typeof this.s.init.allowReorder != 'undefined') {
+      if (typeof this.s.init.allowReorder !== 'undefined') {
         this.s.allowReorder = this.s.init.allowReorder;
       }
 
       /* Allow resize */
-      if (typeof this.s.init.allowResize != 'undefined') {
+      if (typeof this.s.init.allowResize !== 'undefined') {
         this.s.allowResize = this.s.init.allowResize;
       }
 
       /* Allow header double click */
-      if (typeof this.s.init.allowHeaderDoubleClick != 'undefined') {
+      if (typeof this.s.init.allowHeaderDoubleClick !== 'undefined') {
         this.s.allowHeaderDoubleClick = this.s.init.allowHeaderDoubleClick;
       }
 
       /* Allow header contextmenu */
-      if (typeof this.s.init.headerContextMenu == 'function') {
+      if (typeof this.s.init.headerContextMenu === 'function') {
         this.s.headerContextMenu = this.s.init.headerContextMenu;
       }
       else if (this.s.init.headerContextMenu) {
@@ -723,23 +742,27 @@
         this.s.headerContextMenu = false;
       }
 
-      if (typeof this.s.init.minResizeWidth != 'undefined') {
+      if (typeof this.s.init.minResizeWidth !== 'undefined') {
         this.s.minResizeWidth = this.s.init.minResizeWidth;
       }
 
-      if (typeof this.s.init.bResizeTable != 'undefined') {
+      if (typeof this.s.init.bResizeTable !== 'undefined') {
         this.s.bResizeTable = this.s.init.bResizeTable;
       }
 
-      if (typeof this.s.init.bResizeTableWrapper != 'undefined') {
+      if (typeof this.s.init.bResizeTableWrapper !== 'undefined') {
         this.s.bResizeTableWrapper = this.s.init.bResizeTableWrapper;
       }
 
-      if (typeof this.s.init.bAddFixed != 'undefined') {
+      if (typeof this.s.init.bTruncateHeaders !== 'undefined') {
+        this.s.bTruncateHeaders = this.s.init.bTruncateHeaders;
+      }
+
+      if (typeof this.s.init.bAddFixed !== 'undefined') {
         this.s.bAddFixed = this.s.init.bAddFixed;
       }
 
-      if (typeof this.s.init.fnResizeTableCallback == 'function') {
+      if (typeof this.s.init.fnResizeTableCallback === 'function') {
         this.s.fnResizeTableCallback = this.s.init.fnResizeTableCallback;
       }
 
@@ -765,15 +788,15 @@
       }
 
       /* State loading, overrides the column order given */
-      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColReorder != 'undefined' &&
-        this.s.dt.oLoadedState.ColReorder.length == this.s.dt.aoColumns.length) {
+      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColReorder !== 'undefined' &&
+        this.s.dt.oLoadedState.ColReorder.length === this.s.dt.aoColumns.length) {
         aiOrder = this.s.dt.oLoadedState.ColReorder;
       }
 
       /* Load Column Sizes */
       var asSizes = null;
-      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColSizes != 'undefined' &&
-        this.s.dt.oLoadedState.ColSizes.length == this.s.dt.aoColumns.length) {
+      if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColSizes !== 'undefined' &&
+        this.s.dt.oLoadedState.ColSizes.length === this.s.dt.aoColumns.length) {
         asSizes = this.s.dt.oLoadedState.ColSizes;
       }
 
@@ -894,7 +917,7 @@
      *  @private
      */
     "_fnOrderColumns": function (a) {
-      if (a.length != this.s.dt.aoColumns.length) {
+      if (a.length !== this.s.dt.aoColumns.length) {
         this.s.dt.oInstance.oApi._fnLog(this.s.dt, 1, "ColReorder - array reorder does not " +
           "match known number of columns. Skipping.");
         return;
@@ -902,7 +925,7 @@
 
       for (var i = 0, iLen = a.length; i < iLen; i++) {
         var currIndex = $.inArray(i, a);
-        if (i != currIndex) {
+        if (i !== currIndex) {
           /* Reorder our switching array */
           fnArraySwitch(a, currIndex, i);
 
@@ -984,7 +1007,7 @@
           var nTable = that.s.dt.nTable;
           if (that.dom.drag === null && that.dom.resize === null) {
             /* Store information about the mouse position */
-            var nThTarget = e.target.nodeName == "TH" ? e.target : $(e.target).parents('TH')[0];
+            var nThTarget = e.target.nodeName === "TH" ? e.target : $(e.target).parents('TH')[0];
             var offset = $(nThTarget).offset();
             var nLength = $(nThTarget).innerWidth();
 
@@ -1101,13 +1124,13 @@
       var that = this;
       var target, offset, idx, nThNext, nThPrev;
       /* are we resizing a column ? */
-      if ($(nTh).css('cursor') == 'col-resize') {
+      if ($(nTh).css('cursor') === 'col-resize') {
         // are we at the right or left?
         this.s.mouse.startX = e.pageX;
         this.s.tableWidth = $(nTh).closest("table").width();
 
         // If we are at the left end, we expand the previous column
-        if (this.dom.resizeCol == "left") {
+        if (this.dom.resizeCol === "left") {
           nThPrev = $(nTh).prev();
           this.s.mouse.startWidth = $(nThPrev).outerWidth();
           this.s.mouse.resizeElem = $(nThPrev);
@@ -1213,9 +1236,9 @@
           // browser fix
           $(nThNext).css('min-width',newWidthNoScrollX);
         }
-        $(nTh).width(newWidth);
+
         //browser fix
-        $(nTh).css('min-width',newWidth);
+        $(nTh).css({ 'width': newWidth, 'min-width': newWidth });
 
         //Martin Marchetta: Resize the header too (if sScrollX is enabled)
         if (scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length) {
@@ -1236,7 +1259,7 @@
             //Since some columns might have been hidden, find the correct one to resize in the table's body
             var currentColumnIndex;
             visibleColumnIndex = -1;
-            for (currentColumnIndex = -1; currentColumnIndex < this.s.dt.aoColumns.length - 1 && currentColumnIndex != colResized; currentColumnIndex++) {
+            for (currentColumnIndex = -1; currentColumnIndex < this.s.dt.aoColumns.length - 1 && currentColumnIndex !== colResized; currentColumnIndex++) {
               if (this.s.dt.aoColumns[currentColumnIndex + 1].bVisible)
                 visibleColumnIndex++;
             }
@@ -1266,12 +1289,27 @@
           }
         }
 
+        if (this.s.bTruncateHeaders) {
+          var sortInterceptor = $(nTh).find("div.DataTables_sort_interceptor");
+          var newInterceptorWidth = newWidth - this._fnColumnPaddingWidth(nTh);
+          if (newInterceptorWidth < this.s.minResizeWidth) {
+            // need it to be just above the min width, or else the truncate fails
+            newInterceptorWidth = this.s.minResizeWidth + 1;
+          }
+          sortInterceptor.css({ 'max-width': newInterceptorWidth });
+        }
+
         if (this.s.bResizeTable) {
           var tableMove = this.s.tableWidth + moveLength;
           $(nTh).closest('table').width(tableMove);
           // browser fix
           $(nTh).closest('table').css('min-width',tableMove);
           this.s.fnResizeTableCallback($(nTh).closest('table'),tableMove,moveLength);
+        }
+
+        // to prevent continuous scrolling to the left when the column is no longer resizing
+        if (newWidth > this.s.minResizeWidth) {
+          this._fnScrollTableOnDrag(e);
         }
 
         ////////////////////////
@@ -1292,52 +1330,7 @@
           this._fnCreateDragNode();
         }
 
-        /* check if table should scroll */
-        if (this.s.autoScrollTargetWidth > 0) {
-          var scrollableContainer;
-          var startingScrollOffset;
-          var scrollDelta;
-
-          var moreToRight = false, moreToLeft = false;
-          if ($(this.s.dt.nTable).parent().css('overflow-x') === 'auto') {
-            scrollableContainer = $(this.s.dt.nTable).parent();
-            startingScrollOffset = scrollableContainer.scrollLeft();
-            moreToRight = scrollableContainer.scrollLeft() < $(this.s.dt.nTable).width() - scrollableContainer.width();
-            moreToLeft = scrollableContainer.scrollLeft() > 0;
-          } else {
-            scrollableContainer = $(window);
-            var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);
-            startingScrollOffset = visibilityChecker.windowOffset();
-            moreToRight = !visibilityChecker.rightEdgeInView();
-            moreToLeft = !visibilityChecker.leftEdgeInView();
-          }
-
-          if (
-            Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
-              'right',
-              e.pageX,
-              this.s.autoScrollTargetWidth
-            ) && moreToRight) {
-
-            scrollDelta = this.s.autoScrollIncrementSize;
-          } else if (
-            Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
-              'left',
-              e.pageX,
-              this.s.autoScrollTargetWidth
-            ) && moreToLeft) {
-
-            scrollDelta = 0 - this.s.autoScrollIncrementSize;
-          }
-
-          if (scrollDelta) {
-            scrollableContainer.scrollLeft(startingScrollOffset + scrollDelta);
-          }
-
-          // scrollLeft fires an event that isn't processed til after this mouseMove event is finished
-          //  so we're always resetting the dropzone targets cache so that later mouseMove's "fix" up the dropzones
-          this._fnRegions();
-        }
+        this._fnScrollTableOnDrag(e);
 
         /* Position the element - we respect where in the element the click occured */
         this.dom.drag.css({
@@ -1374,6 +1367,79 @@
       }
     },
 
+    /**
+     * Finish off the mouse drag and insert the column where needed
+     *  @method  _fnColumnPaddingWidth
+     *  @param   column
+     *  @returns int
+     *  @private
+     */
+    "_fnColumnPaddingWidth": function(column) {
+      var findPadding = function(element) {
+        return $(element).outerWidth() - $(element).width();
+      }
+      var columnPadding = findPadding(column);
+
+      var sortWrapperPadding = findPadding($(column).find(".DataTables_sort_wrapper"));
+
+      return columnPadding + sortWrapperPadding;
+    },
+
+    /**
+     * Scroll table when reaching the end of the view port
+     *  @method  _fnScrollTableOnDrag
+     *  @param   event e Mouse event
+     *  @returns null
+     *  @private
+     */
+    "_fnScrollTableOnDrag": function(e) {
+      /* check if table should scroll */
+      if (this.s.autoScrollTargetWidth > 0) {
+        var scrollableContainer;
+        var startingScrollOffset;
+        var scrollDelta;
+
+        var moreToRight = false, moreToLeft = false;
+        if ($(this.s.dt.nTable).parent().css('overflow-x') === 'auto') {
+          scrollableContainer = $(this.s.dt.nTable).parent();
+          startingScrollOffset = scrollableContainer.scrollLeft();
+          moreToRight = scrollableContainer.scrollLeft() < $(this.s.dt.nTable).width() - scrollableContainer.width();
+          moreToLeft = scrollableContainer.scrollLeft() > 0;
+        } else {
+          scrollableContainer = $(window);
+          var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);
+          startingScrollOffset = visibilityChecker.windowOffset();
+          moreToRight = !visibilityChecker.rightEdgeInView();
+          moreToLeft = !visibilityChecker.leftEdgeInView();
+        }
+
+        if (
+          Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+            'right',
+            e.pageX,
+            this.s.autoScrollTargetWidth
+          ) && moreToRight) {
+
+          scrollDelta = this.s.autoScrollIncrementSize;
+        } else if (
+          Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+            'left',
+            e.pageX,
+            this.s.autoScrollTargetWidth
+          ) && moreToLeft) {
+
+          scrollDelta = 0 - this.s.autoScrollIncrementSize;
+        }
+
+        if (scrollDelta) {
+          scrollableContainer.scrollLeft(startingScrollOffset + scrollDelta);
+        }
+
+        // scrollLeft fires an event that isn't processed til after this mouseMove event is finished
+        //  so we're always resetting the dropzone targets cache so that later mouseMove's "fix" up the dropzones
+        this._fnRegions();
+      }
+    },
 
     /**
      * Finish off the mouse drag and insert the column where needed
@@ -1420,7 +1486,7 @@
         var scrollXEnabled;
         var resizeCol = this.dom.resizeCol;
         /*
-         if (resizeCol == 'right') {
+         if (resizeCol === 'right') {
          colResized++;
          }
          */
@@ -1508,7 +1574,7 @@
          * position is just to it's immediate left or right, so we only incremement the counter for
          * other columns
          */
-        if (i != this.s.mouse.fromIndex) {
+        if (i !== this.s.mouse.fromIndex) {
           iToPoint++;
         }
 
@@ -1788,7 +1854,7 @@
    */
   ColReorder.fnReset = function (oTable) {
     for (var i = 0, iLen = ColReorder.aoInstances.length; i < iLen; i++) {
-      if (ColReorder.aoInstances[i].s.dt.oInstance == oTable) {
+      if (ColReorder.aoInstances[i].s.dt.oInstance === oTable) {
         ColReorder.aoInstances[i].fnReset();
       }
     }
@@ -1823,8 +1889,8 @@
   /*
    * Register a new feature with DataTables
    */
-  if (typeof $.fn.dataTable == "function" &&
-    typeof $.fn.dataTableExt.fnVersionCheck == "function" &&
+  if (typeof $.fn.dataTable === "function" &&
+    typeof $.fn.dataTableExt.fnVersionCheck === "function" &&
     $.fn.dataTableExt.fnVersionCheck('1.9.3')) {
     $.fn.dataTableExt.aoFeatures.push({
       "fnInit": function (settings) {
