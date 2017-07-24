@@ -169,9 +169,16 @@ describe("DataTable Plugin", function() {
 
     jasmine.Ajax.install();
     mockResponse = new MockResponse();
+
+    Backbone.history.start({
+      pushState:  true,
+      hashChange: false,
+      root:       window.location.pathname
+    });
   });
 
   afterEach(function() {
+    Backbone.history.stop();
     jasmine.Ajax.uninstall();
   });
 
@@ -938,7 +945,7 @@ describe("DataTable Plugin", function() {
       table = new app.Views.T({ collection : collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
-      history.pushState(null, null, "_SpecRunner.html");
+      Backbone.history.navigate("?", { trigger: false, replace: true });
       cg = table.configGenerator();
     });
 
@@ -1106,8 +1113,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should track filtering in column manager and in ext_filter_json parameter", function() {
-
-      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
 
       var expectedFilterObj = [];
       table.dataTable.find("thead th").not(".bulk").each(function (index) {
@@ -1185,54 +1191,54 @@ describe("DataTable Plugin", function() {
     });
 
     it("should load filters from url params", function() {
-      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
       var expectedFilters = [];
       // populate url with filters
       populateFilters();
       // get url
       var oldFilterSettings = table._getFilteringSettings();
-      var populatedURL = "_SpecRunner.html"+window.location.search;
+      var populatedURL = window.location.search;
       // remove filters
       clearFilters();
       // push the populatedURL
-      history.pushState(null, null, populatedURL);
+      Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
       // Since we can't do a refresh, we just call the method that fires at that moment
       cg._computeColumnConfig();
       // get new filtering settings
       var newFilterSettings = table._getFilteringSettings();
       // They should be the same
       expect(oldFilterSettings).toEqual(newFilterSettings);
-      history.pushState(null, null, "_SpecRunner.html");
+      Backbone.history.navigate("?", { trigger: false, replace: true });
     });
 
     it("should load filters from url params with old uri param", function() {
-      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
       var expectedFilters = [];
       populateFilters();
       var oldFilterSettings = table._getFilteringSettings();
-      var populatedURL = "_SpecRunner.html"+window.location.search;
+      var populatedURL = window.location.search;
       populatedURL = populatedURL.replace("filter_json", "ext_filter_json");
       clearFilters();
-      history.pushState(null, null, populatedURL);
+      Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
       cg._computeColumnConfig();
       var newFilterSettings = table._getFilteringSettings();
       expect(oldFilterSettings).toEqual(newFilterSettings);
     });
 
     it("should populate filter markup from url params", function() {
-      history.pushState(null, null, "_SpecRunner.html?date_filter=today");
+      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
       var expectedFilters = [];
 
       // populate url with filters
       populateFilters();
 
-      var populatedURL = "_SpecRunner.html"+window.location.search;
+      var populatedURL = window.location.search;
 
       // remove filters
       clearFilters();
 
-      // push the populatedURL
-      history.pushState(null, null, populatedURL);
+      // push the new url
+      Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
 
       // Since we can't do a refresh, we just call the methods that fires at that moment
       cg._computeColumnConfig();
@@ -1262,7 +1268,7 @@ describe("DataTable Plugin", function() {
         }
       });
 
-      history.pushState(null, null, "_SpecRunner.html");
+      Backbone.history.navigate("?", { trigger: false, replace: true });
 
       // remove filters again so that other tests don't fail
       clearFilters();

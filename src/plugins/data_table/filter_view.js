@@ -113,12 +113,8 @@ var DataTableFilter = (function(options) {
       delete params.ext_filter_json;
 
       // if history is supported, add it to the url
-      if (history.replaceState) {
-        var state = { params: params };
-        var url =  urlArray[0] + "?" + jQuery.param(params);
-        if (url != window.location.href) {
-          history.replaceState(state, window.document.title, url);
-        }
+      if (Backbone && Backbone.history) {
+        Backbone.history.navigate("?" + jQuery.param(params), { trigger: false, replace: true });
       }
     },
 
