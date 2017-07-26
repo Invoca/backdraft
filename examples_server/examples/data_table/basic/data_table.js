@@ -29,7 +29,7 @@ Backdraft.app("TableExample", function(app) {
 Backdraft.app("TableExample", function(app) {
 
   app.model("Book", {
-    
+
   });
 
 });
@@ -39,7 +39,7 @@ Backdraft.app("TableExample", function(app) {
   app.collection("Books", {
 
     model : app.Models.Book
-    
+
   });
 
 });
@@ -51,10 +51,9 @@ Backdraft.app("TableExample", function(app) {
   app.view.dataTable("BookTable", {
 
     rowClassName : "BookRow",
-
     paginate : false,
-
-    reorderableColumns: true
+    reorderableColumns: true,
+    // striped: false
 
   });
 

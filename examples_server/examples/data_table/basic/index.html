@@ -15,7 +15,15 @@
 
   <body>
     <div class="container">
-          
+
+    <h2>Basic Table</h2>
+
+    <p>
+      Table does not have a border by default, this is to allow finer grain customization on whether the border encompasses any footer/paging controls or not
+      <br />
+      <button onclick="$('table.dataTable').toggleClass('table-bordered')">Toggle border class</button>
+    </p>
+
     <div id="example-area"></div>
 
     <!-- libraries -->

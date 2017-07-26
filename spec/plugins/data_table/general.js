@@ -741,6 +741,39 @@ describe("DataTable Plugin", function() {
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(false, "Has class dataTable-resizeableColumns");
     });
 
+    it("should add table-striped class to tables by default", function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+
+      app.view.dataTable("def", {
+        rowClassName : "abc"
+      });
+
+      var table = new app.Views.def({ collection : collection }).render();
+      expect(table.$el.find("table").hasClass("table-striped")).toEqual(true, "class table-striped");
+    });
+
+    it("should not add table-striped class to tables if setting is false", function() {
+      app.view.dataTable.row("abc", {
+        columns : [
+          { attr: "name", title: "Name" },
+          { attr: "age", title: "Age" }
+        ]
+      });
+
+      app.view.dataTable("def", {
+        rowClassName : "abc",
+        striped: false
+      });
+
+      var table = new app.Views.def({ collection : collection }).render();
+      expect(table.$el.find("table").hasClass("table-striped")).toEqual(false, "class table-striped");
+    });
+
     it("should keep track of columns being reordered", function() {
       app.view.dataTable.row("abc", {
         columns : [
