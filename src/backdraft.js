@@ -8,7 +8,7 @@
     evaluate    : /{{([\s\S]+?)}}/g,
     interpolate : /{{=([\s\S]+?)}}/g,
     escape      : /{{-([\s\S]+?)}}/g
-  }
+  };
 
   {%= inline("src/utils/class.js") %}
   {%= inline("src/utils/dom_visibility.js") %}
