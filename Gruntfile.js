@@ -25,7 +25,7 @@ module.exports = function(grunt) {
     jasmine: {
       specs: {
         src: [
-          "dist/backdraft.js"
+          "dist/es5/backdraft.js"
         ],
         options: {
           keepRunner: true,
@@ -65,18 +65,24 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask("build", function() {
-    var UglifyJS = require("uglify-js");
+    var babel          = require("babel-core");
     var originalSource = inline("src/backdraft.js");
 
     try {
-      var result = UglifyJS.minify(originalSource, {
-        fromString: true,
-        compress: true,
-        mangle: false
-      });
+      let es5code = babel.transform(originalSource, {
+        presets: [
+          `es2016`,
+          [`es2015`, { modules: false }]
+        ]
+      }).code;
 
-      grunt.file.write("dist/backdraft.js", originalSource);
-      grunt.file.write("dist/backdraft.min.js", result.code);
+      let uglifiedCode = babel.transform(es5code, {
+        presets: ["minify"]
+      }).code;
+
+      grunt.file.write(`dist/es5/backdraft.js`,     es5code);
+      grunt.file.write(`dist/es5/backdraft.min.js`, uglifiedCode);
+      grunt.file.write(`dist/backdraft.js`,         originalSource);
     } catch(ex) {
       console.log(ex);
       throw new Error("Error building backdraft");
@@ -89,8 +95,8 @@ module.exports = function(grunt) {
     specServer(9738);
   });
 
-  grunt.registerTask("spec", [ "build", "jasmine:specs" ]);
-  grunt.registerTask("dev", [ "servers", "watch:autotest" ]);
+  grunt.registerTask("spec",   ["build", "jasmine:specs"]);
+  grunt.registerTask("dev",    ["servers", "watch:autotest"]);
   grunt.registerTask("default", "dev");
 
 };

@@ -22,7 +22,7 @@ Backdraft.app("TableExample", {
 });
 ```
 
-Now, everything else gets namespaced within the Backdrapt app name:
+Now, everything else gets namespaced within the Backdraft app name:
 
 ```javascript
 // routers/main.js
