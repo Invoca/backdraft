@@ -133,9 +133,9 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
  *  ```curl https://raw.githubusercontent.com/creationix/nvm/v0.32.1/install.sh | sh```
 * Open a new tab in your terminal
 * Install Node.js with:
- *  ``` nvm install v7.2.1```
+ *  ``` nvm install v6.11.0```
 * Set it as the default Node.js version
- * ```nvm alias default 7.2.1```
+ * ```nvm alias default v6.11.0```
 * Install dependencies
 
   ```
