@@ -171,6 +171,24 @@ describe("DataTable Plugin", function() {
         collection.add({ name: "foo" });
         expect(table.$("tbody tr td:first :checkbox").length).toEqual(1);
       });
+
+      it("should issue a change event for each row checkbox when header checkbox is toggled", function() {
+        collection.add({ name: "foo" });
+        var header_checkbox = table.$("thead tr th:first :checkbox"),
+            row_checkbox    = table.$("tbody tr td:first :checkbox"),
+            row_changed     = 'row checkbox not changed';
+
+        expect(header_checkbox.length).toEqual(1);
+        expect(row_checkbox.length).toEqual(1);
+
+        row_checkbox.on('change', function() {
+          row_changed = 'row checkbox changed';
+        });
+
+        header_checkbox.click();
+
+        expect(row_changed).toEqual('row checkbox changed');
+      });
     });
 
     describe("user defined by title matching", function() {
