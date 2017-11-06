@@ -29,7 +29,7 @@ var Row = (function() {
 
       if (arguments.length === 1) {
         // setter
-        this.checkbox.prop("checked", state);
+        this.checkbox.prop("checked", state).change();
         this.$el.toggleClass("backdraft-selected", state);
       } else {
         // getter
