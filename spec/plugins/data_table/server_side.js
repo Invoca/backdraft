@@ -178,6 +178,8 @@ describe("DataTable Plugin", function() {
   });
 
   afterEach(function() {
+    $('[data-toggle="popover-menu"]').remove()
+    $('.popover').remove()
     Backbone.history.stop();
     jasmine.Ajax.uninstall();
   });
@@ -1331,11 +1333,11 @@ describe("DataTable Plugin", function() {
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
-            expect($(".popover .filterMenu").length).toEqual(3);
+            expect($(".popover .filterMenu").length).toEqual(0);
             $("span", this).trigger("click");
-            expect($(".popover .filterMenu").length).toEqual(4);
+            expect($(".popover .filterMenu").length).toEqual(1);
             $("div:first-child", this).trigger("click");
-            expect($(".popover .filterMenu").length).toEqual(3);
+            expect($(".popover .filterMenu").length).toEqual(0);
           }
         }
       });
@@ -1407,12 +1409,11 @@ describe("DataTable Plugin", function() {
 
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        currentFilterMenu = $(table.child("filter-" + columns[c].attr).$el);
+        var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
-        $("span", currentFilterMenu).trigger("click");
-        expect($(".filterMenu .error-text").length).toEqual(1);
-        expect($(".filterMenu .error-text").text()).toMatch(/Test error message/);
-        expect($(".filterMenu .btn-filter").last().prop('disabled')).toEqual(true);
+        expect(renderedFilterMenu.find(".filterMenu .error-text").length).toEqual(1, ".error-text length");
+        expect(renderedFilterMenu.find(".filterMenu .error-text").text()).toMatch(/Test error message/);
+        expect(renderedFilterMenu.find(".filterMenu .btn").length).toEqual(0, "no buttons");
 
         $("span", currentFilterMenu).trigger("click");
       }
@@ -1420,11 +1421,11 @@ describe("DataTable Plugin", function() {
       table.enableFilters();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        currentFilterMenu = $(table.child("filter-" + columns[c].attr).$el);
+        var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
-        $("span", currentFilterMenu).trigger("click");
-        expect($(".filterMenu .error-text").length).toEqual(0);
-        expect($(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
+        expect(renderedFilterMenu.find(".filterMenu .error-text").length).toEqual(0, 'no error-text');
+        expect(renderedFilterMenu.find(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
+        expect(renderedFilterMenu.find(".filterMenu .btn-clear").last().prop('disabled')).toEqual(false);
 
         $("span", currentFilterMenu).trigger("click");
       }

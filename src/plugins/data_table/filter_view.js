@@ -12,18 +12,18 @@ var DataTableFilter = (function(options) {
 
     menuTemplate: _.template(''), // to be overridden by subclasses
     parentMenuTemplate: _.template('\
-      <div class="filterMenu <%= filterMenuClass %>">\
-        <%= menuTemplate %>\
-        <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
-        <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
-      </div>\
+     <div class="filterMenu <%= filterMenuClass %>"> \
+       <% if (enabled) { %> \
+         <%= menuTemplate %> \
+         <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
+         <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
+       <% } else { %> \
+         <span class="error-text"> \
+           <%= errorMessage %>\
+         </span> \
+       <% } %> \
+     </div> \
       ', null, DEFAULT_JST_DELIMS),
-
-    errorTemplate: _.template('\
-      <span class="text-danger error-text">\
-        <%= errorCopy %>\
-      </span>\
-    ', null, DEFAULT_JST_DELIMS),
 
     initialize: function (options) {
       this.filter = options.column.filter;
@@ -44,6 +44,8 @@ var DataTableFilter = (function(options) {
 
       this.$el.html(this.parentMenuTemplate({
         filterMenuClass: this.filterMenuClass,
+        enabled: this.enabled,
+        errorMessage: this.errorMessage,
         menuTemplate: this.menuTemplate({
           filter: this.filter,
           attr: this.attr,
@@ -54,17 +56,19 @@ var DataTableFilter = (function(options) {
 
       this.afterRender();
 
-      // Bind button clicks
-      this.$('.btn-filter').click(_.bind(this.parentView._onFilterClick, this.parentView));
-      this.$('.btn-clear').click(_.bind(this.parentView._onClearClick, this.parentView));
+      if (this.enabled) {
+        // Bind button clicks
+        this.$('.btn-filter').click(_.bind(this.parentView._onFilterClick, this.parentView));
+        this.$('.btn-clear').click(_.bind(this.parentView._onClearClick, this.parentView));
 
-      // Bind "enter" key
-      this.$('.filterMenu').keyup(_.bind(function(event) {
-        var key = event.keyCode || event.which;
-        if (key === 13) {
-          this.parentView._onFilterClick.call(this.parentView);
-        }
-      }, this));
+        // Bind "enter" key
+        this.$('.filterMenu').keyup(_.bind(function(event) {
+          var key = event.keyCode || event.which;
+          if (key === 13) {
+            this.parentView._onFilterClick.call(this.parentView);
+          }
+        }, this));
+      }
 
       return this;
     },
@@ -119,16 +123,13 @@ var DataTableFilter = (function(options) {
     },
 
     disableFilter: function(errorMessage) {
+      this.errorMessage = errorMessage;
       if (!this.enabled) return;
-      this.$('.filterMenu').prepend(this.errorTemplate({ errorCopy: errorMessage }));
-      this.$('.btn-filter').prop("disabled", true);
       this.enabled = false;
     },
 
     enableFilter: function() {
       if (this.enabled) return;
-      this.$('.error-text').remove();
-      this.$('.btn-filter').prop("disabled", false);
       this.enabled = true;
     }
   });
@@ -341,14 +342,10 @@ var DataTableFilter = (function(options) {
 
   var DataTableFilter = Base.View.extend({
     template: _.template('\
-        <div class="toggle-filter-button btn-popover-menu" data-toggle="dropdown">\
+        <div class="toggle-filter-button" data-toggle="popover-menu">\
           <span class="<%= filterButtonClass %>"></span>\
         </div>\
       ', null, DEFAULT_JST_DELIMS),
-
-    events: {
-      "click .toggle-filter-button": "_onToggleClick",
-    },
 
     initialize: function (options) {
       this.filter = options.column.filter;
@@ -381,7 +378,7 @@ var DataTableFilter = (function(options) {
         filterButtonClass: this.filterButtonClass
       }));
 
-      this.$('.toggle-filter-button').popoverMenu({
+      this.$("[data-toggle='popover-menu']").popoverMenu({
         content: this.child("filter-menu").render().$el,
         placement: function(popover, trigger) {
           // We can't know the width without rendering to DOM.
@@ -414,33 +411,32 @@ var DataTableFilter = (function(options) {
       }
     },
 
-    _onToggleClick: function (event) {
-      // close popoverMenus except for this one
-      $(".toggle-filter-button").not(event.currentTarget).popoverMenu('hide');
-      event.stopImmediatePropagation();
-    },
-
     _onFilterClick: function () {
       $("input[type=text]", this.head).trigger("change");
-      // Update ajaxsource on datatable
-      this.parent.updateAjaxSource();
-      this.table.dataTable._fnAjaxUpdate();
-      this.$(".toggle-filter-button").popoverMenu('hide');
+      this._triggerDataTableUpdate();
     },
 
     _onClearClick: function () {
-      this.child("filter-menu").clear();
-      this.parent.updateAjaxSource();
-      this.table.dataTable._fnAjaxUpdate();
-      this.$(".toggle-filter-button").popoverMenu('hide');
+      this._childFilterMenu().clear();
+      this._triggerDataTableUpdate();
     },
 
     disableFilter: function(errorMessage) {
-      this.child("filter-menu").disableFilter(errorMessage);
+      this._childFilterMenu().disableFilter(errorMessage);
     },
 
     enableFilter: function() {
-      this.child("filter-menu").enableFilter();
+      this._childFilterMenu().enableFilter();
+    },
+
+    _childFilterMenu: function() {
+      return this.child("filter-menu");
+    },
+
+    _triggerDataTableUpdate: function() {
+      this.parent.updateAjaxSource();
+      this.table.dataTable._fnAjaxUpdate();
+      this.$("[data-toggle='popover-menu']").popoverMenu('hide');
     }
   });
 
