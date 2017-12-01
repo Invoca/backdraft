@@ -124,12 +124,10 @@ var DataTableFilter = (function(options) {
 
     disableFilter: function(errorMessage) {
       this.errorMessage = errorMessage;
-      if (!this.enabled) return;
       this.enabled = false;
     },
 
     enableFilter: function() {
-      if (this.enabled) return;
       this.enabled = true;
     }
   });
