@@ -18,7 +18,7 @@ var DataTableFilter = (function(options) {
          <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
          <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
        <% } else { %> \
-         <span class="error-text"> \
+         <span data-mount="error-message"> \
            <%= errorMessage %>\
          </span> \
        <% } %> \

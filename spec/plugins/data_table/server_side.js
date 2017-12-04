@@ -1411,8 +1411,8 @@ describe("DataTable Plugin", function() {
         if (!columns[c].filter) continue;
         var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
-        expect(renderedFilterMenu.find(".filterMenu .error-text").length).toEqual(1, ".error-text length");
-        expect(renderedFilterMenu.find(".filterMenu .error-text").text()).toMatch(/Test error message/);
+        expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(1, "error-message length");
+        expect(renderedFilterMenu.find("[data-mount=error-message]").text()).toMatch(/Test error message/);
         expect(renderedFilterMenu.find(".filterMenu .btn").length).toEqual(0, "no buttons");
 
         $("span", currentFilterMenu).trigger("click");
@@ -1423,7 +1423,7 @@ describe("DataTable Plugin", function() {
         if (!columns[c].filter) continue;
         var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
-        expect(renderedFilterMenu.find(".filterMenu .error-text").length).toEqual(0, 'no error-text');
+        expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(0, 'no error message');
         expect(renderedFilterMenu.find(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
         expect(renderedFilterMenu.find(".filterMenu .btn-clear").last().prop('disabled')).toEqual(false);
 
