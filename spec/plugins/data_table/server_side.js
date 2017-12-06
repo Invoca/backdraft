@@ -178,6 +178,8 @@ describe("DataTable Plugin", function() {
   });
 
   afterEach(function() {
+    $('[data-toggle="popover-menu"]').remove()
+    $('.popover').remove()
     Backbone.history.stop();
     jasmine.Ajax.uninstall();
   });
@@ -1331,11 +1333,11 @@ describe("DataTable Plugin", function() {
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
-            expect($(".popover .filterMenu").length).toEqual(3);
+            expect($(".popover .filterMenu").length).toEqual(0);
             $("span", this).trigger("click");
-            expect($(".popover .filterMenu").length).toEqual(4);
+            expect($(".popover .filterMenu").length).toEqual(1);
             $("div:first-child", this).trigger("click");
-            expect($(".popover .filterMenu").length).toEqual(3);
+            expect($(".popover .filterMenu").length).toEqual(0);
           }
         }
       });
@@ -1369,34 +1371,150 @@ describe("DataTable Plugin", function() {
     });
 
     it("should clear the filters when the clear button is clicked", function() {
+      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+      var expectedFilterObj = [];
       table.dataTable.find("thead th").not(".bulk").each(function () {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
+          var toggleButton = $(".toggle-filter-button", this);
           if (col && col.filter) {
-            var toggleButton = $(".toggle-filter-button", this);
-            toggleButton.click();
             if (col.filter.type === "string") {
-              $(".filterMenu input").val("Test").trigger("change");
-              $(".btn-clear").click();
+              // test assignment
+              toggleButton.click();
+              $('.filterMenu input').val("Scott").trigger("change");
+              expect(col.filter.value).toEqual("Scott");
+
+              // verify ajax
+              $(".btn-filter").trigger("click");
+              expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
+              verifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
+
+              // test clear button & filter value
+              toggleButton.click();
+              $(".btn-clear").trigger("click");
+              expect(col.filter.value).toEqual(null);
+
+              // verify ajax
+              expectedFilterObj = [];
+              verifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
+
+              // verify assignment
               toggleButton.click();
               expect($(".filterMenu input").val()).toEqual("");
             }
             else if (col.filter.type === "numeric") {
-              $("input#first-filter").val("3").trigger("change");
-              $(".btn-clear").click();
+              // test equal assignment
+              toggleButton.click();
+              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+              $('input#first-filter').val("0.5").trigger("change");
+              expect(col.filter.eq).toEqual("0.5");
+
+              // verify ajax
+              $(".btn-filter").trigger("click");
+              expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
+              verifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
+
+              // test clear button & filter value
+              toggleButton.click();
+              $(".btn-clear").trigger("click");
+              expect(col.filter.eq).toEqual(null);
+
+              // verify ajax
+              expectedFilterObj = [];
+              verifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
+
+              // verify assignment
               toggleButton.click();
               expect($("input#first-filter").val()).toEqual("");
             }
             else if (col.filter.type === "list") {
-              $(".filterMenu input").prop("checked", true).trigger("change");
-              $(".btn-clear").click();
-              $(".filterMenu input").prop("checked", false).trigger("change");
+              // test assignment
+              toggleButton.click();
+              $('.filterMenu input').prop("checked", true).trigger("change");
+              expect(col.filter.value).toEqual(["Basic", "Advanced"]);
+
+              // verify ajax
+              $(".btn-filter").trigger("click");
+              expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
+              verifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
+
+              // test clear button & filter value
+              toggleButton.click();
+              $(".btn-clear").trigger("click");
+              expect(col.filter.value).toEqual(null);
+
+              // verify ajax
+              expectedFilterObj = [];
+              verifyFilterAjax(expectedFilterObj);
+              verifyUrlParams(expectedFilterObj);
+
+              // verify assignment
               toggleButton.click();
               expect($(".filterMenu input").prop("checked")).toEqual(false);
             }
           }
         }
+      });
+    });
+
+    describe("filterView", function () {
+      describe("clear() should null filter values and update url even when not enabled", function () {
+        it("for stringFilterMenu", function() {
+          Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+          var stringFilterMenu = table.configGenerator().table.children["filter-name"].children["filter-menu"];
+
+          stringFilterMenu.enabled      = false;
+          stringFilterMenu.filter.value = "scott";
+          expect(stringFilterMenu.filter.value).toEqual("scott");
+
+          stringFilterMenu.clear();
+          expect(stringFilterMenu.filter.value).toEqual(null);
+          verifyUrlParams([]);
+        });
+
+        it("for numericFilterMenu", function() {
+          Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+          var numericFilterMenu = table.configGenerator().table.children["filter-cost"].children["filter-menu"];
+
+          numericFilterMenu.enabled   = false;
+          numericFilterMenu.filter.lt = 0.1;
+          numericFilterMenu.filter.gt = 0.2;
+          numericFilterMenu.filter.eq = 0.3;
+
+          expect(numericFilterMenu.filter.lt).toEqual(0.1);
+          expect(numericFilterMenu.filter.gt).toEqual(0.2);
+          expect(numericFilterMenu.filter.eq).toEqual(0.3);
+          numericFilterMenu.clear();
+          expect(numericFilterMenu.filter.lt).toEqual(null);
+          expect(numericFilterMenu.filter.gt).toEqual(null);
+          expect(numericFilterMenu.filter.eq).toEqual(null);
+
+          verifyUrlParams([]);
+        });
+
+        it("for listFilterMenu", function() {
+          Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+          var listFilterMenu = table.configGenerator().table.children["filter-type"].children["filter-menu"];
+
+          listFilterMenu.enabled      = false;
+          listFilterMenu.filter.value = ["Basic", "Advanced"];
+
+          expect(listFilterMenu.filter.value).toEqual(["Basic", "Advanced"]);
+          listFilterMenu.clear();
+          expect(listFilterMenu.filter.value).toEqual(null);
+
+          verifyUrlParams([]);
+        });
       });
     });
 
@@ -1407,12 +1525,11 @@ describe("DataTable Plugin", function() {
 
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        currentFilterMenu = $(table.child("filter-" + columns[c].attr).$el);
+        var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
-        $("span", currentFilterMenu).trigger("click");
-        expect($(".filterMenu .error-text").length).toEqual(1);
-        expect($(".filterMenu .error-text").text()).toMatch(/Test error message/);
-        expect($(".filterMenu .btn-filter").last().prop('disabled')).toEqual(true);
+        expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(1, "error-message length");
+        expect(renderedFilterMenu.find("[data-mount=error-message]").text()).toMatch(/Test error message/);
+        expect(renderedFilterMenu.find(".filterMenu .btn").length).toEqual(0, "no buttons");
 
         $("span", currentFilterMenu).trigger("click");
       }
@@ -1420,11 +1537,11 @@ describe("DataTable Plugin", function() {
       table.enableFilters();
       for (var c in columns) {
         if (!columns[c].filter) continue;
-        currentFilterMenu = $(table.child("filter-" + columns[c].attr).$el);
+        var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
-        $("span", currentFilterMenu).trigger("click");
-        expect($(".filterMenu .error-text").length).toEqual(0);
-        expect($(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
+        expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(0, 'no error message');
+        expect(renderedFilterMenu.find(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
+        expect(renderedFilterMenu.find(".filterMenu .btn-clear").last().prop('disabled')).toEqual(false);
 
         $("span", currentFilterMenu).trigger("click");
       }
