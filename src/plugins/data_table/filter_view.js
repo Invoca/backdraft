@@ -260,9 +260,9 @@ var DataTableFilter = (function(options) {
         this.$("select[data-filter-id=first-filter]").val("gt").trigger("change");
         this.$("select[data-filter-id=second-filter]").val("lt").trigger("change");
       } else {
-        this.filter['lt'] = null;
-        this.filter['gt'] = null;
-        this.filter['eq'] = null;
+        this.filter.lt = null;
+        this.filter.gt = null;
+        this.filter.eq = null;
 
         this.parentView._toggleIcon(false);
         this._updateFilterUrlParams();
