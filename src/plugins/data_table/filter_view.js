@@ -222,7 +222,7 @@ var DataTableFilter = (function(options) {
           filterType = target.val();
       this.filter[filterType] = this.filter[previousFilterType];
       delete this.filter[previousFilterType];
-      target.attr('data-previous-value', filterType);
+      target.data('previous-value', filterType);
       this.$('#' + filterElementId).attr('data-filter-type', filterType).trigger("change");
       this._updateFilterUrlParams();
     },

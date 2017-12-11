@@ -1422,7 +1422,7 @@ describe("DataTable Plugin", function() {
               // test clear button & filter value
               toggleButton.click();
               $(".btn-clear").trigger("click");
-              expect(col.filter.eq).toEqual(null);
+              expect(col.filter.eq).toBeUndefined();
 
               // verify ajax
               expectedFilterObj = [];
