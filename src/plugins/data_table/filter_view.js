@@ -361,7 +361,7 @@ var DataTableFilter = (function(options) {
 
   var DataTableFilter = Base.View.extend({
     template: _.template('\
-        <div class="toggle-filter-button" data-toggle="popover-menu">\
+        <div class="toggle-filter-button" data-toggle="filter-popover">\
           <span class="<%= filterButtonClass %>"></span>\
         </div>\
       ', null, DEFAULT_JST_DELIMS),
@@ -397,7 +397,10 @@ var DataTableFilter = (function(options) {
         filterButtonClass: this.filterButtonClass
       }));
 
-      this.$("[data-toggle='popover-menu']").popoverMenu({
+      this.$("[data-toggle='filter-popover']").popover({
+        container: 'body',
+        animation: false,
+        html: true,
         content: this.child("filter-menu").render().$el,
         placement: function(popover, trigger) {
           // We can't know the width without rendering to DOM.
@@ -455,7 +458,7 @@ var DataTableFilter = (function(options) {
     _triggerDataTableUpdate: function() {
       this.parent.updateAjaxSource();
       this.table.dataTable._fnAjaxUpdate();
-      this.$("[data-toggle='popover-menu']").popoverMenu('hide');
+      this.$("[data-toggle='filter-popover']").popover('hide');
     }
   });
 

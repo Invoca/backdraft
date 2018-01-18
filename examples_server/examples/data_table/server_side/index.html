@@ -11,13 +11,34 @@
     <link type="text/css" href="../../../vendor/dataTables.bootstrap.css" rel="stylesheet" />
     <link type="text/css" href="../../../vendor/dataTables.colReorder.css" rel="stylesheet" />
 
+    <style>
+      table.dataTable .sorting .DataTables_sort_wrapper, table.dataTable .sorting .sort_wrapper, table.dataTable .sorting_asc .DataTables_sort_wrapper, table.dataTable .sorting_asc .sort_wrapper, table.dataTable .sorting_desc .DataTables_sort_wrapper, table.dataTable .sorting_desc .sort_wrapper {
+        background-repeat: no-repeat;
+        padding-right: 15px;
+        float: left;
+      }
+
+      table.dataTable th {
+        position: relative;
+      }
+
+      table.dataTable .DataTables_filter_wrapper {
+        position: absolute;
+        top: 18px;
+        right: 8px;
+      }
+
+      .toggle-filter-button span:before {
+        content: "FILTER"
+      }
+    </style>
   </head>
 
   <body>
   <h3 style="text-align:center">Server Side</h3>
 
   <div class="container">
-          
+
     <div id="example-area"></div>
 
     <!-- libraries -->
@@ -25,6 +46,7 @@
     <script type="text/javascript" src="../../../vendor/jquery-1.10.2.js"></script>
     <script type="text/javascript" src="../../../vendor/underscore-1.8.3.js"></script>
     <script type="text/javascript" src="../../../vendor/backbone-1.1.2.js"></script>
+    <script type="text/javascript" src="../../../vendor/bootstrap-3.1.1-dist/js/bootstrap.js"></script>
     <script type="text/javascript" src="../../../vendor/jquery.dataTables-1.9.4.js"></script>
     <script type="text/javascript" src="../../../dist/backdraft.js"></script>
 

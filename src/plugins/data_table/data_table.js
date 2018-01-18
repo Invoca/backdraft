@@ -543,19 +543,12 @@ var LocalDataTable = (function() {
       var cg = table.configGenerator();
 
       // Close active filter menu if user clicks on document
-      $(document).click(function (event) {
-        var targetIsMenu = $(event.target).hasClass('filterMenu');
-        var targetIsButton = $(event.target).hasClass('btn');
-        var parentIsMenu = false;
-        if (event.target.offsetParent) {
-          parentIsMenu = $(event.target.offsetParent).hasClass('filterMenu');
-        }
-
-        var canSlideUp = table.activeFilterMenu && ( !(targetIsMenu || parentIsMenu) || targetIsButton);
-        if (canSlideUp) {
-          table.activeFilterMenu.slideUp(100);
-          table.activeFilterMenu = null;
-        }
+      $("body").on("click", function(e) {
+        $("[data-toggle='filter-popover']").each(function() {
+          if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $(".popover").has(e.target).length === 0) {
+            $(this).popover("hide");
+          }
+        });
       });
 
       // We make a filter for each column header

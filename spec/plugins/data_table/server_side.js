@@ -178,7 +178,7 @@ describe("DataTable Plugin", function() {
   });
 
   afterEach(function() {
-    $('[data-toggle="popover-menu"]').remove()
+    $('[data-toggle="popover"]').remove()
     $('.popover').remove()
     Backbone.history.stop();
     jasmine.Ajax.uninstall();
@@ -1551,11 +1551,11 @@ describe("DataTable Plugin", function() {
       var cg = table.configGenerator();
       var col = cg.columnConfigById.attributes["cost"];
       table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
-      $(".popover-menu #first-filter").val("3").trigger("change");
+      $(".popover #first-filter").val("3").trigger("change");
 
       expect(col.filter).toEqual({type: "numeric", gt: "3"});
 
-      $(".popover-menu select[data-filter-id=first-filter]").val("lt").trigger("change");
+      $(".popover select[data-filter-id=first-filter]").val("lt").trigger("change");
       expect(col.filter).toEqual({type: "numeric", lt: "3"});
     });
 
