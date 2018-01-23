@@ -17,6 +17,24 @@ describe("Listing Plugin", function() {
     baseExports = Backdraft.plugin("Base");
   });
 
+  describe("exports", function() {
+    var Listing;
+
+    beforeEach(function() {
+      Listing = Backdraft.plugin("Listing");
+    });
+
+    it("should expose an Item", function() {
+      app.view.listing.item("MyItem", {});
+      expect(new app.Views.MyItem()).toEqual(jasmine.any(Listing.Item));
+    });
+
+    it("should expose a List", function() {
+      app.view.listing("MyList", {});
+      expect(new app.Views.MyList({ collection : collection })).toEqual(jasmine.any(Listing.List));
+    });
+  });
+
   describe("factories", function() {
 
     it("should expose #listing", function() {
