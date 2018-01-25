@@ -965,7 +965,7 @@ describe("DataTable Plugin", function() {
             switch (col.filter.type) {
               case "string":
                 $(".toggle-filter-button", this).click();
-                $('.filterMenu input').val("").trigger("change");
+                $('.filter-menu input').val("").trigger("change");
                 break;
               case "numeric":
                 $(".toggle-filter-button", this).click();
@@ -974,7 +974,7 @@ describe("DataTable Plugin", function() {
 
               case "list":
                 $(".toggle-filter-button", this).click();
-                $('.filterMenu input').prop("checked", false).trigger("change");
+                $('.filter-menu input').prop("checked", false).trigger("change");
                 break;
             }
           }
@@ -991,7 +991,7 @@ describe("DataTable Plugin", function() {
             switch (col.filter.type) {
               case "string":
                 $(".toggle-filter-button", this).click();
-                $('.filterMenu input').val("Scott").trigger("change");
+                $('.filter-menu input').val("Scott").trigger("change");
                 $(".btn-filter").trigger("click");
                 break;
               case "numeric":
@@ -1002,7 +1002,7 @@ describe("DataTable Plugin", function() {
                 break;
               case "list":
                 $(".toggle-filter-button", this).click();
-                $(".filterMenu input[value=Basic]").prop("checked", true).trigger("change");
+                $(".filter-menu input[value=Basic]").prop("checked", true).trigger("change");
                 $(".btn-filter").trigger("click");
                 break;
             }
@@ -1126,7 +1126,7 @@ describe("DataTable Plugin", function() {
             if (col.filter.type === "string") {
               // test assignment
               $(".toggle-filter-button", this).click();
-              $('.filterMenu input').val("Scott").trigger("change");
+              $('.filter-menu input').val("Scott").trigger("change");
               expect(col.filter.value).toEqual("Scott");
               // verify ajax
               $(".btn-filter").trigger("click");
@@ -1136,7 +1136,7 @@ describe("DataTable Plugin", function() {
 
               // test unassignment
               $(".toggle-filter-button", this).click();
-              $('.filterMenu input').val("").trigger("change");
+              $('.filter-menu input').val("").trigger("change");
               expect(col.filter.value).toEqual(null);
               // verify ajax
               $(".btn-filter").trigger("click");
@@ -1169,7 +1169,7 @@ describe("DataTable Plugin", function() {
             else if (col.filter.type === "list") {
               // test assignment
               $(".toggle-filter-button", this).click();
-              $('.filterMenu input').prop("checked", true).trigger("change");
+              $('.filter-menu input').prop("checked", true).trigger("change");
               expect(col.filter.value).toEqual(["Basic", "Advanced"]);
               // verify ajax
               $(".btn-filter").trigger("click");
@@ -1179,7 +1179,7 @@ describe("DataTable Plugin", function() {
 
               // test unassignment
               $(".toggle-filter-button", this).click();
-              $('.filterMenu input').prop("checked", false).trigger("change");
+              $('.filter-menu input').prop("checked", false).trigger("change");
               expect(col.filter.value).toEqual(null);
               // verify ajax
               $(".btn-filter").trigger("click");
@@ -1256,14 +1256,14 @@ describe("DataTable Plugin", function() {
           if (col && col.filter) {
             switch (col.filter.type) {
               case "string":
-                expect($('.filterMenu input').val()).toEqual("Scott")
+                expect($('.filter-menu input').val()).toEqual("Scott")
                 break;
               case "numeric":
                 expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
                 expect($('input#first-filter').val()).toEqual("0.5");
                 break;
               case "list":
-                expect($(".filterMenu input[value=Basic]").prop("checked")).toEqual(true);
+                expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
                 break;
             }
           }
@@ -1286,9 +1286,9 @@ describe("DataTable Plugin", function() {
           if (col && col.filter) {
             $(".toggle-filter-button", this).click();
             if (col.filter.type === "string") {
-              $(".filterMenu input").val("Test").trigger("change");
+              $(".filter-menu input").val("Test").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
-              $(".filterMenu input").val("").trigger("change");
+              $(".filter-menu input").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
             else if (col.filter.type === "numeric") {
@@ -1298,9 +1298,9 @@ describe("DataTable Plugin", function() {
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
             else if (col.filter.type === "list") {
-              $(".filterMenu input").prop("checked", true).trigger("change");
+              $(".filter-menu input").prop("checked", true).trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
-              $(".filterMenu input").prop("checked", false).trigger("change");
+              $(".filter-menu input").prop("checked", false).trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
             }
           }
@@ -1315,11 +1315,11 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             // todo: the below are not asserting anything! (and currently not returning 'true')
-            expect($(".filterMenu", this).is(":hidden"));
+            expect($(".filter-menu", this).is(":hidden"));
             $("span", this).trigger("click");
-            expect($(".filterMenu", this).is(":visible"));
+            expect($(".filter-menu", this).is(":visible"));
             $("span", this).trigger("click");
-            expect($(".filterMenu", this).is(":hidden"));
+            expect($(".filter-menu", this).is(":hidden"));
           }
         }
       });
@@ -1333,11 +1333,11 @@ describe("DataTable Plugin", function() {
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
-            expect($(".popover .filterMenu").length).toEqual(0);
+            expect($(".popover .filter-menu").length).toEqual(0);
             $("span", this).trigger("click");
-            expect($(".popover .filterMenu").length).toEqual(1);
+            expect($(".popover .filter-menu").length).toEqual(1);
             $("div:first-child", this).trigger("click");
-            expect($(".popover .filterMenu").length).toEqual(0);
+            expect($(".popover .filter-menu").length).toEqual(0);
           }
         }
       });
@@ -1354,7 +1354,7 @@ describe("DataTable Plugin", function() {
             if (currentFilterMenu) {
               lastFilterMenu = currentFilterMenu;
             }
-            currentFilterMenu = $(".filterMenu", this);
+            currentFilterMenu = $(".filter-menu", this);
 
             // todo: the below are not asserting anything! (and currently not returning 'true')
             expect(currentFilterMenu.is(":hidden"));
@@ -1383,7 +1383,7 @@ describe("DataTable Plugin", function() {
             if (col.filter.type === "string") {
               // test assignment
               toggleButton.click();
-              $('.filterMenu input').val("Scott").trigger("change");
+              $('.filter-menu input').val("Scott").trigger("change");
               expect(col.filter.value).toEqual("Scott");
 
               // verify ajax
@@ -1404,7 +1404,7 @@ describe("DataTable Plugin", function() {
 
               // verify assignment
               toggleButton.click();
-              expect($(".filterMenu input").val()).toEqual("");
+              expect($(".filter-menu input").val()).toEqual("");
             }
             else if (col.filter.type === "numeric") {
               // test equal assignment
@@ -1436,7 +1436,7 @@ describe("DataTable Plugin", function() {
             else if (col.filter.type === "list") {
               // test assignment
               toggleButton.click();
-              $('.filterMenu input').prop("checked", true).trigger("change");
+              $('.filter-menu input').prop("checked", true).trigger("change");
               expect(col.filter.value).toEqual(["Basic", "Advanced"]);
 
               // verify ajax
@@ -1457,7 +1457,7 @@ describe("DataTable Plugin", function() {
 
               // verify assignment
               toggleButton.click();
-              expect($(".filterMenu input").prop("checked")).toEqual(false);
+              expect($(".filter-menu input").prop("checked")).toEqual(false);
             }
           }
         }
@@ -1529,7 +1529,7 @@ describe("DataTable Plugin", function() {
 
         expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(1, "error-message length");
         expect(renderedFilterMenu.find("[data-mount=error-message]").text()).toMatch(/Test error message/);
-        expect(renderedFilterMenu.find(".filterMenu .btn").length).toEqual(0, "no buttons");
+        expect(renderedFilterMenu.find(".filter-menu .btn").length).toEqual(0, "no buttons");
 
         $("span", currentFilterMenu).trigger("click");
       }
@@ -1540,8 +1540,8 @@ describe("DataTable Plugin", function() {
         var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
         expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(0, 'no error message');
-        expect(renderedFilterMenu.find(".filterMenu .btn-filter").last().prop('disabled')).toEqual(false);
-        expect(renderedFilterMenu.find(".filterMenu .btn-clear").last().prop('disabled')).toEqual(false);
+        expect(renderedFilterMenu.find(".filter-menu .btn-filter").last().prop('disabled')).toEqual(false);
+        expect(renderedFilterMenu.find(".filter-menu .btn-clear").last().prop('disabled')).toEqual(false);
 
         $("span", currentFilterMenu).trigger("click");
       }

@@ -12,11 +12,13 @@ var DataTableFilter = (function(options) {
 
     menuTemplate: _.template(''), // to be overridden by subclasses
     parentMenuTemplate: _.template('\
-     <div class="filterMenu <%= filterMenuClass %>"> \
+     <div class="filter-menu <%= filterMenuClass %>"> \
        <% if (enabled) { %> \
          <%= menuTemplate %> \
-         <button class="btn btn-sm btn-filter" name="button" type="submit" title="">Apply</button>\
-         <button class="btn btn-primary btn-sm btn-clear pull-right" name="button" type="submit" title="">Clear</button>\
+         <div class="filter-menu-footer"> \
+           <button class="btn btn-primary btn-filter" name="button" type="submit" title="">Apply</button> \
+           <button class="btn btn-secondary btn-clear" name="button" type="submit" title="">Clear</button> \
+         </div> \
        <% } else { %> \
          <span data-mount="error-message"> \
            <%= errorMessage %>\
@@ -62,7 +64,7 @@ var DataTableFilter = (function(options) {
         this.$('.btn-clear').click(_.bind(this.parentView._onClearClick, this.parentView));
 
         // Bind "enter" key
-        this.$('.filterMenu').keyup(_.bind(function(event) {
+        this.$('.filter-menu').keyup(_.bind(function(event) {
           var key = event.keyCode || event.which;
           if (key === 13) {
             this.parentView._onFilterClick.call(this.parentView);
@@ -133,13 +135,12 @@ var DataTableFilter = (function(options) {
   });
 
   var StringFilterMenu = DataTableFilterMenu.extend({
-    filterMenuClass: "filterMenu-string",
+    filterMenuClass: "filter-menu-string",
 
     menuTemplate: _.template('\
       <div class="filter-text">Show:</div>\
-      <div class="icon-addon addon-sm">\
+      <div class="filter-menu-string-container">\
         <input class="filter-string form-control input-sm" type="text" name="filter-string" />\
-        <label for="filter-string" class="glyphicon glyphicon-search"></label>\
       </div>\
       ', null, DEFAULT_JST_DELIMS),
 
@@ -181,23 +182,25 @@ var DataTableFilter = (function(options) {
   });
 
   var NumericFilterMenu = DataTableFilterMenu.extend({
-    filterMenuClass: "filterMenu-numeric",
+    filterMenuClass: "filter-menu-numeric",
 
     menuTemplate: _.template('\
       <div class="filter-text">Show items with value that:</div> \
-      <select class="filter-type form-control" data-filter-id="first-filter" data-previous-value="gt">\
-        <option selected value="gt">is greater than</option> \
-        <option value="lt">is less than</option> \
-        <option value="eq">is equal to</option> \
-      </select> \
-      <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
-      <div class="filter-text">and</div> \
-      <select class="filter-type form-control" data-filter-id="second-filter" data-previous-value="lt">\
-        <option value="gt">is greater than</option> \
-        <option selected value="lt">is less than</option> \
-        <option value="eq">is equal to</option> \
-      </select> \
-      <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
+      <div class="filter-menu-numeric-container"> \
+        <select class="filter-type form-control" data-filter-id="first-filter" data-previous-value="gt">\
+          <option selected value="gt">is greater than</option> \
+          <option value="lt">is less than</option> \
+          <option value="eq">is equal to</option> \
+        </select> \
+        <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
+        <div class="filter-text">and</div> \
+        <select class="filter-type form-control" data-filter-id="second-filter" data-previous-value="lt">\
+          <option value="gt">is greater than</option> \
+          <option selected value="lt">is less than</option> \
+          <option value="eq">is equal to</option> \
+        </select> \
+        <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
+      </div> \
     ', null, DEFAULT_JST_DELIMS),
 
     _onInputChange: function (event) {
@@ -271,12 +274,12 @@ var DataTableFilter = (function(options) {
   });
 
   var ListFilterMenu = DataTableFilterMenu.extend({
-    filterMenuClass: "filterMenu-list",
+    filterMenuClass: "filter-menu-list",
 
     menuTemplate: _.template('\
       <div class="filter-text">Show:</div>\
       <a class="select-all" href="javascript:;">Select all</a>\
-      <ul>\
+      <ul class="filter-menu-list-container">\
         <% _.each(filter.options, function(element, index) { %>\
           <li>\
             <label>\
