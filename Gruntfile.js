@@ -24,7 +24,7 @@ module.exports = function(grunt) {
     jasmine: {
       specs: {
         src: [
-          "dist/es5/backdraft.js"
+          "dist/backdraft.js"
         ],
         options: {
           keepRunner: true,

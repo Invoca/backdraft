@@ -5,7 +5,7 @@ module.exports = {
   entry: "./src/entry.js",
 
   output: {
-    path: path.resolve(__dirname, 'dist/es5'),
+    path: path.resolve(__dirname, 'dist'),
     library: 'Backdraft',
     libraryTarget: "var",
     libraryExport: "default",
