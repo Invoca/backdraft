@@ -1,4 +1,6 @@
-var ColumnType =  Backdraft.Utils.Class.extend({
+import Class from "../../utils/class";
+
+var ColumnType = Class.extend({
   initialize: function() {
     this._getterSetter("configMatcher");
     this._getterSetter("nodeMatcher");
@@ -6,3 +8,5 @@ var ColumnType =  Backdraft.Utils.Class.extend({
     this._getterSetter("renderer");
   }
 });
+
+export default ColumnType;

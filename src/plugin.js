@@ -1,4 +1,6 @@
-var Plugin = Backdraft.Utils.Class.extend({
+import Class from "./utils/class";
+
+var Plugin = Class.extend({
 
   initialize : function(name) {
     this.name = name;
@@ -63,3 +65,5 @@ _.extend(Plugin.factory, {
     })
   }
 });
+
+export default Plugin;

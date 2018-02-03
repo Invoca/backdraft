@@ -1,4 +1,6 @@
-Backdraft.Utils.DomVisibility = Backdraft.Utils.Class.extend({
+import Class from "./class";
+
+const DomVisibility = Class.extend({
   initialize: function(el) {
     this.el = $(el);
   },
@@ -21,7 +23,7 @@ Backdraft.Utils.DomVisibility = Backdraft.Utils.Class.extend({
   }
 });
 
-Backdraft.Utils.Coordinates = {
+const Coordinates = {
   absolutePointAtViewportEdge: function(edge, x, buffer) {
     switch(edge) {
       case 'left':
@@ -35,3 +37,5 @@ Backdraft.Utils.Coordinates = {
     }
   }
 };
+
+export { DomVisibility, Coordinates };

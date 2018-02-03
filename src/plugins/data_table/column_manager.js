@@ -1,4 +1,8 @@
-var ColumnManager = Backdraft.Utils.Class.extend({
+import Class from "../../utils/class";
+
+import ColumnConfigGenerator from "./column_config_generator";
+
+var ColumnManager = Class.extend({
   initialize: function(table) {
     _.extend(this, Backbone.Events);
     this.table = table;
@@ -73,3 +77,5 @@ var ColumnManager = Backdraft.Utils.Class.extend({
     return summary;
   }
 });
+
+export default ColumnManager;

@@ -1,7 +1,9 @@
-Backdraft.plugin("Listing", function(plugin) {
+import Plugin from "../../plugin";
 
-  {%= inline("src/plugins/listing/list.js") %}
-  {%= inline("src/plugins/listing/item.js") %}
+import List from "./list";
+import Item from "./item";
+
+const ListingPlugin = Plugin.factory("Listing", function(plugin) {
 
   plugin.exports({
     List: List,
@@ -22,3 +24,5 @@ Backdraft.plugin("Listing", function(plugin) {
   });
 
 });
+
+export default ListingPlugin;

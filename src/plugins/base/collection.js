@@ -7,3 +7,5 @@ var Collection = (function() {
   return Collection;
 
 })();
+
+export default Collection;

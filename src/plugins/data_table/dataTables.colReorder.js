@@ -25,6 +25,9 @@
  * Minor bug fixes by Jeremy Hubble @jeremyhubble
  */
 
+import {Coordinates, DomVisibility} from "../../utils/dom_visibility";
+
+export default function initializeColReorderPlugin() {
 
 (function ($, window, document) {
 
@@ -1407,14 +1410,14 @@
           moreToLeft = scrollableContainer.scrollLeft() > 0;
         } else {
           scrollableContainer = $(window);
-          var visibilityChecker = new Backdraft.Utils.DomVisibility(this.s.dt.nTable);
+          var visibilityChecker = new DomVisibility(this.s.dt.nTable);
           startingScrollOffset = visibilityChecker.windowOffset();
           moreToRight = !visibilityChecker.rightEdgeInView();
           moreToLeft = !visibilityChecker.leftEdgeInView();
         }
 
         if (
-          Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+          Coordinates.absolutePointAtViewportEdge(
             'right',
             e.pageX,
             this.s.autoScrollTargetWidth
@@ -1422,7 +1425,7 @@
 
           scrollDelta = this.s.autoScrollIncrementSize;
         } else if (
-          Backdraft.Utils.Coordinates.absolutePointAtViewportEdge(
+          Coordinates.absolutePointAtViewportEdge(
             'left',
             e.pageX,
             this.s.autoScrollTargetWidth
@@ -1923,3 +1926,4 @@
 
 
 })(jQuery, window, document);
+}

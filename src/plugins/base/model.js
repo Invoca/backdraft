@@ -15,3 +15,5 @@ var Model = (function() {
   return Model;
 
 })();
+
+export default Model;

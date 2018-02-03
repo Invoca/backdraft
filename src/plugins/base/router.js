@@ -67,3 +67,5 @@ var Router = (function() {
   return Router;
 
 })();
+
+export default Router;

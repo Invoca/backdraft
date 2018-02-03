@@ -1,4 +1,6 @@
-var SelectionManager = Backdraft.Utils.Class.extend({
+import Class from "../../utils/class";
+
+var SelectionManager = Class.extend({
 
   initialize : function() {
     this._count = 0;
@@ -35,3 +37,5 @@ var SelectionManager = Backdraft.Utils.Class.extend({
   }
 
 });
+
+export default SelectionManager;

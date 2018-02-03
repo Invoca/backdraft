@@ -1,25 +1,23 @@
-Backdraft.plugin("DataTable", function(plugin) {
+import Plugin from "../../plugin";
 
-  function cidMap(collection) {
-    return collection.map(function(model) {
-      return { cid : model.cid };
-    });
-  }
+import ColumnType from "./column_type";
+import Row from "./row";
+import LocalDataTable from "./data_table";
+import ServerSideDataTable from "./server_side_data_table";
 
-  {%= inline("src/plugins/data_table/column_config_generator.js") %}
-  {%= inline("src/plugins/data_table/column_manager.js") %}
-  {%= inline("src/plugins/data_table/selection_manager.js") %}
-  {%= inline("src/plugins/data_table/lock_manager.js") %}
-  {%= inline("src/plugins/data_table/column_type.js") %}
-  {%= inline("src/plugins/data_table/filter_view.js") %}
-  {%= inline("src/plugins/data_table/row.js") %}
-  {%= inline("src/plugins/data_table/data_table.js") %}
-  {%= inline("src/plugins/data_table/server_side_data_table.js") %}
+import initializeBootstrap from "./bootstrap";
+
+import addBaseColumnType from "./column_types/base";
+import addBulkColumnType from "./column_types/bulk";
+
+import initializeColReorderPlugin from "./dataTables.colReorder";
+
+Plugin.factory("DataTable", function(plugin) {
 
   plugin.initializer(function(app) {
 
-    {%= inline("src/plugins/data_table/bootstrap.js") %}
-    {%= inline("src/plugins/data_table/dataTables.colReorder.js") %}
+    initializeBootstrap();
+    initializeColReorderPlugin();
 
     app.view.dataTable = function(name, baseClassName, properties) {
       var baseClass;
@@ -61,9 +59,7 @@ Backdraft.plugin("DataTable", function(plugin) {
     };
 
     // add standard column types
-    {%= inline("src/plugins/data_table/column_types/bulk.js") %}
-    {%= inline("src/plugins/data_table/column_types/base.js") %}
+    addBaseColumnType(app);
+    addBulkColumnType(app);
   });
-
 });
-
