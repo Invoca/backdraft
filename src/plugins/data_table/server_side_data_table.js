@@ -1,3 +1,7 @@
+import Backbone from "backbone";
+import _ from "underscore";
+import $ from "jquery";
+
 import SelectionManager from "./selection_manager";
 import LocalDataTable from "./data_table";
 import cidMap from "./cid_map";

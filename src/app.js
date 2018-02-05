@@ -1,6 +1,9 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
 import Class from "./utils/class";
 import Plugin from "./plugin";
- 
+
 var App = (function() {
 
   var getInstance = function(name) {

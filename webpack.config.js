@@ -12,11 +12,11 @@ module.exports = {
     filename: 'backdraft.js'
   },
 
-  externals: [
-    "backbone",
-    "jquery",
-    "underscore"
-  ],
+  externals: {
+    "backbone": "Backbone",
+    "jquery": "$",
+    "underscore": "_",
+  },
 
   module: {
     rules: [{

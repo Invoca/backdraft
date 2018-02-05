@@ -20,6 +20,7 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-minify": "^0.3.0",
+    "backbone": "1.1.2",
     "express": "^4.1.0",
     "grunt": "~0.4.4",
     "grunt-contrib-jasmine": "^1.0.0",
@@ -28,6 +29,12 @@
     "grunt-webpack": "^3.0.2",
     "morgan": "^1.0.0",
     "serve-index": "^1.6.4",
+    "underscore": "1.8.3",
     "webpack": "^3.10.0"
+  },
+  "peerDependencies": {
+    "backbone": "1.1.2",
+    "jquery": "^1.10.2",
+    "underscore": "1.8.3"
   }
 }

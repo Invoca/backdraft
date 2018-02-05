@@ -1,3 +1,6 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
 import Class from "../../utils/class";
 
 var LockManager = (function() {

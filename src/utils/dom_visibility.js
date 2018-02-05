@@ -1,4 +1,5 @@
 import Class from "./class";
+import $ from "jquery";
 
 const DomVisibility = Class.extend({
   initialize: function(el) {

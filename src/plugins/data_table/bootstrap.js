@@ -1,3 +1,5 @@
+import $ from "jquery";
+
 export default function initializeBootstrap() {
   /* Set the defaults for DataTables initialisation */
   $.extend( true, $.fn.dataTable.defaults, {
@@ -10,7 +12,7 @@ export default function initializeBootstrap() {
       "sInfoFiltered" : "<br/>(filtered from _MAX_ total)"
     }
   } );
- 
+
 
   /* Default class modification */
   $.extend( $.fn.dataTableExt.oStdClasses, {

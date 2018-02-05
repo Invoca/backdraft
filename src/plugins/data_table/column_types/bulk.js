@@ -1,3 +1,5 @@
+import $ from "jquery";
+
 export default function addBulkColumnType(app) {
   app.view.dataTable.columnType(function(columnType) {
     columnType.configMatcher(function(config) {

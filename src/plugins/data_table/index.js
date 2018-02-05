@@ -1,3 +1,5 @@
+import _ from "underscore";
+
 import Plugin from "../../plugin";
 
 import ColumnType from "./column_type";

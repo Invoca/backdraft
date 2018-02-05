@@ -1,3 +1,6 @@
+import $ from "jquery";
+import _ from "underscore";
+
 import ColumnManager from "./column_manager";
 import Plugin from "../../plugin";
 

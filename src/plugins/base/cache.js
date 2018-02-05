@@ -1,3 +1,5 @@
+import _ from "underscore";
+
 import Class from "../../utils/class";
 
 var Cache = (function() {

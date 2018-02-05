@@ -1,3 +1,5 @@
+import Backbone from "backbone";
+
 var Model = (function() {
 
   var Model = Backbone.Model.extend({

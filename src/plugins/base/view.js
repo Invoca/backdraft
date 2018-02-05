@@ -1,3 +1,6 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
 var View = (function() {
 
   var View = Backbone.View.extend({

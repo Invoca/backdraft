@@ -1,3 +1,8 @@
+import $ from "jquery";
+const jQuery = $;
+
+import _ from "underscore";
+
 import Plugin from "../../plugin";
 
 var DataTableFilter = (function(options) {

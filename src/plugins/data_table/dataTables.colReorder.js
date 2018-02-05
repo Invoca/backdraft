@@ -25,6 +25,7 @@
  * Minor bug fixes by Jeremy Hubble @jeremyhubble
  */
 
+import jQuery from "jquery";
 import {Coordinates, DomVisibility} from "../../utils/dom_visibility";
 
 export default function initializeColReorderPlugin() {

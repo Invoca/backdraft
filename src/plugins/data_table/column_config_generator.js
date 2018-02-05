@@ -1,3 +1,7 @@
+import Backbone from "backbone";
+import _ from "underscore";
+import $ from "jquery";
+
 import Class from "../../utils/class";
 import {toCSSClass} from "../../utils/css";
 

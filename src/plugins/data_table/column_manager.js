@@ -1,3 +1,6 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
 import Class from "../../utils/class";
 
 import ColumnConfigGenerator from "./column_config_generator";

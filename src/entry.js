@@ -1,3 +1,5 @@
+import _ from "underscore";
+
 import BackdraftNamespace from "./backdraft_namespace";
 
 import "./plugins/base/base";

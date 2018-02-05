@@ -1,3 +1,5 @@
+import _ from "underscore";
+
 import Plugin from "../../plugin";
 
 var Row = (function() {
