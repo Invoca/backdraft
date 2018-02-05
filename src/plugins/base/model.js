@@ -1,3 +1,5 @@
+import Backbone from "backbone";
+
 var Model = (function() {
 
   var Model = Backbone.Model.extend({
@@ -15,3 +17,5 @@ var Model = (function() {
   return Model;
 
 })();
+
+export default Model;

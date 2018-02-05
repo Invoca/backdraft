@@ -1,5 +1,12 @@
+import $ from "jquery";
+const jQuery = $;
+
+import _ from "underscore";
+
+import Plugin from "../../plugin";
+
 var DataTableFilter = (function(options) {
-  var Base = Backdraft.plugin("Base");
+  var Base = Plugin.factory("Base");
 
   var DEFAULT_JST_DELIMS = {
     evaluate: /<%([\s\S]+?)%>/g,
@@ -461,3 +468,5 @@ var DataTableFilter = (function(options) {
 
   return new DataTableFilter(options);
 });
+
+export default DataTableFilter;

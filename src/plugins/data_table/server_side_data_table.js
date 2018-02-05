@@ -1,3 +1,11 @@
+import Backbone from "backbone";
+import _ from "underscore";
+import $ from "jquery";
+
+import SelectionManager from "./selection_manager";
+import LocalDataTable from "./data_table";
+import cidMap from "./cid_map";
+
 var ServerSideDataTable = (function() {
 
   var ServerSideDataTable = LocalDataTable.extend({
@@ -307,3 +315,5 @@ var ServerSideDataTable = (function() {
   return ServerSideDataTable;
 
 })();
+
+export default ServerSideDataTable;

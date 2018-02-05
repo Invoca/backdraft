@@ -1,10 +1,12 @@
-Backdraft.plugin("Base", function(plugin) {
+import Plugin from "../../plugin";
 
-  {%= inline("src/plugins/base/view.js") %}
-  {%= inline("src/plugins/base/collection.js") %}
-  {%= inline("src/plugins/base/model.js") %}
-  {%= inline("src/plugins/base/router.js") %}
-  {%= inline("src/plugins/base/cache.js") %}
+import View from "./view";
+import Collection from "./collection";
+import Model from "./model";
+import Router from "./router";
+import Cache from "./cache";
+
+const Base = Plugin.factory("Base", function(plugin) {
 
   plugin.exports({
     Router : Router,
@@ -69,6 +71,6 @@ Backdraft.plugin("Base", function(plugin) {
     };
 
   });
-
-
 });
+
+export default Base;

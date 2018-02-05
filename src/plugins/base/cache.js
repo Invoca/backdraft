@@ -1,3 +1,7 @@
+import _ from "underscore";
+
+import Class from "../../utils/class";
+
 var Cache = (function() {
 
   function getKey(key) {
@@ -6,7 +10,7 @@ var Cache = (function() {
     throw new Error("Invalid key type");
   }
 
-  var Cache = Backdraft.Utils.Class.extend({
+  var Cache = Class.extend({
 
     initialize : function() {
       this.reset();
@@ -46,3 +50,5 @@ var Cache = (function() {
 
 
 })();
+
+export default Cache;

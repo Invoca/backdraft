@@ -1,6 +1,8 @@
+import Plugin from "../../plugin";
+
 var Item = (function() {
 
-  var Base = Backdraft.plugin("Base");
+  var Base = Plugin.factory("Base");
 
   var Item = Base.View.extend({
 
@@ -18,3 +20,5 @@ var Item = (function() {
   return Item;
 
 })();
+
+export default Item;

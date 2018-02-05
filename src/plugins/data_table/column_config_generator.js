@@ -1,4 +1,11 @@
-var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
+import Backbone from "backbone";
+import _ from "underscore";
+import $ from "jquery";
+
+import Class from "../../utils/class";
+import {toCSSClass} from "../../utils/css";
+
+var ColumnConfigGenerator =  Class.extend({
   initialize: function(table) {
     this.table = table;
     this.columnIndexById = new Backbone.Model();
@@ -128,10 +135,12 @@ var ColumnConfigGenerator =  Backdraft.Utils.Class.extend({
   _addAttrsToColumnsWhenMissing: function(columnsConfig) {
     _.each(columnsConfig, function(columnConfig) {
       if (columnConfig.attr || columnConfig.title) {
-        columnConfig.id = columnConfig.attr || Backdraft.Utils.toCSSClass(columnConfig.title);
+        columnConfig.id = columnConfig.attr || toCSSClass(columnConfig.title);
       }
     });
 
     return columnsConfig;
   }
 });
+
+export default ColumnConfigGenerator;
