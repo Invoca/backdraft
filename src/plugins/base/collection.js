@@ -1,13 +1,7 @@
 import Backbone from "backbone";
 
-var Collection = (function() {
+class Collection extends Backbone.Collection {
 
-  var Collection = Backbone.Collection.extend({
-
-  });
-
-  return Collection;
-
-})();
+}
 
 export default Collection;

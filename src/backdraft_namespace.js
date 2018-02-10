@@ -21,4 +21,6 @@ const BackdraftNamespace = {
   app: App.factory
 };
 
+import "./plugins/base/register_base_plugin";
+
 export default BackdraftNamespace;

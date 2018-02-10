@@ -1,21 +1,14 @@
 import Backbone from "backbone";
 
-var Model = (function() {
+class Model extends Backbone.Model {
 
-  var Model = Backbone.Model.extend({
-
-    // notify change listeners, but with current values
-    reTriggerChanges: function() {
-      for (var attr in this.attributes) {
-        this.trigger("change:" + attr, this, this.get(attr), {});
-      }
-      this.trigger("change", this, {});
+  // notify change listeners, but with current values
+  reTriggerChanges() {
+    for (const attr in this.attributes) {
+      this.trigger(`change:${attr}`, this, this.get(attr), {});
     }
-
-  });
-
-  return Model;
-
-})();
+    this.trigger("change", this, {});
+  }
+}
 
 export default Model;

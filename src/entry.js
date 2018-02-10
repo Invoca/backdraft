@@ -2,7 +2,6 @@ import _ from "underscore";
 
 import BackdraftNamespace from "./backdraft_namespace";
 
-import "./plugins/base/base";
 import "./plugins/listing/index";
 import "./plugins/data_table/index";
 
