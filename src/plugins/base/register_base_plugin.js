@@ -6,21 +6,21 @@ import Model from "./model";
 import Router from "./router";
 import Cache from "./cache";
 
-const Base = Plugin.factory("Base", function(plugin) {
+Plugin.factory("Base", plugin => {
 
   plugin.exports({
-    Router : Router,
-    View : View,
-    Model : Model,
-    Collection : Collection,
-    Cache : Cache
+    Router,
+    View,
+    Model,
+    Collection,
+    Cache
   });
 
   // factories
-  plugin.initializer(function(app) {
+  plugin.initializer(app => {
     app.Views = {};
     app.view = function(name, baseClassName, properties) {
-      var baseClass;
+      let baseClass;
       if (arguments.length === 2) {
         properties = baseClassName;
         baseClass = View;
@@ -31,9 +31,9 @@ const Base = Plugin.factory("Base", function(plugin) {
       app.Views[name] = baseClass.extend(properties);
     };
 
-    app.Collections = {}
+    app.Collections = {};
     app.collection = function(name, baseClassName, properties) {
-      var baseClass;
+      let baseClass;
       if (arguments.length === 2) {
         properties = baseClassName;
         baseClass = Collection;
@@ -46,7 +46,7 @@ const Base = Plugin.factory("Base", function(plugin) {
 
     app.Models = {};
     app.model = function(name, baseClassName, properties) {
-      var baseClass;
+      let baseClass;
       if (arguments.length === 2) {
         properties = baseClassName;
         baseClass = Model;
@@ -59,7 +59,7 @@ const Base = Plugin.factory("Base", function(plugin) {
 
     app.Routers = {};
     app.router = function(name, baseClassName, properties) {
-      var baseClass;
+      let baseClass;
       if (arguments.length === 2) {
         properties = baseClassName;
         baseClass = Router;
@@ -69,8 +69,5 @@ const Base = Plugin.factory("Base", function(plugin) {
 
       app.Routers[name] = baseClass.extend(properties);
     };
-
   });
 });
-
-export default Base;

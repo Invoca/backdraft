@@ -77,7 +77,7 @@ describe("Base Plugin", function() {
     });
 
     it("should expose a Cache", function() {
-      expect(new exports.Cache()).toEqual(jasmine.any(Backdraft.Utils.Class));
+      expect(new exports.Cache()).toEqual(jasmine.any(Object));
     });
 
   });

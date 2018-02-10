@@ -1,54 +1,48 @@
 import _ from "underscore";
 
-import Class from "../../utils/class";
+function getKey(key) {
+  if (key.cid) return key.cid;
+  if (_.isString(key)) return key;
+  throw new Error("Invalid key type");
+}
 
-var Cache = (function() {
+class Cache {
 
-  function getKey(key) {
-    if (key.cid) return key.cid;
-    if (_.isString(key)) return key;
-    throw new Error("Invalid key type");
+  constructor(...args) {
+    this.initialize(...args);
   }
 
-  var Cache = Class.extend({
+  initialize() {
+    this.reset();
+  }
 
-    initialize : function() {
-      this.reset();
-    },
+  set(key, value) {
+    this.data[getKey(key)] = value;
+    return value;
+  }
 
-    set : function(key, value) {
-      this.data[getKey(key)] = value;
-      return value;
-    },
+  unset(key) {
+    key = getKey(key);
+    const value = this.data[key];
+    delete this.data[key];
+    return value;
+  }
 
-    unset : function(key) {
-      key = getKey(key);
-      var value = this.data[key];
-      delete this.data[key];
-      return value;
-    },
+  get(key) {
+    return this.data[getKey(key)];
+  }
 
-    get : function(key) {
-      return this.data[getKey(key)];
-    },
+  size() {
+    return _.keys(this.data).length;
+  }
 
-    size : function() {
-      return _.keys(this.data).length;
-    },
+  reset() {
+    this.data = {};
+  }
 
-    reset : function() {
-      this.data = {};
-    },
-
-    each : function(iterator, context) {
-      _.each(this.data, iterator, context);
-    }
-
-  });
-
-  return Cache;
-
-
-})();
+  each(iterator, context) {
+    _.each(this.data, iterator, context);
+  }
+}
 
 export default Cache;
