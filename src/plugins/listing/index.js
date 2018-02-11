@@ -3,6 +3,11 @@ Backdraft.plugin("Listing", function(plugin) {
   {%= inline("src/plugins/listing/list.js") %}
   {%= inline("src/plugins/listing/item.js") %}
 
+  plugin.exports({
+    List: List,
+    Item: Item
+  });
+
   plugin.initializer(function(app) {
 
     app.view.listing = function(name, properties) {
