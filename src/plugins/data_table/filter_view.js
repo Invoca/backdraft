@@ -405,21 +405,7 @@ var DataTableFilter = (function(options) {
         animation: false,
         html: true,
         content: this.child("filter-menu").render().$el,
-        placement: function(popover, trigger) {
-          // We can't know the width without rendering to DOM.
-          // We can't render to DOM without knowing the width.
-          // Thus is life.
-          var popoverWidth = 250;
-
-          var triggerLeftPosition = trigger.getBoundingClientRect().left;
-          var windowWidth = window.innerWidth;
-
-          if ((triggerLeftPosition + popoverWidth) > windowWidth) {
-            return 'left auto';
-          }
-
-          return 'bottom';
-        }
+        placement: 'bottom'
       });
 
       return this;
