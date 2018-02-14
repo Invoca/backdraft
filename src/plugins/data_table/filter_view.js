@@ -405,7 +405,27 @@ var DataTableFilter = (function(options) {
         animation: false,
         html: true,
         content: this.child("filter-menu").render().$el,
-        placement: 'bottom'
+        placement: function(popover, trigger) {
+          // We can't know the width without rendering to DOM.
+          // We can't render to DOM without knowing the width.
+          // Thus is life.
+          var popoverWidth = 250;
+
+          var triggerLeftPosition = trigger.getBoundingClientRect().left;
+          var triggerRightPosition = trigger.getBoundingClientRect().right;
+          var windowWidth = window.innerWidth;
+
+          // popovers are smart enough to reposition when the last of the content is at the edge of screen
+          // but in a table that is positioned with fixed scrolling, it gets confused when content is
+          // at the edge of viewport with more of the table still off the screen
+          if ((triggerLeftPosition + popoverWidth) > windowWidth) {
+            return 'left';
+          } else if ((triggerRightPosition - popoverWidth) < 0) {
+            return 'right';
+          }
+
+          return 'bottom';
+        }
       });
 
       return this;
