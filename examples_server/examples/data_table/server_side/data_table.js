@@ -57,7 +57,10 @@ Backdraft.app("TableExample", function(app) {
     layout : "<'table-wrapper-with-footer't><'row'<'col-xs-4'p><'col-xs-4'r><'col-xs-4'i>>",
 
     serverSide : true,
-    resizableColumns: true
+    resizableColumns: true,
+
+    filteringEnabled: true,
+    serverSideFiltering: true
 
   });
 
@@ -69,7 +72,7 @@ Backdraft.app("TableExample", function(app) {
 
     columns : [
       { bulk : true },
-      { attr : "name", title : "Name" },
+      { attr : "name", title : "Name", filter: { type: "string" } },
       { title : "Random Hotness" }
     ],
 
