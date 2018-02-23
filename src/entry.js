@@ -2,7 +2,6 @@ import _ from "underscore";
 
 import BackdraftNamespace from "./backdraft_namespace";
 
-import "./plugins/listing/index";
 import "./plugins/data_table/index";
 
 // use squiggly braces for underscore templating so we don't conflict with ruby templating

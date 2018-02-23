@@ -1,5 +1,8 @@
 import { default as Backdraft } from "../../../src/entry.js";
 
+import List from "../../../src/plugins/listing/list";
+import Item from "../../../src/plugins/listing/item";
+
 describe("Listing Plugin", function() {
 
   var app;
@@ -19,6 +22,45 @@ describe("Listing Plugin", function() {
     baseExports = Backdraft.plugin("Base");
   });
 
+  describe("inheritance", function() {
+    describe("Item", function() {
+      it("is inheritable", function () {
+        class ChildItem extends Item {
+
+        }
+
+        expect(new ChildItem()).toEqual(jasmine.any(Item));
+
+      });
+    });
+
+    describe("List", function() {
+      it("is inheritable", function() {
+        class ChildItem extends Item {
+
+        }
+
+        class ChildList extends List {
+          get itemClass() {
+            return ChildItem;
+          }
+        }
+
+        expect(new ChildItem()).toEqual(jasmine.any(Item));
+        expect(new ChildList({collection})).toEqual(jasmine.any(List));
+      });
+
+      it("requires itemClass to be defined", function() {
+        class ChildList extends List {
+        }
+
+        expect(function() {
+          new ChildList({collection});
+        }).toThrowError("itemClass must be defined");
+      })
+    });
+  });
+
   describe("exports", function() {
     var Listing;
 
@@ -32,16 +74,18 @@ describe("Listing Plugin", function() {
     });
 
     it("should expose a List", function() {
-      app.view.listing("MyList", {});
-      expect(new app.Views.MyList({ collection: collection })).toEqual(jasmine.any(Listing.List));
+      app.view.listing.item("MyItem", {});
+      app.view.listing("MyList", { itemClassName: "MyItem" });
+      expect(new app.Views.MyList({ collection : collection })).toEqual(jasmine.any(Listing.List));
     });
   });
 
   describe("factories", function() {
 
     it("should expose #listing", function() {
-      app.view.listing("abc", {});
-      expect(new app.Views.abc({ collection: collection })).toEqual(jasmine.any(baseExports.View));
+      app.view.listing.item("AbcItem", {});
+      app.view.listing("abc", {itemClassName: "AbcItem"});
+      expect(new app.Views.abc({ collection : collection })).toEqual(jasmine.any(baseExports.View));
     });
 
     it("should expose #listing.item", function() {
@@ -51,9 +95,17 @@ describe("Listing Plugin", function() {
 
     it("requires that a collection be provided", function() {
       expect(function() {
-        app.view.listing("abc", {});
+        app.view.listing.item("AbcItem", {});
+        app.view.listing("abc", {itemClassName: "AbcItem"});
         new app.Views.abc();
       }).toThrowError("A collection must be provided");
+    });
+
+    it("requires that an itemClassName is provided", function() {
+      expect(function() {
+        app.view.listing("abc", {});
+        new app.Views.abc();
+      }).toThrowError("itemClass must be defined");
     });
 
     it("should get a reference to the item class", function() {
