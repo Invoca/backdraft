@@ -26,6 +26,10 @@ module.exports = function(config) {
 
     autoWatch: true,
     browsers: ['PhantomJS'],
+    client: {
+      useIframe: false,
+      runInParent: true
+    },
     singleRun: false
   })
 };

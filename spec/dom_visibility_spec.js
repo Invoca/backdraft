@@ -1,7 +1,9 @@
 import { default as Backdraft } from "../src/entry.js";
 
+const WIDTH_BEYOND_VIEWPORT = 9000;
+
 describe("Backdraft.Utils.DomVisibility", function() {
-  var el, dummyDiv, previousBodyMargin;
+  let el, dummyDiv, previousBodyMargin;
 
   beforeEach(function() {
     el = $('<div>');
@@ -27,7 +29,7 @@ describe("Backdraft.Utils.DomVisibility", function() {
     var domViz;
 
     beforeEach(function() {
-      el.css({ width: 9000, height: 50 });
+      el.css({ width: WIDTH_BEYOND_VIEWPORT, height: 50 });
       domViz = new Backdraft.Utils.DomVisibility(el);
     });
 
@@ -60,7 +62,7 @@ describe("Backdraft.Utils.DomVisibility", function() {
     var domViz;
 
     beforeEach(function() {
-      el.css({ width: 9000, height: 50 });
+      el.css({ width: WIDTH_BEYOND_VIEWPORT, height: 50 });
       domViz = new Backdraft.Utils.DomVisibility(el);
     });
 
@@ -79,8 +81,8 @@ describe("Backdraft.Utils.DomVisibility", function() {
     });
 
     it("should handle when scrolled horizontally and table not at edge", function() {
-      dummyDiv.css({ width: 2000, height: 10 });
-      el.css({ marginLeft: 50, width: 400 });
+      dummyDiv.css({ width: WIDTH_BEYOND_VIEWPORT, height: 10 });
+      el.css({ marginLeft: 50, width: $('body').width() });
       expect(el.offset().left).toEqual(50);
 
       $(window).scrollLeft(44);
@@ -93,7 +95,7 @@ describe("Backdraft.Utils.DomVisibility", function() {
 
   describe("absolutePointAtViewportEdge", function() {
     beforeEach(function() {
-      dummyDiv.css({ width: 1000, height: 700 });
+      dummyDiv.css({ width: WIDTH_BEYOND_VIEWPORT, height: 700 });
     });
 
     describe("left", function() {
@@ -128,33 +130,33 @@ describe("Backdraft.Utils.DomVisibility", function() {
 
     describe("right", function() {
       it("should handle when a point is close to edge of viewport - not scrolled", function() {
-        expect($('body').width()).toEqual(400, "width of viewport");
+        const bodyWidth = $('body').width();
 
         // past edge is considered at the edge
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 450, 1)).toEqual(true);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', bodyWidth + 50, 1)).toEqual(true);
 
         // at or within the bugger
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 400, 1)).toEqual(true);
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 350, 50)).toEqual(true);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', bodyWidth, 1)).toEqual(true);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', bodyWidth - 50, 50)).toEqual(true);
 
         // outside the "buffer"
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 399, 0)).toEqual(false);
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 349, 50)).toEqual(false);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', bodyWidth - 1, 0)).toEqual(false);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', bodyWidth - 51, 50)).toEqual(false);
       });
 
       it("should handle when a point is close to edge of viewport - scrolled", function() {
-        expect($('body').width()).toEqual(400, "width of viewport");
-        $(window).scrollLeft(500);
+        const bodyWidth = $('body').width();
+        $(window).scrollLeft(bodyWidth + 100);
 
         // anything past the edge is considered at the edge
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 1000, 1)).toEqual(true);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 2 * (bodyWidth + 100), 1)).toEqual(true);
 
         // factoring in the scroll, still within the buffer
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 900, 1)).toEqual(true);
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 800, 100)).toEqual(true);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', (bodyWidth + 100) + bodyWidth, 1)).toEqual(true);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', (bodyWidth + 100) + bodyWidth - 100, 100)).toEqual(true);
 
         // outside the "buffer"
-        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', 800, 50)).toEqual(false);
+        expect(Backdraft.Utils.Coordinates.absolutePointAtViewportEdge('right', (bodyWidth + 100) + bodyWidth - 100, 50)).toEqual(false, "outside the buffer");
       });
     });
   });
