@@ -1,3 +1,5 @@
+import { default as Backdraft } from "../../../src/entry.js";
+
 describe("DataTable Plugin", function() {
   var app;
   var collection;

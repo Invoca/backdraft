@@ -1,3 +1,5 @@
+import { default as Backdraft } from "../src/entry.js";
+
 describe("Backdraft.Utils.DomVisibility", function() {
   var el, dummyDiv, previousBodyMargin;
 

@@ -1,3 +1,5 @@
+import { default as Backdraft } from "../src/entry.js";
+
 describe("Backdraft.Utils.Class", function() {
 
   it("should define a generic reusable class", function() {
