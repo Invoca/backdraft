@@ -1,24 +1,10 @@
-import Plugin from "../../plugin";
+import View from "../base/view";
 
-var Item = (function() {
+class Item extends View {
 
-  var Base = Plugin.factory("Base");
-
-  var Item = Base.View.extend({
-
-    closeItem : function() {
-      this.model.collection.remove(this.model);
-    }
-
-  }, {
-
-    finalize : function(name, listClass, views) {
-    }
-
-  });
-
-  return Item;
-
-})();
+  closeItem() {
+    this.model.collection.remove(this.model);
+  }
+}
 
 export default Item;

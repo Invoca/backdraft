@@ -3,14 +3,14 @@ import Plugin from "../../plugin";
 import List from "./list";
 import Item from "./item";
 
-const ListingPlugin = Plugin.factory("Listing", function(plugin) {
+Plugin.factory("Listing", (plugin) => {
 
   plugin.exports({
-    List: List,
-    Item: Item
+    List,
+    Item
   });
 
-  plugin.initializer(function(app) {
+  plugin.initializer(app => {
 
     app.view.listing = function(name, properties) {
       app.Views[name] = List.extend(properties);
@@ -19,10 +19,6 @@ const ListingPlugin = Plugin.factory("Listing", function(plugin) {
 
     app.view.listing.item = function(name, properties) {
       app.Views[name] = Item.extend(properties);
-      Item.finalize(name, app.Views[name], app.Views);
     }
   });
-
 });
-
-export default ListingPlugin;

@@ -22,5 +22,6 @@ const BackdraftNamespace = {
 };
 
 import "./plugins/base/register_base_plugin";
+import "./plugins/listing/register_listing_plugin";
 
 export default BackdraftNamespace;
