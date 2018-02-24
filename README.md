@@ -121,7 +121,7 @@ Then activate the app at load time:
 * We're using curly braces ``{{ }}`` for underscore templating instead of angle brackets ``<% %>`` to not conflict with other templating conventions.
 
 ### Examples
-If you run `grunt`, an local server will be launched with live examples at [localhost:9873](http://localhost:9873).
+If you run `yarn run examples`, a local server will be launched with live examples at [localhost:9888](http://localhost:9888).
 
 
 ## Develop & Contribute
@@ -148,17 +148,17 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
 
 ### Testing
 
-Run the grunt task from the main directory to have the source and test files watched and tests auto-run when any modifications are done
+Run the yarn `dev` task from the main directory to have the source and test files watched and tests auto-run when any modifications are done
 
-    grunt
+    yarn run dev
 
 You can also specifically run tests with:
 
-    grunt spec
+    yarn run specs
 
 See all available commands with:
 
-    grunt --help
+    yarn run
 
 ### Contributing
 

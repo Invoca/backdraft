@@ -8,8 +8,9 @@
   ],
   "scripts": {
     "setup": "npm install -g grunt-cli",
-    "test": "karma start --single-run",
+    "specs": "karma start --single-run",
     "dev": "karma start",
+    "examples": "grunt examples",
     "prepublish": "NODE_ENV=production grunt build"
   },
   "author": "Invoca",

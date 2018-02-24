@@ -15,10 +15,10 @@ module.exports = function(grunt) {
       dev: webpackConfig
     },
 
-    watch : {
-      autotest : {
-        files : [ "src/**/*.js" ],
-        tasks : [ "build" ]
+    watch: {
+      autobuild: {
+        files: ["src/**/*.js"],
+        tasks: ["build"]
       }
     }
   });
@@ -26,11 +26,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-webpack');
   grunt.loadNpmTasks("grunt-contrib-watch");
 
-  grunt.registerTask("build",  "webpack");
+  grunt.registerTask("build", "webpack");
 
   grunt.registerTask("start_examples_server", function() {
     exampleServer(9888);
   });
 
-  grunt.registerTask("examples", ["start_examples_server", "watch:autotest"]);
+  grunt.registerTask("examples", ["build", "start_examples_server", "watch:autobuild"]);
 };
