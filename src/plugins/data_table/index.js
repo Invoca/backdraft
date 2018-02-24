@@ -61,7 +61,7 @@ Plugin.factory("DataTable", function(plugin) {
     };
 
     // add standard column types
-    addBaseColumnType(app);
     addBulkColumnType(app);
+    addBaseColumnType(app);
   });
 });
