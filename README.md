@@ -179,7 +179,7 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
   * Code Reviewed
   * Tested
 
-1. Update version: `yarn version <update_type>` (patch|minor|major)
+1. Update version: `yarn version --new-version <version>`
 
 1. A commit is made with a version bump, so `git push`
 
