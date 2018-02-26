@@ -546,6 +546,13 @@ describe("DataTable Plugin", function() {
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
     });
 
+    it("should allow for addition of server params that are arrays and convert to rails syntax", function() {
+      table = new app.Views.T({ collection : collection });
+      table.serverParams({ monkey : ["chicken", "goat"] });
+      table.render();
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey%5B%5D=chicken&monkey%5B%5D=goat");
+    });
+
     it("should reload the table when server params are set", function() {
       table = new app.Views.T({ collection : collection });
       table.render();

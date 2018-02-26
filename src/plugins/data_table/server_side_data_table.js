@@ -101,7 +101,15 @@ var ServerSideDataTable = (function() {
 
       // add additional static params specified for this table
       for (var key in this._serverParams) {
-        aoData.push({ name : key, value : this._serverParams[key] });
+        // handle array values here because dataTables request does not
+        var paramValue = this._serverParams[key];
+        if (_.isArray(paramValue)) {
+          paramValue.forEach(function(val) {
+            aoData.push({ name: key + "[]", value: val });
+          });
+        } else {
+          aoData.push({ name: key, value: paramValue });
+        }
       }
     },
 
