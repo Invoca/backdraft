@@ -1,3 +1,8 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
+import Class from "../../utils/class";
+
 var LockManager = (function() {
 
   var LOCKS = {
@@ -9,7 +14,7 @@ var LockManager = (function() {
 
   var LOCK_NAMES = _.keys(LOCKS);
 
-  var LockManager = Backdraft.Utils.Class.extend({
+  var LockManager = Class.extend({
     initialize: function(table) {
       _.extend(this, Backbone.Events);
       this.table = table;
@@ -61,3 +66,5 @@ var LockManager = (function() {
 
   return LockManager;
 })();
+
+export default LockManager;

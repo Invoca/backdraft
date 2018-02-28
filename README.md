@@ -136,12 +136,14 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
  *  ``` nvm install v6.11.0```
 * Set it as the default Node.js version
  * ```nvm alias default v6.11.0```
+* Install Yarn
+  https://yarnpkg.com/en/docs/install
 * Install dependencies
 
   ```
   cd backdraft
-  npm run setup
-  npm install
+  yarn run setup
+  yarn install
   ```
 
 ### Testing
@@ -177,11 +179,11 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
   * Code Reviewed
   * Tested
 
-1. Update version: `npm version <update_type>` (patch|minor|major)
+1. Update version: `yarn version --new-version <version>`
 
 1. A commit is made with a version bump, so `git push`
 
-1. Publish to NPM registry: `npm publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
+1. Publish to NPM registry: `yarn publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
 
 1. If on a branch, ensure this version gets **merged to master**
 

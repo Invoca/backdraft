@@ -1,11 +1,10 @@
 {
   "name": "backdraft-app",
-  "version": "0.4.1",
+  "version": "0.5.2",
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "main": "src/app.js",
   "files": [
-    "dist/backdraft.js",
-    "dist/backdraft.min.js"
+    "dist/backdraft.js"
   ],
   "scripts": {
     "setup": "npm install -g grunt-cli",
@@ -16,18 +15,26 @@
   "license": "MIT",
   "repository": "https://github.com/invoca/backdraft/",
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-minify": "^0.3.0",
+    "backbone": "1.1.2",
     "express": "^4.1.0",
     "grunt": "~0.4.4",
     "grunt-contrib-jasmine": "^1.0.0",
     "grunt-contrib-jst": "^0.5.1",
     "grunt-contrib-watch": "^0.5.3",
+    "grunt-webpack": "^3.0.2",
     "morgan": "^1.0.0",
     "serve-index": "^1.6.4",
-    "babel-core": "^6.26.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-es2016": "^6.24.1",
-    "babel-preset-minify": "^0.2.0",
-    "babel-plugin-transform-es2015-modules-systemjs": "^6.24.1"
+    "underscore": "1.8.3",
+    "webpack": "^3.10.0"
+  },
+  "peerDependencies": {
+    "backbone": "1.1.2",
+    "jquery": "^1.10.2",
+    "underscore": "1.8.3"
   }
 }

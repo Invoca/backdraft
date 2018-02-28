@@ -1,4 +1,8 @@
-var SelectionManager = Backdraft.Utils.Class.extend({
+import _ from "underscore";
+
+import Class from "../../utils/class";
+
+var SelectionManager = Class.extend({
 
   initialize : function() {
     this._count = 0;
@@ -35,3 +39,5 @@ var SelectionManager = Backdraft.Utils.Class.extend({
   }
 
 });
+
+export default SelectionManager;
