@@ -1,11 +1,21 @@
 {
-  "presets": [
-    "env",
-    [
-      "minify",
-      {
-        "mangle": false
-      }
-    ]
-  ]
+  "env": {
+    "development": {
+      "presets": [
+        "env"
+      ]
+    },
+
+    "production": {
+      "presets": [
+        "env",
+        [
+          "minify",
+          {
+            "mangle": false
+          }
+        ]
+      ]
+    }
+  }
 }
