@@ -1,3 +1,6 @@
+import _ from "underscore";
+import Backbone from "backbone";
+
 var Router = (function() {
 
   var splatParam = /\*\w+/g;
@@ -67,3 +70,5 @@ var Router = (function() {
   return Router;
 
 })();
+
+export default Router;

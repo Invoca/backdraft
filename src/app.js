@@ -1,3 +1,9 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
+import Class from "./utils/class";
+import Plugin from "./plugin";
+
 var App = (function() {
 
   var getInstance = function(name) {
@@ -5,7 +11,7 @@ var App = (function() {
     throw new Error("App " + name + " does not exist");
   };
 
-  var App = Backdraft.Utils.Class.extend({
+  var App = Class.extend({
 
     constructor : function() {
       // list of plugins by name this app should load, defaulting to none.
@@ -14,7 +20,7 @@ var App = (function() {
 
       // ensure that the Base plugin as always loaded
       if (!_.include(this.plugins, "Base")) this.plugins.unshift("Base");
-     
+
       // call parent constructor
       App.__super__.constructor.apply(this, arguments);
 
@@ -61,7 +67,7 @@ var App = (function() {
 
     // destroys all existing applications
     destroyAll : function() {
-      _.chain(App.instances).keys().each(function(name) { 
+      _.chain(App.instances).keys().each(function(name) {
         App.factory.destroy(name);
       });
     },
@@ -79,3 +85,5 @@ var App = (function() {
   return App;
 
 })();
+
+export default App;

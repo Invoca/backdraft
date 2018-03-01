@@ -1,6 +1,21 @@
+import $ from "jquery";
+import _ from "underscore";
+
+import ColumnManager from "./column_manager";
+import Plugin from "../../plugin";
+
+import SelectionManager from "./selection_manager";
+import LockManager from "./lock_manager";
+
+import DataTableFilter from "./filter_view";
+
+import {extractColumnCSSClass, toColumnCSSClass} from "../../utils/css";
+
+import cidMap from "./cid_map";
+
 var LocalDataTable = (function() {
 
-  var Base = Backdraft.plugin("Base");
+  var Base = Plugin.factory("Base");
 
   var LocalDataTable = Base.View.extend({
     BULK_COLUMN_HEADER_CHECKBOX_SELECTOR : "th:first.bulk :checkbox",
@@ -155,7 +170,7 @@ var LocalDataTable = (function() {
       if (this.dataTable) {
         var normalizeSortingColumn = function(sort) { return _.first(sort, 2); };
         sorting = _.map(this._columnManager.dataTableSortingConfig(), normalizeSortingColumn);
-        currentSorting = _.map(this.dataTable.fnSettings().aaSorting, normalizeSortingColumn);
+        let currentSorting = _.map(this.dataTable.fnSettings().aaSorting, normalizeSortingColumn);
         if (!_.isEqual(currentSorting, sorting)) {
           this.dataTable.fnSort(sorting);
         }
@@ -305,7 +320,7 @@ var LocalDataTable = (function() {
           var columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex" : headerGroupDataIndex } );
 
           if (!columnGroupConfig || !headerGroupDataIndex) {
-            Backdraft.Utils.log('Unable to find a matching headerGroupDataIndex for ' + columnConfig.attr);
+            console.log('Unable to find a matching headerGroupDataIndex for ' + columnConfig.attr);
             columnGroupConfig = { colspan: 1, headerName: '' };
             headerGroupDataIndex = columnConfig.title;
           }
@@ -556,10 +571,10 @@ var LocalDataTable = (function() {
         // here we use the CSS in the header to get the column config by attr
         // there isn't a better way to do this currently
         var col;
-        var columnClassName = Backdraft.Utils.extractColumnCSSClass(this.className);
+        var columnClassName = extractColumnCSSClass(this.className);
         if (columnClassName) {
           cg.columnsConfig.forEach(function(currentColConfig){
-            if (currentColConfig.id && Backdraft.Utils.toColumnCSSClass(currentColConfig.id) === columnClassName) {
+            if (currentColConfig.id && toColumnCSSClass(currentColConfig.id) === columnClassName) {
               col = currentColConfig;
             }
           })
@@ -696,3 +711,5 @@ var LocalDataTable = (function() {
   return LocalDataTable;
 
 })();
+
+export default LocalDataTable;

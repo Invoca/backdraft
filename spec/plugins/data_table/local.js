@@ -1,3 +1,5 @@
+import { default as Backdraft } from "../../../src/entry.js";
+
 describe("DataTable Plugin", function() {
   var app;
   var collection;
@@ -537,12 +539,12 @@ describe("DataTable Plugin", function() {
 
       describe("no match for headerGroupDataIndex", function() {
         beforeEach(function () {
-          spyOn(Backdraft.Utils, 'log').and.callThrough();
+          console.log = jasmine.createSpy("log");
         });
 
         var buildTableAndExpectMismatchedColumn = function() {
           buildAndAppendTable();
-          expect(Backdraft.Utils.log.calls.mostRecent().args[0]).toMatch(/Unable to find a matching headerGroupDataIndex for/)
+          expect(console.log.calls.mostRecent().args[0]).toMatch(/Unable to find a matching headerGroupDataIndex for/)
           expect(table.$(".header-groups-row").length).toEqual(1);
         };
 

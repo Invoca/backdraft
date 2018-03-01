@@ -1,3 +1,5 @@
+import { default as Backdraft } from "../../../src/entry.js";
+
 describe("Base Plugin", function() {
 
   describe("Cache", function() {

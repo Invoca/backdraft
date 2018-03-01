@@ -1,3 +1,6 @@
+import Backbone from "backbone";
+import _ from "underscore";
+
 var View = (function() {
 
   var View = Backbone.View.extend({
@@ -11,7 +14,7 @@ var View = (function() {
       var existing = this.children[name];
       if (!view) return existing;
       if (existing) throw new Error("View " + name + " already exists");
-      this.children[name] = _.extend(view, { 
+      this.children[name] = _.extend(view, {
         parent : this,
         name : name
       });
@@ -40,3 +43,5 @@ var View = (function() {
   return View;
 
 })();
+
+export default View;

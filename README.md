@@ -121,7 +121,7 @@ Then activate the app at load time:
 * We're using curly braces ``{{ }}`` for underscore templating instead of angle brackets ``<% %>`` to not conflict with other templating conventions.
 
 ### Examples
-If you run `grunt`, an local server will be launched with live examples at [localhost:9873](http://localhost:9873).
+If you run `yarn run examples`, a local server will be launched with live examples at [localhost:9888](http://localhost:9888).
 
 
 ## Develop & Contribute
@@ -136,27 +136,29 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
  *  ``` nvm install v6.11.0```
 * Set it as the default Node.js version
  * ```nvm alias default v6.11.0```
+* Install Yarn
+  https://yarnpkg.com/en/docs/install
 * Install dependencies
 
   ```
   cd backdraft
-  npm run setup
-  npm install
+  yarn run setup
+  yarn install
   ```
 
 ### Testing
 
-Run the grunt task from the main directory to have the source and test files watched and tests auto-run when any modifications are done
+Run the yarn `dev` task from the main directory to have the source and test files watched and tests auto-run when any modifications are done
 
-    grunt
+    yarn run dev
 
 You can also specifically run tests with:
 
-    grunt spec
+    yarn run specs
 
 See all available commands with:
 
-    grunt --help
+    yarn run
 
 ### Contributing
 
@@ -177,11 +179,11 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
   * Code Reviewed
   * Tested
 
-1. Update version: `npm version <update_type>` (patch|minor|major)
+1. Update version: `yarn version --new-version <version>`
 
 1. A commit is made with a version bump, so `git push`
 
-1. Publish to NPM registry: `npm publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
+1. Publish to NPM registry: `yarn publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
 
 1. If on a branch, ensure this version gets **merged to master**
 

@@ -1,6 +1,10 @@
+import _ from "underscore";
+
+import Plugin from "../../plugin";
+
 var Row = (function() {
 
-  var Base = Backdraft.plugin("Base");
+  var Base = Plugin.factory("Base");
 
   var Row = Base.View.extend({
     initialize: function(options) {
@@ -82,3 +86,5 @@ var Row = (function() {
   return Row;
 
 })();
+
+export default Row;
