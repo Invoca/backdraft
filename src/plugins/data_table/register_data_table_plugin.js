@@ -14,15 +14,15 @@ import addBulkColumnType from "./column_types/bulk";
 
 import initializeColReorderPlugin from "./dataTables.colReorder";
 
-Plugin.factory("DataTable", function(plugin) {
+Plugin.factory("DataTable", plugin => {
 
-  plugin.initializer(function(app) {
+  plugin.initializer(app => {
 
     initializeBootstrap();
     initializeColReorderPlugin();
 
     app.view.dataTable = function(name, baseClassName, properties) {
-      var baseClass;
+      let baseClass;
       if (arguments.length === 2) {
         properties = baseClassName;
         baseClass = properties.serverSide ? ServerSideDataTable : LocalDataTable;
@@ -35,7 +35,7 @@ Plugin.factory("DataTable", function(plugin) {
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
-      var baseClass = Row, renderers;
+      let baseClass = Row;
       if (arguments.length === 2) {
         properties = baseClassName;
       } else {
@@ -55,7 +55,7 @@ Plugin.factory("DataTable", function(plugin) {
     };
 
     app.view.dataTable.columnType = function(cb) {
-      var columnType = new ColumnType();
+      const columnType = new ColumnType();
       cb(columnType);
       app.view.dataTable.config.columnTypes.push(columnType);
     };

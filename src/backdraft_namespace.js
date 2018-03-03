@@ -23,5 +23,6 @@ const BackdraftNamespace = {
 
 import "./plugins/base/register_base_plugin";
 import "./plugins/listing/register_listing_plugin";
+import "./plugins/data_table/register_data_table_plugin";
 
 export default BackdraftNamespace;
