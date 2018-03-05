@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: "./src/entry.js",
+  entry: "./src/legacy/entry.js",
 
   devtool: 'inline-source-map',
 
