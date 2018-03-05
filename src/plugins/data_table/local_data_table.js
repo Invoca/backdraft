@@ -9,7 +9,7 @@ import ColumnManager from "./column_manager";
 import SelectionManager from "./selection_manager";
 import LockManager from "./lock_manager";
 
-import DataTableFilter from "./filter_view";
+import FilterView from "./filter_view";
 
 import {extractColumnCSSClass, toColumnCSSClass} from "../../utils/css";
 
@@ -577,7 +577,7 @@ class LocalDataTable extends View {
       if (col) {
         // We only make the filter controls if there's a filter element in the column manager
         if (col.filter) {
-          table.child(`filter-${col.id}`, new DataTableFilter({
+          table.child(`filter-${col.id}`, new FilterView({
             column: col,
             table,
             head: this,
