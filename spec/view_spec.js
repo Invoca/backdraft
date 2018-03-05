@@ -1,99 +1,91 @@
-import { default as Backdraft } from "../src/legacy/entry";
+import View from "../src/view";
 
-describe("Base Plugin", function() {
+describe("View", function() {
 
-  describe("View", function() {
+  it("should trigger events before and after it is closed", function() {
+    const view = new View();
+    const spy = jasmine.createSpyObj("eventSpy", [ "beforeClose", "afterClose" ]);
 
-    var exports = Backdraft.plugin("Base");
-
-    it("should trigger events before and after it is closed", function() {
-      var view = new exports.View();
-      var spy = jasmine.createSpyObj("eventSpy", [ "beforeClose", "afterClose" ]);
-
-      view.on({
-        beforeClose : spy.beforeClose,
-        afterClose : spy.afterClose
-      });
-
-      view.close();
-
-      expect(spy.beforeClose).toHaveBeenCalled();
-      expect(spy.afterClose).toHaveBeenCalled();
+    view.on({
+      beforeClose : spy.beforeClose,
+      afterClose : spy.afterClose
     });
 
-    describe("#child", function() {
+    view.close();
 
-      it("should return undefined when accessing invalid children", function() {
-        var view = new exports.View();
-        expect(view.child("invalid")).toBeUndefined();
-      });
+    expect(spy.beforeClose).toHaveBeenCalled();
+    expect(spy.afterClose).toHaveBeenCalled();
+  });
 
-      it("should raise an error when setting a child with an existing name", function() {
-        expect(function() {
-          var view = new exports.View();
-          view.child("abc", new exports.View());
-          view.child("abc", new exports.View());
-        }).toThrow();
-      });
+  describe("#child", function() {
 
-      it("should set children", function() {
-        var parent = new exports.View();
-        var child = new exports.View();
-
-        parent.child("abc", child);
-        expect(child.parent).toBe(parent);
-        expect(parent.child("abc")).toBe(child);
-      });
-
-      it("should close all children", function() {
-        var parent = new exports.View();
-        var child1 = new exports.View();
-        var child2 = new exports.View();
-        parent.child("child1", child1);
-        parent.child("child2", child2);
-        spyOn(child1, 'close').and.callThrough();
-        spyOn(child2, 'close').and.callThrough();
-
-        parent.close();
-
-        expect(child1.close).toHaveBeenCalled();
-        expect(child2.close).toHaveBeenCalled();
-        expect(child1.parent).not.toBeDefined();
-        expect(child2.parent).not.toBeDefined();
-
-        expect(parent.child("child1")).toBeUndefined();
-        expect(parent.child("child2")).toBeUndefined();
-      });
-
+    it("should return undefined when accessing invalid children", function() {
+      const view = new View();
+      expect(view.child("invalid")).toBeUndefined();
     });
 
-    describe("#close", function() {
+    it("should raise an error when setting a child with an existing name", function() {
+      expect(() => {
+        const view = new View();
+        view.child("abc", new View());
+        view.child("abc", new View());
+      }).toThrow();
+    });
 
-      it("should unbind all events from the view", function() {
-        var view = new exports.View();
-        var spy = jasmine.createSpyObj("eventSpy", [ "abc", "xyz" ]);
+    it("should set children", function() {
+      const parent = new View();
+      const child = new View();
 
-        view.on({
-          abc : spy.abc,
-          xyz : spy.xyz
-        });
+      parent.child("abc", child);
+      expect(child.parent).toBe(parent);
+      expect(parent.child("abc")).toBe(child);
+    });
 
-        view.trigger("abc");
-        view.trigger("xyz");
+    it("should close all children", function() {
+      const parent = new View();
+      const child1 = new View();
+      const child2 = new View();
+      parent.child("child1", child1);
+      parent.child("child2", child2);
+      spyOn(child1, 'close').and.callThrough();
+      spyOn(child2, 'close').and.callThrough();
 
-        expect(spy.abc.calls.count()).toBe(1);
-        expect(spy.xyz.calls.count()).toBe(1);
+      parent.close();
 
-        view.close();
-        view.trigger("abc");
-        view.trigger("xyz");
+      expect(child1.close).toHaveBeenCalled();
+      expect(child2.close).toHaveBeenCalled();
+      expect(child1.parent).not.toBeDefined();
+      expect(child2.parent).not.toBeDefined();
 
-        expect(spy.abc.calls.count()).toBe(1);
-        expect(spy.xyz.calls.count()).toBe(1);
-      });
-
+      expect(parent.child("child1")).toBeUndefined();
+      expect(parent.child("child2")).toBeUndefined();
     });
 
   });
 
+  describe("#close", function() {
+
+    it("should unbind all events from the view", function() {
+      const view = new View();
+      const spy = jasmine.createSpyObj("eventSpy", [ "abc", "xyz" ]);
+
+      view.on({
+        abc : spy.abc,
+        xyz : spy.xyz
+      });
+
+      view.trigger("abc");
+      view.trigger("xyz");
+
+      expect(spy.abc.calls.count()).toBe(1);
+      expect(spy.xyz.calls.count()).toBe(1);
+
+      view.close();
+      view.trigger("abc");
+      view.trigger("xyz");
+
+      expect(spy.abc.calls.count()).toBe(1);
+      expect(spy.xyz.calls.count()).toBe(1);
+    });
+  });
 });
