@@ -26,7 +26,7 @@
  */
 
 import jQuery from "jquery";
-import {Coordinates, DomVisibility} from "../../utils/dom_visibility";
+import {absolutePointAtViewportEdge, DomVisibility} from "./utils/dom_visibility";
 
 export default function initializeColReorderPlugin() {
 
@@ -1398,20 +1398,20 @@ export default function initializeColReorderPlugin() {
             moreToLeft = !visibilityChecker.leftEdgeInView();
           }
 
-          if (
-            Coordinates.absolutePointAtViewportEdge(
-              'right',
-              e.pageX,
-              this.s.autoScrollTargetWidth
-            ) && moreToRight) {
+        if (
+          absolutePointAtViewportEdge(
+            'right',
+            e.pageX,
+            this.s.autoScrollTargetWidth
+          ) && moreToRight) {
 
-            scrollDelta = this.s.autoScrollIncrementSize;
-          } else if (
-            Coordinates.absolutePointAtViewportEdge(
-              'left',
-              e.pageX,
-              this.s.autoScrollTargetWidth
-            ) && moreToLeft) {
+          scrollDelta = this.s.autoScrollIncrementSize;
+        } else if (
+          absolutePointAtViewportEdge(
+            'left',
+            e.pageX,
+            this.s.autoScrollTargetWidth
+          ) && moreToLeft) {
 
             scrollDelta = 0 - this.s.autoScrollIncrementSize;
           }

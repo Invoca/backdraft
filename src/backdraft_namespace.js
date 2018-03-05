@@ -1,5 +1,4 @@
 import Class from "./utils/class";
-import { DomVisibility, Coordinates } from "./utils/dom_visibility";
 import { toCSSClass, toColumnCSSClass, extractColumnCSSClass } from "./utils/css";
 import log from "./utils/logging";
 
@@ -9,8 +8,6 @@ import App from "./app";
 const BackdraftNamespace = {
   Utils: {
     Class,
-    DomVisibility,
-    Coordinates,
     toCSSClass,
     toColumnCSSClass,
     extractColumnCSSClass,
