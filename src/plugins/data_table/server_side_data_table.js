@@ -3,7 +3,7 @@ import _ from "underscore";
 import $ from "jquery";
 
 import SelectionManager from "./selection_manager";
-import LocalDataTable from "./data_table";
+import LocalDataTable from "./local_data_table";
 import cidMap from "./cid_map";
 
 class ServerSideDataTable extends LocalDataTable {

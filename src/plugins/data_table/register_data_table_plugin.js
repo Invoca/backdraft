@@ -4,7 +4,7 @@ import Plugin from "../../plugin";
 
 import ColumnType from "./column_type";
 import Row from "./row";
-import LocalDataTable from "./data_table";
+import LocalDataTable from "./local_data_table";
 import ServerSideDataTable from "./server_side_data_table";
 
 import initializeBootstrap from "./bootstrap";
