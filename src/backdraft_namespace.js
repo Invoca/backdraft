@@ -1,6 +1,5 @@
 import Class from "./utils/class";
 import { toCSSClass, toColumnCSSClass, extractColumnCSSClass } from "./utils/css";
-import log from "./utils/logging";
 
 import Plugin from "./plugin";
 import App from "./app";
@@ -10,8 +9,7 @@ const BackdraftNamespace = {
     Class,
     toCSSClass,
     toColumnCSSClass,
-    extractColumnCSSClass,
-    log
+    extractColumnCSSClass
   },
 
   plugin: Plugin.factory,
