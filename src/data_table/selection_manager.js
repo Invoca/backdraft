@@ -1,24 +1,22 @@
 import _ from "underscore";
 
-import Class from "../legacy/utils/class";
+class SelectionManager {
 
-var SelectionManager = Class.extend({
-
-  initialize: function() {
+  constructor() {
     this._count = 0;
     this._cidMap = {};
-  },
+  }
 
-  count: function() {
+  count() {
     return this._count;
-  },
+  }
 
-  models: function() {
+  models() {
     return _.values(this._cidMap);
-  },
+  }
 
-  process: function(model, state) {
-    var existing = this._cidMap[model.cid];
+  process(model, state) {
+    const existing = this._cidMap[model.cid];
     if (state) {
       if (!existing) {
         // add new entry
@@ -29,15 +27,14 @@ var SelectionManager = Class.extend({
       if (existing) {
         // purge existing entry
         delete this._cidMap[model.cid];
-        this._count = Math.max(0, this._count - 1);
+        this._count = Math.max(0, this._count -1);
       }
     }
-  },
-
-  has: function(model) {
-    return !!this._cidMap[model.cid];
   }
 
-});
+  has(model) {
+    return !!this._cidMap[model.cid];
+  }
+}
 
 export default SelectionManager;

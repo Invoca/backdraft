@@ -1,84 +1,82 @@
 import Backbone from "backbone";
 import _ from "underscore";
 
-import Class from "../legacy/utils/class";
-
 import ColumnConfigGenerator from "./column_config_generator";
 
-var ColumnManager = Class.extend({
-  initialize: function(table) {
+class ColumnManager {
+  constructor(table) {
     _.extend(this, Backbone.Events);
     this.table = table;
     this.visibility = new Backbone.Model();
     this._configGenerator = new ColumnConfigGenerator(table);
     this._initEvents();
-  },
+  }
 
-  applyVisibilityPreferences: function() {
-    var prefs = {};
-    _.each(this.columnsConfig(), function(config) {
+  applyVisibilityPreferences() {
+    const prefs = {};
+    _.each(this.columnsConfig(), config => {
       if (config.id) {
         prefs[config.id] = config.visible;
       }
     });
     this.visibility.set(prefs);
-  },
+  }
 
-  columnAttrs: function() {
+  columnAttrs() {
     return _.pluck(this.columnsConfig(), "attr");
-  },
+  }
 
-  dataTableColumnsConfig: function() {
+  dataTableColumnsConfig() {
     return this._configGenerator.dataTableColumns;
-  },
+  }
 
-  dataTableSortingConfig: function() {
+  dataTableSortingConfig() {
     return this._configGenerator.dataTableSorting;
-  },
+  }
 
-  columnsConfig: function() {
+  columnsConfig() {
     return this._configGenerator.columnsConfig;
-  },
+  }
 
-  columnConfigForId: function(id) {
+  columnConfigForId(id) {
     return this._configGenerator.columnConfigById.get(id);
-  },
+  }
 
-  columnsSwapped: function(fromIndex, toIndex) {
+  columnsSwapped(fromIndex, toIndex) {
     this._configGenerator.columnsSwapped(fromIndex, toIndex);
     this.trigger("change:order");
-  },
+  }
 
-  columnsReordered: function() {
+  columnsReordered() {
     this._configGenerator.columnsReordered();
-  },
+  }
 
-  changeSorting: function(sorting) {
+  changeSorting(sorting) {
     this._configGenerator._computeSortingConfig(sorting);
-  },
+  }
 
-  _initEvents: function() {
+  _initEvents() {
     this.visibility.on("change", function() {
       this._applyVisibilitiesToDataTable(this.visibility.changed);
       this.trigger("change:visibility", this._visibilitySummary());
     }, this);
-  },
+  }
 
-  _applyVisibilitiesToDataTable: function(columnIdStateMap) {
+  _applyVisibilitiesToDataTable(columnIdStateMap) {
     _.each(columnIdStateMap, function(state, id) {
       // last argument of false signifies not to redraw the table
       this.table.dataTable.fnSetColumnVis(this._configGenerator.columnIndexById.get(id), state, false);
     }, this);
-  },
+  }
 
-  _visibilitySummary: function() {
-    var summary = { visible: [], hidden: [] };
-    _.each(this.visibility.attributes, function(state, id) {
+  _visibilitySummary() {
+    const summary = { visible: [], hidden: [] };
+    _.each(this.visibility.attributes, (state, id) => {
       if (state) summary.visible.push(id);
       else       summary.hidden.push(id);
     });
     return summary;
   }
-});
+}
 
 export default ColumnManager;
