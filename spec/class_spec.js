@@ -41,22 +41,4 @@ describe("Backdraft.Utils.Class", function() {
     expect(train.stuff).toEqual([ "X", "Y" ]);
     expect(train.identify()).toEqual("Train");
   });
-
-  it("should allow getter/setters to be generated", function() {
-    var Vehicle = Backdraft.Utils.Class.extend({
-      initialize: function() {
-        this._getterSetter("doors");
-        this._getterSetter("color");
-      }
-    });
-
-    var vehicle = new Vehicle();
-    expect(vehicle.doors()).not.toBeDefined();
-    expect(vehicle.color()).not.toBeDefined();
-    vehicle.doors(4);
-    vehicle.color("red");
-    expect(vehicle.doors()).toEqual(4);
-    expect(vehicle.color()).toEqual("red");
-  });
-
 });
