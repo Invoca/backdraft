@@ -8,14 +8,17 @@ import cidMap from "./cid_map";
 
 class ServerSideDataTable extends LocalDataTable {
 
-  constructor(...args) {
-    super(...args);
+  constructor(options) {
+    super(options);
 
     if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
     if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
+
     _.bindAll(this, "_fetchServerData", "_addServerParams", "_onDraw", "exportData");
+
     this.serverParams({});
     this.selectAllMatching(false);
+    this.appName = options.appName;
   }
 
   initialize(...args) {
@@ -55,6 +58,10 @@ class ServerSideDataTable extends LocalDataTable {
   // reload data from the server
   reload() {
     this.dataTable && this.dataTable.fnDraw();
+  }
+
+  _triggerGlobalEvent(eventName, args) {
+    $("body").trigger(`${this.appName}:${eventName}`, args);
   }
 
   _onAdd() {

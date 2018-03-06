@@ -14,6 +14,7 @@ import FilterView from "./filter_view";
 import {extractColumnCSSClass, toColumnCSSClass} from "../utils/css";
 
 import cidMap from "./cid_map";
+import Config from "./config";
 
 class LocalDataTable extends View {
   constructor(...args) {
@@ -36,6 +37,18 @@ class LocalDataTable extends View {
     this._applyDefaults();
     this._columnManager = new ColumnManager(this);
     this._lockManager = new LockManager(this);
+  }
+
+  get config() {
+    if (!this._config) {
+      this._config = new Config();
+    }
+
+    return this._config;
+  }
+
+  availableColumnTypes()  {
+    return this.config.columnTypes;
   }
 
   // apply filtering
@@ -375,21 +388,6 @@ class LocalDataTable extends View {
 
   _applyDefaults() {
     _.defaults(this, {
-      paginate : true,
-      paginateLengthMenu : [ 10, 25, 50, 100 ],
-      paginateLength : 10,
-      selectedIds : [],
-      filteringEnabled: false,
-      layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-      striped: true,
-      reorderableColumns: true,
-      resizableColumns: false,
-      objectName: {
-        singular: "row",
-        plural: "rows"
-      }
-    });
-    _.defaults(this, {
       sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
     });
 
@@ -688,7 +686,21 @@ _.extend(LocalDataTable.prototype, {
   ROWS_SELECTOR: "tbody tr",
   template: '\
     <table cellpadding="0" class="table"></table>\
-  '
+  ',
+
+  paginate : true,
+  paginateLengthMenu : [ 10, 25, 50, 100 ],
+  paginateLength : 10,
+  selectedIds : [],
+  filteringEnabled: false,
+  layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+  striped: true,
+  reorderableColumns: true,
+  resizableColumns: false,
+  objectName: {
+    singular: "row",
+    plural: "rows"
+  }
 });
 
 LocalDataTable.finalize = function(name, tableClass, views, pluginConfig, appName) {
@@ -697,12 +709,7 @@ LocalDataTable.finalize = function(name, tableClass, views, pluginConfig, appNam
     tableClass.prototype._resolveRowClass = function() { return views[tableClass.prototype.rowClassName]; };
   }
 
-  // return all registered column types
-  tableClass.prototype.availableColumnTypes = function() { return pluginConfig.columnTypes; };
-
-  tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
-    $("body").trigger(`${appName}:${eventName}`, args);
-  };
+  tableClass.prototype._config = pluginConfig;
 };
 
 export default LocalDataTable;
