@@ -1,8 +1,5 @@
 const path = require('path');
 
-console.log(__dirname);
-console.log("Output: " + path.resolve(__dirname, 'dist'));
-
 module.exports = {
   entry: "./src/entry.js",
 
