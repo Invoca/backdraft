@@ -7,7 +7,7 @@
     "sourceType": "module"
   },
   "rules": {
-    "indent": ["error", 4],
+    "indent": ["error", 5],
     "key-spacing": ["error", { "mode": "minimum" }],
     "brace-style": ["error", "1tbs", { "allowSingleLine": true }],
     "space-infix-ops": ["error", {"int32Hint": false}],
