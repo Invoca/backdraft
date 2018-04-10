@@ -1,8 +1,3 @@
-if (true) {
-   "string"
-}
-
-
-if (true) {
-    "string"
+if (false) {
+  'blah'
 }
