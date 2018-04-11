@@ -15,11 +15,11 @@ describe("DataTable Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins : [ "DataTable" ]
+      plugins: [ "DataTable" ]
     });
     app.model("M", {});
     app.collection("Col", {
-      model : app.Models.M
+      model: app.Models.M
     });
     collection = new app.Collections.Col();
     baseExports = Backdraft.plugin("Base");
@@ -27,9 +27,9 @@ describe("DataTable Plugin", function() {
 
   describe("factories and constructors", function() {
     it("should expose #dataTable and #dataTable.row", function() {
-      app.view.dataTable.row("abc", { columns : [] });
+      app.view.dataTable.row("abc", { columns: [] });
       app.view.dataTable("def", {
-        rowClassName : "abc"
+        rowClassName: "abc"
       });
       expect(new app.Views.abc({ columnsConfig: [] })).toEqual(jasmine.any(baseExports.View));
       expect(new app.Views.def({ collection: collection })).toEqual(jasmine.any(baseExports.View));
@@ -37,13 +37,13 @@ describe("DataTable Plugin", function() {
 
     it("should allow rows to be subclassed", function() {
       app.view.dataTable.row("abc", {
-        baseMethod : function() {
+        baseMethod: function() {
           return "i am base";
         }
       });
 
       app.view.dataTable.row("new_abc", "abc", {
-        baseMethod : function() {
+        baseMethod: function() {
           return "i am the new base";
         }
       });
@@ -52,15 +52,15 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow tables to be subclassed", function() {
-      app.view.dataTable.row("abc", { columns : [] });
+      app.view.dataTable.row("abc", { columns: [] });
       app.view.dataTable("def", {
-        rowClassName : "abc",
-        baseMethod : function() {
+        rowClassName: "abc",
+        baseMethod: function() {
           return "i am base";
         }
       });
       app.view.dataTable("new_def", "def", {
-        baseMethod : function() {
+        baseMethod: function() {
           return "i am the new base";
         }
       });
@@ -70,8 +70,8 @@ describe("DataTable Plugin", function() {
 
     it("should allow rowClass to be provided as an argument instead of rowClassName", function() {
       app.view.dataTable.row("abc", {
-        columns : [
-          { attr : "name", title : "I came from a rowClass argument" }
+        columns: [
+          { attr: "name", title: "I came from a rowClass argument" }
         ]
       });
       app.view.dataTable("def", { });
@@ -82,12 +82,12 @@ describe("DataTable Plugin", function() {
 
   describe("object names", function() {
     beforeEach(function() {
-      app.view.dataTable.row("abc", { columns : [] });
+      app.view.dataTable.row("abc", { columns: [] });
     });
 
     it("should default to using the object name of 'row' / 'rows'", function() {
       app.view.dataTable("def", {
-        rowClassName : "abc"
+        rowClassName: "abc"
       });
       var table = new app.Views.def({ collection: collection });
       expect(table.objectName.singular).toEqual("row");
@@ -96,7 +96,7 @@ describe("DataTable Plugin", function() {
 
     it("should allow the object name to be configurable", function() {
       app.view.dataTable("def", {
-        rowClassName : "abc",
+        rowClassName: "abc",
         objectName: {
           singular: "server",
           plural: "servers"
@@ -110,7 +110,7 @@ describe("DataTable Plugin", function() {
     it("should require that both the singular and plural forms of the object name be provided", function() {
       expect(function() {
         app.view.dataTable("noplural", {
-          rowClassName : "abc",
+          rowClassName: "abc",
           objectName: {
             singular: "server"
           }
@@ -120,7 +120,7 @@ describe("DataTable Plugin", function() {
 
       expect(function() {
         app.view.dataTable("nosingular", {
-          rowClassName : "abc",
+          rowClassName: "abc",
           objectName: {
             plural: "servers"
           }
@@ -134,38 +134,38 @@ describe("DataTable Plugin", function() {
     describe("attr based", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "name", title : "Name" }
+          columns: [
+            { attr: "name", title: "Name" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
       it("should not insert them as html", function() {
-        collection.add({ name : "<b>hihi</b>" });
+        collection.add({ name: "<b>hihi</b>" });
         expect(table.$("tbody tr td:first").html()).toEqual("&lt;b&gt;hihi&lt;/b&gt;");
       });
     });
 
     describe("bulk", function() {
       beforeEach(function() {
-        collection.add({ name : "Name" });
+        collection.add({ name: "Name" });
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "name", title : "Name" },
-            { bulk : true }
+          columns: [
+            { attr: "name", title: "Name" },
+            { bulk: true }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
@@ -196,25 +196,25 @@ describe("DataTable Plugin", function() {
     describe("user defined by title matching", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { title : "Name" },
-            { title : "Age", attr : "age_value" }
+          columns: [
+            { title: "Name" },
+            { title: "Age", attr: "age_value" }
           ],
-          renderers : {
+          renderers: {
             // pure html, not based on model
-            "name" : function(node, config) {
+            "name": function(node, config) {
               node.html('<a href="#">I AM LINK</a>');
             },
-            "age_value" : function(node, config) {
+            "age_value": function(node, config) {
               node.addClass("age-added-by-renderer").text(this.model.get(config.attr));
             }
           }
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
@@ -231,16 +231,16 @@ describe("DataTable Plugin", function() {
     describe("user defined by config renderer property", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
+          columns: [
             {
-              title : "Name",
+              title: "Name",
               renderer: function(node, config) {
                 node.html('<a href="#">I AM LINK</a>');
               }
             },
             {
-              title : "Age",
-              attr : "age_value",
+              title: "Age",
+              attr: "age_value",
               renderer: function(node, config) {
                 node.addClass("age").text(this.model.get(config.attr));
               }
@@ -249,15 +249,15 @@ describe("DataTable Plugin", function() {
         });
 
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
       it("invoke them correctly", function() {
-        collection.add({ age_value : 30 });
+        collection.add({ age_value: 30 });
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("age")).toEqual(true);
@@ -310,45 +310,45 @@ describe("DataTable Plugin", function() {
     it("can only be provided as an array or a function that returns an array", function(){
       var passingArray = function() {
         app.view.dataTable.row("ArrayCol", {
-          columns : [
-            { bulk : true }
+          columns: [
+            { bulk: true }
           ]
         });
         app.view.dataTable("TableCol", {
-          rowClassName : "ArrayCol"
+          rowClassName: "ArrayCol"
         });
 
-        table = new app.Views.TableCol({ collection : collection });
+        table = new app.Views.TableCol({ collection: collection });
         table.render();
       };
 
       var passingFn = function() {
         app.view.dataTable.row("ArrayCol", {
-          columns : function() {
+          columns: function() {
             return [
-              { bulk : true }
+              { bulk: true }
             ];
           }
         });
         app.view.dataTable("TableCol", {
-          rowClassName : "ArrayCol"
+          rowClassName: "ArrayCol"
         });
 
-        table = new app.Views.TableCol({ collection : collection });
+        table = new app.Views.TableCol({ collection: collection });
         table.render();
       };
 
       var failing = function() {
         app.view.dataTable.row("ArrayCol", {
-          columns : function() {
-            return { bulk : true };
+          columns: function() {
+            return { bulk: true };
           }
         });
         app.view.dataTable("TableCol", {
-          rowClassName : "ArrayCol"
+          rowClassName: "ArrayCol"
         });
 
-        table = new app.Views.TableCol({ collection : collection });
+        table = new app.Views.TableCol({ collection: collection });
         table.render();
       };
 
@@ -365,19 +365,19 @@ describe("DataTable Plugin", function() {
         return false;
       };
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "attr1", title : "Attr1", present: yes },
-          { attr : "attr2", title : "Attr2", present: no },
-          { attr : "attr3", title : "Attr3", present: no },
-          { attr : "attr4", title : "Attr4", present: yes },
-          { attr : "attr5", title : "Attr5" }
+        columns: [
+          { attr: "attr1", title: "Attr1", present: yes },
+          { attr: "attr2", title: "Attr2", present: no },
+          { attr: "attr3", title: "Attr3", present: no },
+          { attr: "attr4", title: "Attr4", present: yes },
+          { attr: "attr5", title: "Attr5" }
         ]
       });
       app.view.dataTable("T", {
-        rowClassName : "R"
+        rowClassName: "R"
       });
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       expect(getHeaders(table)).toEqual(["Attr1", "Attr4", "Attr5"]);
@@ -391,14 +391,14 @@ describe("DataTable Plugin", function() {
       }
 
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name" },
-          { attr : "age",  title : "Age", sortDir: ['desc', 'asc'] },
-          { attr : "zip",  title : "Zip", sortDir: ['asc', 'desc'] }
+        columns: [
+          { attr: "name", title: "Name" },
+          { attr: "age",  title: "Age", sortDir: ['desc', 'asc'] },
+          { attr: "zip",  title: "Zip", sortDir: ['asc', 'desc'] }
         ]
       });
       app.view.dataTable("T", {
-        rowClassName : "R"
+        rowClassName: "R"
       });
 
       collection.reset([
@@ -407,7 +407,7 @@ describe("DataTable Plugin", function() {
         { name: "Joe",   age: 8,  zip: 33333 }
       ]);
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       // when nothing specified, sort asc by default
@@ -441,9 +441,9 @@ describe("DataTable Plugin", function() {
       }
 
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name" },
-          { title : "User Age", sortBy: function(model) { return model.get('demographics').age; } }
+        columns: [
+          { attr: "name", title: "Name" },
+          { title: "User Age", sortBy: function(model) { return model.get('demographics').age; } }
         ],
 
         renderers: {
@@ -455,7 +455,7 @@ describe("DataTable Plugin", function() {
       });
 
       app.view.dataTable("T", {
-        rowClassName : "R"
+        rowClassName: "R"
       });
 
       collection.reset([
@@ -464,7 +464,7 @@ describe("DataTable Plugin", function() {
         { name: "C", demographics: { age: 9, gender: "female" } }
       ]);
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       // should be based on name order
@@ -484,9 +484,9 @@ describe("DataTable Plugin", function() {
       }
 
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name" },
-          { title : "User Age", searchBy: function(model) { return model.get('demographics').gender; } }
+        columns: [
+          { attr: "name", title: "Name" },
+          { title: "User Age", searchBy: function(model) { return model.get('demographics').gender; } }
         ],
 
         renderers: {
@@ -498,7 +498,7 @@ describe("DataTable Plugin", function() {
       });
 
       app.view.dataTable("T", {
-        rowClassName : "R"
+        rowClassName: "R"
       });
 
       collection.reset([
@@ -507,7 +507,7 @@ describe("DataTable Plugin", function() {
         { name: "C", demographics: { age: 9, gender: "female" } }
       ]);
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       // all names are present
@@ -522,18 +522,18 @@ describe("DataTable Plugin", function() {
     describe("getting and setting visibility", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "attr1", title : "Attr1" },
-            { attr : "attr2", title : "Attr2" },
-            { attr : "attr3", title : "Attr3" },
-            { attr : "attr4", title : "Attr4" }
+          columns: [
+            { attr: "attr1", title: "Attr1" },
+            { attr: "attr2", title: "Attr2" },
+            { attr: "attr3", title: "Attr3" },
+            { attr: "attr4", title: "Attr4" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
@@ -633,15 +633,15 @@ describe("DataTable Plugin", function() {
       it("should raise when setting visibility to false on a column that is required", function() {
         expect(function() {
           app.view.dataTable.row("RError", {
-            columns : [
-              { attr : "attr5", title : "Attr5", required: true},
+            columns: [
+              { attr: "attr5", title: "Attr5", required: true},
             ]
           });
           app.view.dataTable("TError", {
-            rowClassName : "RError"
+            rowClassName: "RError"
           });
 
-          table = new app.Views.TError({ collection : collection });
+          table = new app.Views.TError({ collection: collection });
           table.render();
           table.columnVisibility("attr5", false);
         }).toThrowError(/can not disable visibility when column is required/);
@@ -651,51 +651,51 @@ describe("DataTable Plugin", function() {
     it("should allow columns to be reorderable by default", function() {
       var reorderableSpy = jasmine.createSpy("reorderableSpy");
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
       app.view.dataTable("def", {
-        rowClassName : "abc",
+        rowClassName: "abc",
         _enableReorderableColumns: reorderableSpy
       });
 
-      new app.Views.def({ collection : collection }).render();
+      new app.Views.def({ collection: collection }).render();
       expect(reorderableSpy).toHaveBeenCalled();
     });
 
     it("should allow disabling of column reordering", function() {
       var reorderableSpy = jasmine.createSpy("reorderableSpy");
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
       app.view.dataTable("def", {
-        rowClassName : "abc",
+        rowClassName: "abc",
         reorderableColumns: false,
         _enableReorderableColumns: reorderableSpy
       });
 
-      new app.Views.def({ collection : collection }).render();
+      new app.Views.def({ collection: collection }).render();
       expect(reorderableSpy).not.toHaveBeenCalled();
     });
 
     it("should default column resize to off", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
       app.view.dataTable("def", {
-        rowClassName : "abc"
+        rowClassName: "abc"
       });
 
-      var table = new app.Views.def({ collection : collection }).render();
+      var table = new app.Views.def({ collection: collection }).render();
 
       expect(table.resizableColumns).toEqual(false, "Table resizableColumns default");
       expect(table._colReorder.s.allowResize).toEqual(false, "ColReorder allowResize");
@@ -704,18 +704,18 @@ describe("DataTable Plugin", function() {
 
     it("should allow columns to be resized with flag", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
       app.view.dataTable("def", {
-        rowClassName : "abc",
-        resizableColumns : true
+        rowClassName: "abc",
+        resizableColumns: true
       });
 
-      var table = new app.Views.def({ collection : collection }).render();
+      var table = new app.Views.def({ collection: collection }).render();
 
       expect(table.resizableColumns).toEqual(true, "Table resizableColumns default");
       expect(table._colReorder.s.allowResize).toEqual(true, "ColReorder allowResize");
@@ -729,74 +729,74 @@ describe("DataTable Plugin", function() {
 
     it("should add dataTable-resizeableColumns class to resizable tables", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
       app.view.dataTable("def", {
-        rowClassName : "abc",
-        resizableColumns : true
+        rowClassName: "abc",
+        resizableColumns: true
       });
 
-      var table = new app.Views.def({ collection : collection }).render();
+      var table = new app.Views.def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(true, "Has class dataTable-resizeableColumns");
     });
 
     it("should not add dataTable-resizeableColumns class to non-resizable tables", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
       app.view.dataTable("def", {
-        rowClassName : "abc",
-        resizableColumns : false
+        rowClassName: "abc",
+        resizableColumns: false
       });
 
-      var table = new app.Views.def({ collection : collection }).render();
+      var table = new app.Views.def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(false, "Has class dataTable-resizeableColumns");
     });
 
     it("should add table-striped class to tables by default", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
       app.view.dataTable("def", {
-        rowClassName : "abc"
+        rowClassName: "abc"
       });
 
-      var table = new app.Views.def({ collection : collection }).render();
+      var table = new app.Views.def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("table-striped")).toEqual(true, "class table-striped");
     });
 
     it("should not add table-striped class to tables if setting is false", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
       app.view.dataTable("def", {
-        rowClassName : "abc",
+        rowClassName: "abc",
         striped: false
       });
 
-      var table = new app.Views.def({ collection : collection }).render();
+      var table = new app.Views.def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("table-striped")).toEqual(false, "class table-striped");
     });
 
     it("should keep track of columns being reordered", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" },
           { attr: "location", title: "Location" },
@@ -804,10 +804,10 @@ describe("DataTable Plugin", function() {
         ]
       });
       app.view.dataTable("def", {
-        rowClassName : "abc",
+        rowClassName: "abc",
       });
 
-      table = new app.Views.def({ collection : collection }).render();
+      table = new app.Views.def({ collection: collection }).render();
       table.$el.appendTo("body");
 
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Name", "Age", "Location", "Birthday"]);
@@ -827,18 +827,18 @@ describe("DataTable Plugin", function() {
     describe("custom column order", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "attr1", title : "Attr1" },
-            { attr : "attr2", title : "Attr2" },
-            { attr : "attr3", title : "Attr3" },
-            { attr : "attr4", title : "Attr4" }
+          columns: [
+            { attr: "attr1", title: "Attr1" },
+            { attr: "attr2", title: "Attr2" },
+            { attr: "attr3", title: "Attr3" },
+            { attr: "attr4", title: "Attr4" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
@@ -870,18 +870,18 @@ describe("DataTable Plugin", function() {
     describe("autoscroll on dragging of columns", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "attr1", title : "Attr1" },
-            { attr : "attr2", title : "Attr2" },
-            { attr : "attr3", title : "Attr3" },
-            { attr : "attr4", title : "Attr4" }
+          columns: [
+            { attr: "attr1", title: "Attr1" },
+            { attr: "attr2", title: "Attr2" },
+            { attr: "attr3", title: "Attr3" },
+            { attr: "attr4", title: "Attr4" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         $('body').append(table.$el);
         $('body').css('margin', 0);
@@ -1041,18 +1041,18 @@ describe("DataTable Plugin", function() {
     describe("provide an interface to access the column configuration", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "attr1", title : "Attr1" },
-            { attr : "attr2", title : "Attr2" },
-            { attr : "attr3", title : "Attr3" },
-            { attr : "attr4", title : "Attr4" }
+          columns: [
+            { attr: "attr1", title: "Attr1" },
+            { attr: "attr2", title: "Attr2" },
+            { attr: "attr3", title: "Attr3" },
+            { attr: "attr4", title: "Attr4" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
@@ -1078,20 +1078,20 @@ describe("DataTable Plugin", function() {
 
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "attr1", title : "Attr1" },
-            { attr : "attr2", title : "Attr2", visible: true },
-            { attr : "attr3", title : "Attr3", visible: false },
-            { attr : "attr4", title : "Attr4", required: true },
-            { attr : "attr5", title : "Attr5", required: false },
-            { attr : "attr6", title : "Attr6", visible: false }
+          columns: [
+            { attr: "attr1", title: "Attr1" },
+            { attr: "attr2", title: "Attr2", visible: true },
+            { attr: "attr3", title: "Attr3", visible: false },
+            { attr: "attr4", title: "Attr4", required: true },
+            { attr: "attr5", title: "Attr5", required: false },
+            { attr: "attr6", title: "Attr6", visible: false }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         columnsConfig = table.columnsConfig();
       });
@@ -1116,15 +1116,15 @@ describe("DataTable Plugin", function() {
       it("should throw an error if a column is not visible, but is required", function() {
         expect(function() {
           app.view.dataTable.row("RError", {
-            columns : [
-              { attr : "attr6", title : "Attr6", required: true, visible: false },
+            columns: [
+              { attr: "attr6", title: "Attr6", required: true, visible: false },
             ]
           });
           app.view.dataTable("TError", {
-            rowClassName : "RError"
+            rowClassName: "RError"
           });
 
-          table = new app.Views.TError({ collection : collection });
+          table = new app.Views.TError({ collection: collection });
           table.render();
         }).toThrowError(/column can't be required, but not visible/);
       });
@@ -1159,15 +1159,15 @@ describe("DataTable Plugin", function() {
       }
 
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "attr1", title : "Attr1", visible: true },
-          { attr : "attr2", title : "Attr2", visible: false },
-          { attr : "attr3", title : "Attr3", visible: true },
-          { attr : "attr4", title : "Attr4", visible: false }
+        columns: [
+          { attr: "attr1", title: "Attr1", visible: true },
+          { attr: "attr2", title: "Attr2", visible: false },
+          { attr: "attr3", title: "Attr3", visible: true },
+          { attr: "attr4", title: "Attr4", visible: false }
         ]
       });
       app.view.dataTable("T", {
-        rowClassName : "R",
+        rowClassName: "R",
         sorting: [ [ "attr1", "asc" ] ]
       });
 
@@ -1177,7 +1177,7 @@ describe("DataTable Plugin", function() {
         { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
         { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" },
       ]);
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       // enable columns that were hidden when initially rendered, which should now be populated
@@ -1195,19 +1195,19 @@ describe("DataTable Plugin", function() {
     describe("truncating columns", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "attr1", title : "Attr1" },
-            { attr : "attr2", title : "Attr2" },
-            { attr : "attr3", title : "Attr3" },
-            { attr : "attr4", title : "Attr4" }
+          columns: [
+            { attr: "attr1", title: "Attr1" },
+            { attr: "attr2", title: "Attr2" },
+            { attr: "attr3", title: "Attr3" },
+            { attr: "attr4", title: "Attr4" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R",
+          rowClassName: "R",
           resizableColumns: true
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         $('body').append(table.$el);
       });
@@ -1256,11 +1256,11 @@ describe("DataTable Plugin", function() {
         table.remove();
 
         app.view.dataTable("T", {
-          rowClassName : "R",
+          rowClassName: "R",
           resizableColumns: false
         });
 
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         $('body').append(table.$el);
 
@@ -1319,10 +1319,10 @@ describe("DataTable Plugin", function() {
 
     beforeEach(function() {
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name" },
-          { attr : "age",  title : "Age" },
-          { attr : "zip",  title : "Zip" }
+        columns: [
+          { attr: "name", title: "Name" },
+          { attr: "age",  title: "Age" },
+          { attr: "zip",  title: "Zip" }
         ]
       });
 
@@ -1335,52 +1335,52 @@ describe("DataTable Plugin", function() {
 
     it("should allow sorting to be provided using column index", function() {
       app.view.dataTable("ByIndex2", {
-        rowClassName : "R",
+        rowClassName: "R",
         // zip ascending
         sorting: [ [ 2, "asc" ] ]
       });
 
-      table = new app.Views.ByIndex2({ collection : collection }).render();
+      table = new app.Views.ByIndex2({ collection: collection }).render();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       app.view.dataTable("ByIndex1", {
-        rowClassName : "R",
+        rowClassName: "R",
         // age descending
         sorting: [ [ 1, "desc" ] ]
       });
 
-      table = new app.Views.ByIndex1({ collection : collection }).render();
+      table = new app.Views.ByIndex1({ collection: collection }).render();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
 
     it("should allow sorting to be provided using column attr", function() {
       app.view.dataTable("ByZip", {
-        rowClassName : "R",
+        rowClassName: "R",
         // zip ascending
         sorting: [ [ "zip", "asc" ] ]
       });
 
-      table = new app.Views.ByZip({ collection : collection }).render();
+      table = new app.Views.ByZip({ collection: collection }).render();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       app.view.dataTable("ByAge", {
-        rowClassName : "R",
+        rowClassName: "R",
         // age descending
         sorting: [ [ "age", "desc" ] ]
       });
 
-      table = new app.Views.ByAge({ collection : collection }).render();
+      table = new app.Views.ByAge({ collection: collection }).render();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
 
     describe("change sorting", function() {
       it("should allow to change sorting before table is rendered", function() {
         app.view.dataTable("ByIndex2", {
-          rowClassName : "R",
+          rowClassName: "R",
           sorting: [ [ 2, "asc" ] ]
         });
 
-        table = new app.Views.ByIndex2({ collection : collection });
+        table = new app.Views.ByIndex2({ collection: collection });
         table.changeSorting([['age', 'asc']]);
         table.render();
         expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
@@ -1388,11 +1388,11 @@ describe("DataTable Plugin", function() {
 
       it("should allow to change sorting after table is rendered", function() {
         app.view.dataTable("ByIndex2", {
-          rowClassName : "R",
+          rowClassName: "R",
           sorting: [ [ 2, "asc" ] ]
         });
 
-        table = new app.Views.ByIndex2({ collection : collection }).render();
+        table = new app.Views.ByIndex2({ collection: collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
         spyOn(table.dataTable, 'fnSort').and.callThrough();
         table.changeSorting([['age', 'asc']]);
@@ -1402,11 +1402,11 @@ describe("DataTable Plugin", function() {
 
       it("should not re-sort table when sorting is unchanged", function() {
         app.view.dataTable("ByIndex2", {
-          rowClassName : "R",
+          rowClassName: "R",
           sorting: [ [ 2, "asc" ] ]
         });
 
-        table = new app.Views.ByIndex2({ collection : collection }).render();
+        table = new app.Views.ByIndex2({ collection: collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
         spyOn(table.dataTable, 'fnSort').and.callThrough();
         table.changeSorting([ [ 2, "asc" ] ]);
@@ -1418,17 +1418,17 @@ describe("DataTable Plugin", function() {
   describe("locking/unlocking controls", function() {
     beforeEach(function() {
       app.view.dataTable.row("R", {
-        columns : [
+        columns: [
           { bulk: true },
-          { attr : "name", title : "Name" }
+          { attr: "name", title: "Name" }
         ]
       });
       app.view.dataTable("LockUnlock", {
-        rowClassName : "R",
+        rowClassName: "R",
         sorting: [[1, "desc"]]
       });
       collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
-      table = new app.Views.LockUnlock({ collection : collection }).render();
+      table = new app.Views.LockUnlock({ collection: collection }).render();
     });
 
     it("should work for pagination ui", function() {
@@ -1544,12 +1544,12 @@ describe("DataTable Plugin", function() {
   describe("totalRecordsCount", function() {
     it("should return total number of records across all pages", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "id", title: "Id" }
         ]
       });
       app.view.dataTable("def", {
-        rowClassName : "abc"
+        rowClassName: "abc"
       });
       var data = _.map(_.range(1, 100), function(id) {
         return { id: id };
@@ -1564,12 +1564,12 @@ describe("DataTable Plugin", function() {
   describe("pageLimit", function() {
     it("should get the current page limit selection from fnSettings", function() {
       app.view.dataTable.row("abc", {
-        columns : [
+        columns: [
           { attr: "id", title: "Id" }
         ]
       });
       app.view.dataTable("def", {
-        rowClassName : "abc"
+        rowClassName: "abc"
       });
 
       var table = new app.Views.def({ collection: collection }).render();

@@ -5,23 +5,23 @@ var View = (function() {
 
   var View = Backbone.View.extend({
 
-    constructor : function() {
+    constructor: function() {
       this.children = {};
       View.__super__.constructor.apply(this, arguments);
     },
 
-    child : function(name, view) {
+    child: function(name, view) {
       var existing = this.children[name];
       if (!view) return existing;
       if (existing) throw new Error("View " + name + " already exists");
       this.children[name] = _.extend(view, {
-        parent : this,
-        name : name
+        parent: this,
+        name: name
       });
       return this.children[name];
     },
 
-    close : function() {
+    close: function() {
       this.trigger("beforeClose");
       // close children
       _.each(this.children, function(child) {

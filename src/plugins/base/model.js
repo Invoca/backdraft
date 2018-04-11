@@ -5,7 +5,7 @@ var Model = (function() {
   var Model = Backbone.Model.extend({
 
     // notify change listeners, but with current values
-    reTriggerChanges : function() {
+    reTriggerChanges: function() {
       for (var attr in this.attributes) {
         this.trigger("change:" + attr, this, this.get(attr), {});
       }

@@ -4,20 +4,20 @@ import Class from "../../utils/class";
 
 var SelectionManager = Class.extend({
 
-  initialize : function() {
+  initialize: function() {
     this._count = 0;
     this._cidMap = {};
   },
 
-  count : function() {
+  count: function() {
     return this._count;
   },
 
-  models : function() {
+  models: function() {
     return _.values(this._cidMap);
   },
 
-  process : function(model, state) {
+  process: function(model, state) {
     var existing = this._cidMap[model.cid];
     if (state) {
       if (!existing) {
@@ -34,7 +34,7 @@ var SelectionManager = Class.extend({
     }
   },
 
-  has : function(model) {
+  has: function(model) {
     return !!this._cidMap[model.cid];
   }
 

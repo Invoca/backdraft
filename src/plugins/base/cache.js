@@ -12,35 +12,35 @@ var Cache = (function() {
 
   var Cache = Class.extend({
 
-    initialize : function() {
+    initialize: function() {
       this.reset();
     },
 
-    set : function(key, value) {
+    set: function(key, value) {
       this.data[getKey(key)] = value;
       return value;
     },
 
-    unset : function(key) {
+    unset: function(key) {
       key = getKey(key);
       var value = this.data[key];
       delete this.data[key];
       return value;
     },
 
-    get : function(key) {
+    get: function(key) {
       return this.data[getKey(key)];
     },
 
-    size : function() {
+    size: function() {
       return _.keys(this.data).length;
     },
 
-    reset : function() {
+    reset: function() {
       this.data = {};
     },
 
-    each : function(iterator, context) {
+    each: function(iterator, context) {
       _.each(this.data, iterator, context);
     }
 

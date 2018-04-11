@@ -9,11 +9,11 @@ describe("Listing Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins : [ "Listing" ]
+      plugins: [ "Listing" ]
     });
     app.model("M", {});
     app.collection("col", {
-      model : app.Models.M
+      model: app.Models.M
     });
     collection = new app.Collections.col();
     baseExports = Backdraft.plugin("Base");
@@ -33,7 +33,7 @@ describe("Listing Plugin", function() {
 
     it("should expose a List", function() {
       app.view.listing("MyList", {});
-      expect(new app.Views.MyList({ collection : collection })).toEqual(jasmine.any(Listing.List));
+      expect(new app.Views.MyList({ collection: collection })).toEqual(jasmine.any(Listing.List));
     });
   });
 
@@ -41,7 +41,7 @@ describe("Listing Plugin", function() {
 
     it("should expose #listing", function() {
       app.view.listing("abc", {});
-      expect(new app.Views.abc({ collection : collection })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.abc({ collection: collection })).toEqual(jasmine.any(baseExports.View));
     });
 
     it("should expose #listing.item", function() {
@@ -59,10 +59,10 @@ describe("Listing Plugin", function() {
     it("should get a reference to the item class", function() {
       // intentionally define the listing before the item is defined to verify lazy evaluation of the item class
       app.view.listing("abc", {
-        itemClassName : "def"
+        itemClassName: "def"
       });
       app.view.listing.item("def", {});
-      var listing = new app.Views.abc({ collection : collection });
+      var listing = new app.Views.abc({ collection: collection });
       expect(listing.itemClass).toEqual(app.Views.def);
     });
 
@@ -74,24 +74,24 @@ describe("Listing Plugin", function() {
 
     beforeEach(function() {
       app.view.listing("Main", {
-        tagName : "ul",
-        itemClassName : "Sub"
+        tagName: "ul",
+        itemClassName: "Sub"
       });
       app.view.listing.item("Sub", {
-        tagName : "li",
-        render : function() {
+        tagName: "li",
+        render: function() {
           this.$el.html(this.model.get("name"));
           return this;
         }
       });
-      listing = new app.Views.Main({ collection : collection });
+      listing = new app.Views.Main({ collection: collection });
       listing.render();
     });
 
     describe("collection is reset", function() {
 
       beforeEach(function() {
-        collection.reset([ { name : "Bob"}, { name : "Joe" } ]);
+        collection.reset([ { name: "Bob"}, { name: "Joe" } ]);
       });
 
       it("should render a view for every model in the collection", function() {
@@ -122,7 +122,7 @@ describe("Listing Plugin", function() {
     describe("collection is added to", function() {
 
       beforeEach(function() {
-        collection.add({ name : "Bob" });
+        collection.add({ name: "Bob" });
       });
 
       it("should add a view for the model added", function() {
@@ -160,7 +160,7 @@ describe("Listing Plugin", function() {
     describe("collection is removed from", function() {
 
       beforeEach(function() {
-        collection.reset([ { name : "Bob"}, { name : "Joe"} ]);
+        collection.reset([ { name: "Bob"}, { name: "Joe"} ]);
         collection.remove(collection.models[0]);
       });
 
@@ -171,7 +171,7 @@ describe("Listing Plugin", function() {
     describe("#closeItem helper", function() {
 
       beforeEach(function() {
-        collection.reset([ { name : "Bob"}, { name : "Joe"} ]);
+        collection.reset([ { name: "Bob"}, { name: "Joe"} ]);
         var model = collection.models[0];
         var view = listing.cache.get(model);
         view.closeItem();
@@ -186,11 +186,11 @@ describe("Listing Plugin", function() {
   describe("scenarios", function() {
 
     it("should not remove models from the collection when #close is called", function() {
-      app.view.listing("Main", { itemClassName : "Sub" });
+      app.view.listing("Main", { itemClassName: "Sub" });
       app.view.listing.item("Sub", {});
-      collection.add({ id : 1 });
-      collection.add({ id : 2 });
-      var listing = new app.Views.Main({ collection : collection });
+      collection.add({ id: 1 });
+      collection.add({ id: 2 });
+      var listing = new app.Views.Main({ collection: collection });
       listing.render();
       listing.close();
       expect(collection.length).toEqual(2);

@@ -54,7 +54,7 @@ Class.prototype._getterSetter = function(prop) {
 }
 
 _.extend(Class, {
-  extend : extend
+  extend: extend
 });
 
 export default Class;

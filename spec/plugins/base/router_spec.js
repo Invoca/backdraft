@@ -6,13 +6,13 @@ describe("Base Plugin", function() {
 
     it("should trigger events on views when swapping", function() {
       var exports = Backdraft.plugin("Base");
-      var router = new exports.Router({ $el : $("<div>") });
+      var router = new exports.Router({ $el: $("<div>") });
       var view = new exports.View;
       var spy = jasmine.createSpyObj("eventSpy", [ "beforeSwap", "afterSwap" ]);
 
       view.on({
-        beforeSwap : spy.beforeSwap,
-        afterSwap : spy.afterSwap
+        beforeSwap: spy.beforeSwap,
+        afterSwap: spy.afterSwap
       });
 
       router.swap(view);
@@ -24,7 +24,7 @@ describe("Base Plugin", function() {
     it("should throw and error if $el is not found", function() {
       var exports = Backdraft.plugin("Base");
       expect(function() {
-        new exports.Router({ $el : $(".not-going-to-find-me") });
+        new exports.Router({ $el: $(".not-going-to-find-me") });
       }).toThrowError("$el can't be found");
 
       expect(function() {
@@ -43,8 +43,8 @@ describe("Base Plugin", function() {
 
       it("should create them based on callback name", function() {
         app.router("abc", {
-          routes : {
-            "files" : "index"
+          routes: {
+            "files": "index"
           }
         });
 
@@ -55,9 +55,9 @@ describe("Base Plugin", function() {
 
       it("should create them using an alias when callback names are duplicated", function() {
         app.router("abc", {
-          routes : {
-            "files" : "index",
-            "" : [ "index", "legacyIndex" ]
+          routes: {
+            "files": "index",
+            "": [ "index", "legacyIndex" ]
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
@@ -66,18 +66,18 @@ describe("Base Plugin", function() {
 
       it("should substitute params", function() {
         app.router("abc", {
-          routes : {
-            "files/:name.:ext" : "show"
+          routes: {
+            "files/:name.:ext": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
-        expect(router.nameHelper.show({ name : "image", ext : "png" })).toEqual("files/image.png")
+        expect(router.nameHelper.show({ name: "image", ext: "png" })).toEqual("files/image.png")
       });
 
       it("should substitute splats", function() {
         app.router("abc", {
-          routes : {
-            "files/*rest" : "show"
+          routes: {
+            "files/*rest": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
@@ -86,8 +86,8 @@ describe("Base Plugin", function() {
 
       it("should remove unused splats", function() {
         app.router("abc", {
-          routes : {
-            "files/*rest" : "show"
+          routes: {
+            "files/*rest": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
@@ -96,33 +96,33 @@ describe("Base Plugin", function() {
 
       it("should remove optional params when they are not provided", function() {
         app.router("abc", {
-          routes : {
-            "docs/:section(/:subsection)" : "show"
+          routes: {
+            "docs/:section(/:subsection)": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
-        expect(router.nameHelper.show({ section : "faq" })).toEqual("docs/faq");
+        expect(router.nameHelper.show({ section: "faq" })).toEqual("docs/faq");
       });
 
       it("should remove optional params parens when they are provided", function() {
         app.router("abc", {
-          routes : {
-            "docs/:section(/:subsection)" : "show"
+          routes: {
+            "docs/:section(/:subsection)": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
-        expect(router.nameHelper.show({ section : "faq", subsection : "installing" })).toEqual("docs/faq/installing");
+        expect(router.nameHelper.show({ section: "faq", subsection: "installing" })).toEqual("docs/faq/installing");
       });
 
       it("should throw an error when there are missing params", function() {
         app.router("abc", {
-          routes : {
-            "files/:name.:ext" : "show"
+          routes: {
+            "files/:name.:ext": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });
         expect(function() {
-          router.nameHelper.show({ name : "image" });
+          router.nameHelper.show({ name: "image" });
         }).toThrow();
       });
 
@@ -135,8 +135,8 @@ describe("Base Plugin", function() {
         Backdraft.app.destroyAll();
         var app = Backdraft.app("myapp", {});
         app.router("abc", {
-          routes : {
-            "files/:id" : "show"
+          routes: {
+            "files/:id": "show"
           }
         });
         var router = new app.Routers.abc({ $el: $("<div>") });

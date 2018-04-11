@@ -10,7 +10,7 @@ var ServerSideDataTable = (function() {
 
   var ServerSideDataTable = LocalDataTable.extend({
 
-    constructor : function() {
+    constructor: function() {
       // force pagination
       this.paginate = true;
       ServerSideDataTable.__super__.constructor.apply(this, arguments);
@@ -21,7 +21,7 @@ var ServerSideDataTable = (function() {
       this.selectAllMatching(false);
     },
 
-    selectAllMatching : function(val) {
+    selectAllMatching: function(val) {
       // getter
       if (arguments.length === 0) return this._selectAllMatchingParams;
 
@@ -38,7 +38,7 @@ var ServerSideDataTable = (function() {
     },
 
     // get / set additional params that should be passed as part of the ajax request
-    serverParams : function(params) {
+    serverParams: function(params) {
       if (arguments.length === 1) {
         this._serverParams = params;
         this.reload();
@@ -49,19 +49,19 @@ var ServerSideDataTable = (function() {
     },
 
     // reload data from the server
-    reload : function() {
+    reload: function() {
       this.dataTable && this.dataTable.fnDraw();
     },
 
-    _onAdd : function() {
+    _onAdd: function() {
       throw new Error("Server side dataTables do not allow adding to the collection");
     },
 
-    _onRemove : function() {
+    _onRemove: function() {
       this.page(this._currentPageIndex());
     },
 
-    _onReset : function(collection, options) {
+    _onReset: function(collection, options) {
       if (!options.addData) throw new Error("An addData option is required to reset the collection");
       // clean up old data
       // note: since we have enabled server-side processing, we don't need to call
@@ -77,7 +77,7 @@ var ServerSideDataTable = (function() {
     },
 
     // dataTables callback to allow addition of params to the ajax request
-    _addServerParams : function(aoData) {
+    _addServerParams: function(aoData) {
       if (this.simpleParams) {
         var sortBy, sortDir, limit, start, requestId;
 
@@ -121,7 +121,7 @@ var ServerSideDataTable = (function() {
       }
     },
 
-    _getDataTableParamIfExists : function(data, key) {
+    _getDataTableParamIfExists: function(data, key) {
       var obj = data[_.findIndex(data, { name: key })];
 
       if (obj) {
@@ -131,14 +131,14 @@ var ServerSideDataTable = (function() {
       }
     },
 
-    _addDataTableParamIfExists : function(data, key, value) {
+    _addDataTableParamIfExists: function(data, key, value) {
       if (value) {
         return data.push({ name: key, value: value });
       }
     },
 
     // dataTables callback after a draw event has occurred
-    _onDraw : function() {
+    _onDraw: function() {
       // anytime a draw occurs (pagination change, pagination size change, sorting, etc) we want
       // to clear out any stored selectAllMatchingParams and reset the bulk select checkbox
       this.selectAllMatching(false);
@@ -146,14 +146,14 @@ var ServerSideDataTable = (function() {
       this.trigger("draw", arguments);
     },
 
-    exportData : function(sUrl) {
+    exportData: function(sUrl) {
       var oSettings = this.dataTable.fnSettings;
       var aoData = this.dataTable._fnAjaxParameters( oSettings );
       this._addServerParams( aoData );
       this._fetchCSV(sUrl);
     },
 
-    _fetchCSV : function (sUrl) {
+    _fetchCSV: function (sUrl) {
       if (this.serverSideFiltering) {
         var filterJson = {};
         filterJson.name = "ext_filter_json";
@@ -165,7 +165,7 @@ var ServerSideDataTable = (function() {
       }
     },
 
-    _goToWindowLocation : function(sUrl) {
+    _goToWindowLocation: function(sUrl) {
       if (sUrl) {
         window.location = sUrl;
       }
@@ -174,22 +174,22 @@ var ServerSideDataTable = (function() {
       }
     },
 
-    _fetchServerData : function(sUrl, aoData, fnCallback, oSettings) {
+    _fetchServerData: function(sUrl, aoData, fnCallback, oSettings) {
       var self = this;
       if (this.serverSideFiltering) {
         aoData.push( { name: "ext_filter_json", value: this._getFilteringSettings() } );
       }
       oSettings.jqXHR = $.ajax({
-        url : sUrl,
-        data : aoData,
-        dataType : "json",
-        cache : false,
-        type : this.ajaxMethod || "GET",
+        url: sUrl,
+        data: aoData,
+        dataType: "json",
+        cache: false,
+        type: this.ajaxMethod || "GET",
         beforeSend: function(xhr) {
           xhr.setRequestHeader('X-Backdraft', "1");
           self._triggerGlobalEvent("ajax-start.backdraft", [xhr, self]);
         },
-        success : function(json) {
+        success: function(json) {
           json.sEcho                = json.requestId || json.draw || json.sEcho;
           json.aaData               = json.data      || json.aaData;
           json.iTotalRecords        = json.hasOwnProperty('recordsTotal') ? json.recordsTotal : json.iTotalRecords;
@@ -208,7 +208,7 @@ var ServerSideDataTable = (function() {
 
 
           self.collection.reset(json.aaData, {
-            addData : function(data) {
+            addData: function(data) {
               // calling fnCallback is what will actually cause the data to be populated
               json.aaData = data;
               fnCallback(json);
@@ -265,23 +265,23 @@ var ServerSideDataTable = (function() {
       return JSON.stringify(result);
     },
 
-    _dataTableConfig : function() {
+    _dataTableConfig: function() {
       var config = ServerSideDataTable.__super__._dataTableConfig.apply(this, arguments);
       // add server side related options
       return $.extend(true, config, {
-        bProcessing : true,
-        bServerSide : true,
-        sAjaxSource : _.result(this.collection, "url"),
-        fnServerData : this._fetchServerData,
-        fnServerParams : this._addServerParams,
-        fnDrawCallback : this._onDraw,
+        bProcessing: true,
+        bServerSide: true,
+        sAjaxSource: _.result(this.collection, "url"),
+        fnServerData: this._fetchServerData,
+        fnServerParams: this._addServerParams,
+        fnDrawCallback: this._onDraw,
         oLanguage: {
           sProcessing: this.processingText
         }
       });
     },
 
-    _dataTableCreate : function() {
+    _dataTableCreate: function() {
       ServerSideDataTable.__super__._dataTableCreate.apply(this, arguments);
 
       // hide inefficient filter
@@ -294,7 +294,7 @@ var ServerSideDataTable = (function() {
     // overridden and will be handled via the _onDraw callback
     _bulkCheckboxAdjust: $.noop,
 
-    _initBulkHandling : function() {
+    _initBulkHandling: function() {
       ServerSideDataTable.__super__._initBulkHandling.apply(this, arguments);
       // whenever selections change, clear out stored server params
       this.on("change:selected", function() {
@@ -302,15 +302,15 @@ var ServerSideDataTable = (function() {
       }, this);
     },
 
-    _visibleRowsOnCurrentPage : function() {
+    _visibleRowsOnCurrentPage: function() {
       // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
-      var visibleRowsCurrentPageArgs = { filter : "applied" };
+      var visibleRowsCurrentPageArgs = { filter: "applied" };
       return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map(function(index, node) {
         return $(node).data("row");
       });
     },
 
-    _currentPageIndex : function() {
+    _currentPageIndex: function() {
       if (this.dataTable.fnSettings()._iDisplayLength === 0) {
         return 0;
       } else {

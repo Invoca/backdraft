@@ -49,7 +49,7 @@ describe("App", function() {
       var destroySpy = jasmine.createSpy();
       
       Backdraft.app("myapp", {
-        destroy : function() {
+        destroy: function() {
           destroySpy();
         }
       });

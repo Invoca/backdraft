@@ -663,7 +663,7 @@ export default function initializeColReorderPlugin() {
      * fnGetColumnSelectList - return html list of columns columns, with selected columns checked
      *  @return {string} Html string
      */
-    fnGetColumnSelectList : function() {
+    fnGetColumnSelectList: function() {
       // TODO: This looks like it will be broken, need to investigate
       var tp,i;
       var availableFields = this.s.dt.aoColumns;
@@ -852,7 +852,7 @@ export default function initializeColReorderPlugin() {
      *  @returns void
      *  @private
      */
-    "_fnDefaultContextMenu" : function(e,settings,thatObj) {
+    "_fnDefaultContextMenu": function(e,settings,thatObj) {
       var colSelects = thatObj.fnGetColumnSelectList();
       var myelm = $('<div></div>');
       myelm.append(colSelects);
@@ -864,18 +864,18 @@ export default function initializeColReorderPlugin() {
 
       if (jQuery.ui) {
         myelm.dialog({
-          "position":[e.clientX,e.clientY],
-          "title":"Select Columns",
-          "modal":true,
-          "autoOpen":true,
-          "close":function(event,ui) {
+          "position": [e.clientX,e.clientY],
+          "title": "Select Columns",
+          "modal": true,
+          "autoOpen": true,
+          "close": function(event,ui) {
             myelm.remove();
           }
         });
       }
       else {
-        var overlay = $('<div class="overlayDiv"></div>').appendTo("body").css({"position":"fixed",top:0,left:0, width:"100%",height:"100%","z-index":5000});
-        myelm.appendTo("body").css({position:"absolute", top:e.clientY-2, "background-color":"grey", left:e.clientX-2, "z-index":5005, "border":"1px solid black"});
+        var overlay = $('<div class="overlayDiv"></div>').appendTo("body").css({"position": "fixed",top: 0,left: 0, width: "100%",height: "100%","z-index": 5000});
+        myelm.appendTo("body").css({position: "absolute", top: e.clientY-2, "background-color": "grey", left: e.clientX-2, "z-index": 5005, "border": "1px solid black"});
         var timer = 0;
         myelm.mouseover(function(e) {
           if (timer) {
@@ -1023,7 +1023,7 @@ export default function initializeColReorderPlugin() {
               that.dom.resizeCol = "right";
             }
             else if ((e.pageX - offset.left) < 5) {
-              $(nThTarget).css({'cursor' : 'col-resize'});
+              $(nThTarget).css({'cursor': 'col-resize'});
               //$(nTable).css({'cursor' : 'col-resize'});
               that.dom.resizeCol = "left";
             }
@@ -1096,7 +1096,7 @@ export default function initializeColReorderPlugin() {
         var newItem = $(nTh).clone();
         newItem.wrap("<tr />");
         newItem.wrap("<table />");
-        $(nTable).css({'table-layout':"auto","width":"auto"});
+        $(nTable).css({'table-layout': "auto","width": "auto"});
         this.s.dt.oFeatures.bAutoWidth = true;
         // Lets try resizing to headers instead
         newWidth = this.s.minResizeWidth;
@@ -1104,7 +1104,7 @@ export default function initializeColReorderPlugin() {
       }
 
       else {
-        $(nTable).css({'table-layout':"auto","width":"auto"});
+        $(nTable).css({'table-layout': "auto","width": "auto"});
         newWidth = $('th',nTable).eq(index).width();
 
         $(nTh).addClass("maxwidth");
