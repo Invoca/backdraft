@@ -54,7 +54,7 @@ var ColumnConfigGenerator =  Class.extend({
       return !columnConfig.bulk;
     });
 
-    this._getUrlFilterParams().forEach(function(element, index, array){
+    this._getUrlFilterParams().forEach(function(element, index, array) {
       var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
       if (columnConfigIndex >= 0) {
         this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;

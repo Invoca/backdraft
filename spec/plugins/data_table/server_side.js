@@ -1574,7 +1574,7 @@ describe("DataTable Plugin", function() {
         // Set dummy URL
         var csv_url = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
 
-        spyOn(table, "_goToWindowLocation").and.callFake(function(){});
+        spyOn(table, "_goToWindowLocation").and.callFake(function() {});
         table._fetchCSV(csv_url);
         expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
       });
@@ -1582,13 +1582,13 @@ describe("DataTable Plugin", function() {
       it("should throw error when serverSideFiltering is not enabled", function () {
         table.serverSideFiltering = false;
         expect(table.serverSideFiltering).toEqual(false);
-        expect(function(){ table._fetchCSV("/fake_url"); } ).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
+        expect(function() { table._fetchCSV("/fake_url"); } ).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
       });
     });
 
     describe("_goToWindowLocation", function () {
       it("should throw error when sUrl is not defined", function () {
-        expect(function(){ table._goToWindowLocation(); } ).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
+        expect(function() { table._goToWindowLocation(); } ).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
       });
     });
   });

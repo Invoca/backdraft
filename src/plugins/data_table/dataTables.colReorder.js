@@ -467,7 +467,7 @@ export default function initializeColReorderPlugin() {
        * @type     function
        * @default  function(table, newSize, sizeChange) {}
        */
-      "fnResizeTableCallback": function(){},
+      "fnResizeTableCallback": function() {},
 
       /**
        * Add table-layout:fixed css to the table

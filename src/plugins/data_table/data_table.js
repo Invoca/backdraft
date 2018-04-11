@@ -573,7 +573,7 @@ var LocalDataTable = (function() {
         var col;
         var columnClassName = extractColumnCSSClass(this.className);
         if (columnClassName) {
-          cg.columnsConfig.forEach(function(currentColConfig){
+          cg.columnsConfig.forEach(function(currentColConfig) {
             if (currentColConfig.id && toColumnCSSClass(currentColConfig.id) === columnClassName) {
               col = currentColConfig;
             }

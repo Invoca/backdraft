@@ -306,8 +306,8 @@ describe("DataTable Plugin", function() {
     });
   });
 
-  describe("columns", function(){
-    it("can only be provided as an array or a function that returns an array", function(){
+  describe("columns", function() {
+    it("can only be provided as an array or a function that returns an array", function() {
       var passingArray = function() {
         app.view.dataTable.row("ArrayCol", {
           columns: [
