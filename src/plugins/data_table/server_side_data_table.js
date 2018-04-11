@@ -148,8 +148,8 @@ var ServerSideDataTable = (function() {
 
     exportData: function(sUrl) {
       var oSettings = this.dataTable.fnSettings;
-      var aoData = this.dataTable._fnAjaxParameters( oSettings );
-      this._addServerParams( aoData );
+      var aoData = this.dataTable._fnAjaxParameters(oSettings);
+      this._addServerParams(aoData);
       this._fetchCSV(sUrl);
     },
 
@@ -175,7 +175,7 @@ var ServerSideDataTable = (function() {
     _fetchServerData: function(sUrl, aoData, fnCallback, oSettings) {
       var self = this;
       if (this.serverSideFiltering) {
-        aoData.push( { name: "ext_filter_json", value: this._getFilteringSettings() } );
+        aoData.push({ name: "ext_filter_json", value: this._getFilteringSettings() });
       }
       oSettings.jqXHR = $.ajax({
         url: sUrl,

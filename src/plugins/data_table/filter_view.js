@@ -307,7 +307,7 @@ var DataTableFilter = (function(options) {
         // if there are url params for this filter...
         if (matches[0]) {
           // go through each of those list values
-          matches[0].value.forEach( function(element, index, array) {
+          matches[0].value.forEach(function(element, index, array) {
             // check it
             this.$el.find('input[value="' + element + '"]').prop("checked", true);
           }.bind(this));

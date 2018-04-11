@@ -1582,13 +1582,13 @@ describe("DataTable Plugin", function() {
       it("should throw error when serverSideFiltering is not enabled", function () {
         table.serverSideFiltering = false;
         expect(table.serverSideFiltering).toEqual(false);
-        expect(function() { table._fetchCSV("/fake_url"); } ).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
+        expect(function() { table._fetchCSV("/fake_url"); }).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
       });
     });
 
     describe("_goToWindowLocation", function () {
       it("should throw error when sUrl is not defined", function () {
-        expect(function() { table._goToWindowLocation(); } ).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
+        expect(function() { table._goToWindowLocation(); }).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
       });
     });
   });

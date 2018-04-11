@@ -28,7 +28,7 @@ var ColumnConfigGenerator =  Class.extend({
 
   _getUrlFilterParams: function() {
     var urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json)) {
       return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
     } else {
       return []

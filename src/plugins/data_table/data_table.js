@@ -317,7 +317,7 @@ var LocalDataTable = (function() {
         _.each(this._columnManager._visibilitySummary().visible, function(col) {
           var columnConfig = _.findWhere(this._columnManager.columnsConfig(), { attr: col });
           var headerGroupDataIndex = columnConfig.headerGroupDataIndex;
-          var columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex": headerGroupDataIndex } );
+          var columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex": headerGroupDataIndex });
 
           if (!columnGroupConfig || !headerGroupDataIndex) {
             console.log('Unable to find a matching headerGroupDataIndex for ' + columnConfig.attr);

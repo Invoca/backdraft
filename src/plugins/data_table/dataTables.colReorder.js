@@ -533,7 +533,7 @@ export default function initializeColReorderPlugin() {
 
       // make sure the headers are the same width as the rest of table
       oDTSettings.aoDrawCallback.push({
-        "fn": function ( oSettings ) {
+        "fn": function (oSettings) {
           $(oSettings.nTableWrapper).width($(oSettings.nTable).width());
         },
         "sName": "Resize headers"
