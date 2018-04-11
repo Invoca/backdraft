@@ -1152,8 +1152,7 @@ describe("DataTable Plugin", function() {
               expectedFilterObj = [];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
-            }
-            else if (col.filter.type === "numeric") {
+            } else if (col.filter.type === "numeric") {
               // test assignment
               $(".toggle-filter-button", this).click();
               $('select[data-filter-id=first-filter]').val("eq").trigger("change");
@@ -1174,8 +1173,7 @@ describe("DataTable Plugin", function() {
               expectedFilterObj = [];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
-            }
-            else if (col.filter.type === "list") {
+            } else if (col.filter.type === "list") {
               // test assignment
               $(".toggle-filter-button", this).click();
               $('.filter-menu input').prop("checked", true).trigger("change");
@@ -1299,14 +1297,12 @@ describe("DataTable Plugin", function() {
               expect($("span", this).attr("class")).toEqual("filterActive");
               $(".filter-menu input").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
-            }
-            else if (col.filter.type === "numeric") {
+            } else if (col.filter.type === "numeric") {
               $("input#first-filter").val("3").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
               $("input#first-filter").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
-            }
-            else if (col.filter.type === "list") {
+            } else if (col.filter.type === "list") {
               $(".filter-menu input").prop("checked", true).trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
               $(".filter-menu input").prop("checked", false).trigger("change");
@@ -1414,8 +1410,7 @@ describe("DataTable Plugin", function() {
               // verify assignment
               toggleButton.click();
               expect($(".filter-menu input").val()).toEqual("");
-            }
-            else if (col.filter.type === "numeric") {
+            } else if (col.filter.type === "numeric") {
               // test equal assignment
               toggleButton.click();
               $('select[data-filter-id=first-filter]').val("eq").trigger("change");
@@ -1441,8 +1436,7 @@ describe("DataTable Plugin", function() {
               // verify assignment
               toggleButton.click();
               expect($("input#first-filter").val()).toEqual("");
-            }
-            else if (col.filter.type === "list") {
+            } else if (col.filter.type === "list") {
               // test assignment
               toggleButton.click();
               $('.filter-menu input').prop("checked", true).trigger("change");

@@ -117,9 +117,8 @@ var DataTableFilter = (function(options) {
       // if there are active filters, put them in the filter_json param
       if (JSON.parse(filteringSettings).length>0) {
         params.filter_json = filteringSettings;
-      }
       // otherwise delete the filter_json param to keep a clean uri
-      else {
+      } else {
         delete params.filter_json;
       }
       // Delete ext_filter_json from the url, we're deprecating it
@@ -343,9 +342,8 @@ var DataTableFilter = (function(options) {
         this.filter.value = this.filter.value || [];
         this.filter.value.push(filterInput.value);
         this.parentView._toggleIcon(true);
-      }
       // remove filter from column manager if it is defined
-      else if (this.filter.value) {
+      } else if (this.filter.value) {
         var index = this.filter.value.indexOf(filterInput.value);
         if (index > -1) {
           this.filter.value.splice(index, 1);

@@ -83,8 +83,7 @@ export default function initializeColReorderPlugin() {
 
     if (iTo !== null) {
       nParent.insertBefore(nStore, anTags[iTo]);
-    }
-    else {
+    } else {
       nParent.appendChild(nStore);
     }
   }
@@ -269,26 +268,22 @@ export default function initializeColReorderPlugin() {
     if (dt.fnSettings) {
       // DataTables object, convert to the settings object
       oDTSettings = dt.fnSettings();
-    }
-    else if (typeof dt === 'string') {
+    } else if (typeof dt === 'string') {
       // jQuery selector
       if ($.fn.dataTable.fnIsDataTable($(dt)[0])) {
         oDTSettings = $(dt).eq(0).dataTable().fnSettings();
       }
-    }
-    else if (dt.nodeName && dt.nodeName.toLowerCase() === 'table') {
+    } else if (dt.nodeName && dt.nodeName.toLowerCase() === 'table') {
       // Table node
       if ($.fn.dataTable.fnIsDataTable(dt.nodeName)) {
         oDTSettings = $(dt.nodeName).dataTable().fnSettings();
       }
-    }
-    else if (dt instanceof jQuery) {
+    } else if (dt instanceof jQuery) {
       // jQuery object
       if ($.fn.dataTable.fnIsDataTable(dt[0])) {
         oDTSettings = dt.eq(0).dataTable().fnSettings();
       }
-    }
-    else {
+    } else {
       // DataTables settings object
       oDTSettings = dt;
     }
@@ -738,11 +733,9 @@ export default function initializeColReorderPlugin() {
       /* Allow header contextmenu */
       if (typeof this.s.init.headerContextMenu === 'function') {
         this.s.headerContextMenu = this.s.init.headerContextMenu;
-      }
-      else if (this.s.init.headerContextMenu) {
+      } else if (this.s.init.headerContextMenu) {
         this.s.headerContextMenu = this._fnDefaultContextMenu;
-      }
-      else {
+      } else {
         this.s.headerContextMenu = false;
       }
 
@@ -831,8 +824,7 @@ export default function initializeColReorderPlugin() {
             },
             "sName": "ColReorder_Pre"
           });
-        }
-        else {
+        } else {
           if (aiOrder) {
             var resort = fnInvertKeyValues(aiOrder);
             that._fnOrderColumns.call(that, resort);
@@ -872,8 +864,7 @@ export default function initializeColReorderPlugin() {
             myelm.remove();
           }
         });
-      }
-      else {
+      } else {
         var overlay = $('<div class="overlayDiv"></div>').appendTo("body").css({"position": "fixed",top: 0,left: 0, width: "100%",height: "100%","z-index": 5000});
         myelm.appendTo("body").css({position: "absolute", top: e.clientY-2, "background-color": "grey", left: e.clientX-2, "z-index": 5005, "border": "1px solid black"});
         var timer = 0;
@@ -1021,13 +1012,11 @@ export default function initializeColReorderPlugin() {
               // catch gaps between cells
               //$(nTable).css({'cursor' : 'col-resize'});
               that.dom.resizeCol = "right";
-            }
-            else if ((e.pageX - offset.left) < 5) {
+            } else if ((e.pageX - offset.left) < 5) {
               $(nThTarget).css({'cursor': 'col-resize'});
               //$(nTable).css({'cursor' : 'col-resize'});
               that.dom.resizeCol = "left";
-            }
-            else {
+            } else {
               $(nThTarget).css({ 'cursor': 'pointer' });
               //$(nTable).css({'cursor' : 'pointer'});
             }
@@ -1101,9 +1090,7 @@ export default function initializeColReorderPlugin() {
         // Lets try resizing to headers instead
         newWidth = this.s.minResizeWidth;
         $(nTh).removeClass('maxwidth');
-      }
-
-      else {
+      } else {
         $(nTable).css({'table-layout': "auto","width": "auto"});
         newWidth = $('th',nTable).eq(index).width();
 
@@ -1142,10 +1129,8 @@ export default function initializeColReorderPlugin() {
           this.s.mouse.nextStartWidth = $(nTh).outerWidth();
           this.s.mouse.targetIndex = $('th', nTh.parentNode).index(nThPrev);
           this.s.mouse.fromIndex = this.s.dt.oInstance.oApi._fnVisibleToColumnIndex(this.s.dt, this.s.mouse.targetIndex);
-        }
-
         // If we are at the right end of column, we expand the current column
-        else {
+        } else {
           this.s.mouse.startWidth = $(nTh).outerWidth();
           this.s.mouse.resizeElem = $(nTh);
           nThNext = $(nTh).next();
@@ -1167,8 +1152,7 @@ export default function initializeColReorderPlugin() {
         //b. Disable Autowidth feature (now the user is in charge of setting column width so keeping this enabled looses changes after operations)
         this.s.dt.oFeatures.bAutoWidth = false;
         ////////////////////
-      }
-      else if (this.s.allowReorder) {
+      } else if (this.s.allowReorder) {
         that.dom.resize = null;
         /* Store information about the mouse position */
         target = $(e.target).closest('th, td');
@@ -1319,8 +1303,7 @@ export default function initializeColReorderPlugin() {
         ////////////////////////
 
         return;
-      }
-      else if (this.s.allowReorder) {
+      } else if (this.s.allowReorder) {
         if (this.dom.drag === null) {
           /* Only create the drag element if the mouse has moved a specific distance from the start
            * point - this allows the user to make small mouse movements when sorting and not have a
@@ -1478,8 +1461,7 @@ export default function initializeColReorderPlugin() {
 
         /* Save the state */
         this.s.dt.oInstance.oApi._fnSaveState(this.s.dt);
-      }
-      else if (this.dom.resize !== null) {
+      } else if (this.dom.resize !== null) {
         var i;
         var j;
         var column;
@@ -1906,8 +1888,7 @@ export default function initializeColReorderPlugin() {
           {};
 
           table._oPluginColReorder = new ColReorder(settings, opts);
-        }
-        else {
+        } else {
           table.oApi._fnLog(settings, 1, "ColReorder attempted to initialise twice. Ignoring second");
         }
 
@@ -1916,8 +1897,7 @@ export default function initializeColReorderPlugin() {
       "cFeature": "R",
       "sFeature": "ColReorder"
     });
-  }
-  else {
+  } else {
     alert("Warning: ColReorder requires DataTables 1.9.3 or greater - www.datatables.net/download");
   }
 

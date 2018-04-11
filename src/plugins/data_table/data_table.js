@@ -578,8 +578,7 @@ var LocalDataTable = (function() {
               col = currentColConfig;
             }
           })
-        }
-        else {
+        } else {
           // TODO: FAIL!!!
         }
 

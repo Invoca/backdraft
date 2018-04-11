@@ -25,8 +25,7 @@ export default function initializeBootstrap() {
   $.fn.dataTable.defaults.sPaginationType = 'bootstrap';
 
   /* API method to get paging information */
-  $.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings )
-  {
+  $.fn.dataTableExt.oApi.fnPagingInfo = function ( oSettings ) {
     return {
       "iStart":         oSettings._iDisplayStart,
       "iEnd":           oSettings.fnDisplayEnd(),
@@ -76,8 +75,7 @@ export default function initializeBootstrap() {
         if ( oPaging.iTotalPages < iListLength) {
           iStart = 1;
           iEnd = oPaging.iTotalPages;
-        }
-        else if ( oPaging.iPage <= iHalf ) {
+        } else if ( oPaging.iPage <= iHalf ) {
           iStart = 1;
           iEnd = iListLength;
         } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {

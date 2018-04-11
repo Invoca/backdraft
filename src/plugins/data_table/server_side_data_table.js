@@ -159,8 +159,7 @@ var ServerSideDataTable = (function() {
         filterJson.name = "ext_filter_json";
         filterJson.value = this._getFilteringSettings();
         this._goToWindowLocation(sUrl + "&backdraft_request=1&ext_filter_json=" + encodeURIComponent(filterJson.value));
-      }
-      else {
+      } else {
         throw new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called");
       }
     },
@@ -168,8 +167,7 @@ var ServerSideDataTable = (function() {
     _goToWindowLocation: function(sUrl) {
       if (sUrl) {
         window.location = sUrl;
-      }
-      else {
+      } else {
         throw new Error("sUrl must be defined when _goToWindowLocation is called");
       }
     },

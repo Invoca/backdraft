@@ -30,8 +30,7 @@ var ColumnConfigGenerator =  Class.extend({
     var urlParamString = window.location.href.split("?")[1];
     if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
       return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
-    }
-    else {
+    } else {
       return []
     }
   },
