@@ -6,6 +6,7 @@
   "parserOptions": {
     "sourceType": "module"
   },
+// "extends": "standard",
   "rules": {
     "indent": ["error", 2],
     "key-spacing": ["error", { "mode": "minimum" }],
