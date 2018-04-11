@@ -358,7 +358,7 @@ var LocalDataTable = (function() {
         // fill in config in correct order
         _.each(this.dataTable.fnSettings().aoColumns, function(tableColumn) {
           var oldIndex = columnsOrig.indexOf(tableColumn);
-          if (oldIndex != -1) {
+          if (oldIndex !== -1) {
             columnsConfig.push(columnsConfigOrig[oldIndex]);
           }
         });

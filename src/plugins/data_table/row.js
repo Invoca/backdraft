@@ -65,7 +65,7 @@ var Row = (function() {
         _.each(columns, function (column) {
           if (column && columns.indexOf(column + ".unique") !== -1) {
             var columnVal = this.model.get(column);
-            if (!(columnVal instanceof Array) && columnVal != this.model.get(column + '.unique')) {
+            if (!(columnVal instanceof Array) && columnVal !== this.model.get(column + '.unique')) {
               hasUniques = true;
               return false;
             }
