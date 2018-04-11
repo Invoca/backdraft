@@ -232,7 +232,7 @@ var LocalDataTable = (function() {
       params.ext_filter_json = JSON.stringify(this.configGenerator()._getUrlFilterParams());
 
       // Build new url with old endpoint but new params
-      var newURL = endpoint + "?"+ $.param(params);
+      var newURL = endpoint + "?" + $.param(params);
 
       // Update datatable ajax source
       this.dataTable.fnSettings().sAjaxSource = newURL;
@@ -585,13 +585,13 @@ var LocalDataTable = (function() {
         if (col) {
           // We only make the filter controls if there's a filter element in the column manager
           if (col.filter) {
-            table.child("filter-"+col.id, new DataTableFilter({
+            table.child("filter-" + col.id, new DataTableFilter({
               column: col,
               table: table,
               head: this,
               className: "dropdown DataTables_filter_wrapper"
             }));
-            $(this).append(table.child("filter-"+col.id).render().$el);
+            $(this).append(table.child("filter-" + col.id).render().$el);
           }
         }
       });

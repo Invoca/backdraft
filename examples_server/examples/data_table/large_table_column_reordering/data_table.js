@@ -101,7 +101,7 @@ Backdraft.app("TableExample", function(app) {
         node.text("addr: " + this.model.get(config.attr));
       },
       "income": function(node, config) {
-        node.text("$"+this.model.get(config.attr));
+        node.text("$" + this.model.get(config.attr));
       },
     }
 

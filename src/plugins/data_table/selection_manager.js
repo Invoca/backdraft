@@ -29,7 +29,7 @@ var SelectionManager = Class.extend({
       if (existing) {
         // purge existing entry
         delete this._cidMap[model.cid];
-        this._count = Math.max(0, this._count -1);
+        this._count = Math.max(0, this._count - 1);
       }
     }
   },

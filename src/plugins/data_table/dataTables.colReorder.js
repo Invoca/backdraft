@@ -662,10 +662,10 @@ export default function initializeColReorderPlugin() {
       // TODO: This looks like it will be broken, need to investigate
       var tp,i;
       var availableFields = this.s.dt.aoColumns;
-      var html ='<div class="selcol1">';
-      var d2 = (availableFields.length-1) /2;
-      for (i=0;i<availableFields.length;i++) {
-        tp = "col"+(i%2);
+      var html = '<div class="selcol1">';
+      var d2 = (availableFields.length - 1) / 2;
+      for (i = 0;i < availableFields.length;i++) {
+        tp = "col" + (i % 2);
         if (i > d2) {
           html += '</div><div class="selcol2">';
           d2 = 99999999;
@@ -673,8 +673,8 @@ export default function initializeColReorderPlugin() {
         var selected = availableFields[i].bVisible;
         var title = availableFields[i].sTitle;
         var mData = availableFields[i].mData;
-        html += '<label class="'+tp+'">'+
-          '<input name="columns" type="checkbox" checked="'+(selected ? "checked" : "")+'" value="'+mData+'">'+
+        html += '<label class="' + tp + '">' +
+          '<input name="columns" type="checkbox" checked="' + (selected ? "checked" : "") + '" value="' + mData + '">' +
           title + '</label>';
       }
       html  += "</div>";
@@ -866,7 +866,7 @@ export default function initializeColReorderPlugin() {
         });
       } else {
         var overlay = $('<div class="overlayDiv"></div>').appendTo("body").css({"position": "fixed",top: 0,left: 0, width: "100%",height: "100%","z-index": 5000});
-        myelm.appendTo("body").css({position: "absolute", top: e.clientY-2, "background-color": "grey", left: e.clientX-2, "z-index": 5005, "border": "1px solid black"});
+        myelm.appendTo("body").css({position: "absolute", top: e.clientY - 2, "background-color": "grey", left: e.clientX - 2, "z-index": 5005, "border": "1px solid black"});
         var timer = 0;
         myelm.mouseover(function(e) {
           if (timer) {
@@ -1075,8 +1075,8 @@ export default function initializeColReorderPlugin() {
         $(nTable).css('table-layout',"fixed");
         $(nTh).width(newWidth);
 
-        aoColumns[index].sWidth = newWidth+"px";
-        that.s.fnResizeTableCallback(nTable,newTableWidth,newTableWidth-tableWidth);
+        aoColumns[index].sWidth = newWidth + "px";
+        that.s.fnResizeTableCallback(nTable,newTableWidth,newTableWidth - tableWidth);
       };
 
       if ($(nTh).hasClass('maxwidth')) {

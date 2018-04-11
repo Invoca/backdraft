@@ -105,7 +105,7 @@ var DataTableFilter = (function(options) {
 
     _updateFilterUrlParams: function() {
       // get url parameters into an array
-      var params=[];
+      var params = [];
       // if there are already parameters there, get them
       var urlArray = window.location.href.split("?");
       if (urlArray[1]) {
@@ -115,7 +115,7 @@ var DataTableFilter = (function(options) {
       var filteringSettings = this.parent.table._getFilteringSettings();
 
       // if there are active filters, put them in the filter_json param
-      if (JSON.parse(filteringSettings).length>0) {
+      if (JSON.parse(filteringSettings).length > 0) {
         params.filter_json = filteringSettings;
       // otherwise delete the filter_json param to keep a clean uri
       } else {
@@ -309,7 +309,7 @@ var DataTableFilter = (function(options) {
           // go through each of those list values
           matches[0].value.forEach( function(element, index, array) {
             // check it
-            this.$el.find('input[value="'+element+'"]').prop("checked", true);
+            this.$el.find('input[value="' + element + '"]').prop("checked", true);
           }.bind(this));
           // make the button show
           this.parentView._toggleIcon(true);

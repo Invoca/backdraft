@@ -4,8 +4,8 @@ export default function initializeBootstrap() {
   /* Set the defaults for DataTables initialisation */
   $.extend( true, $.fn.dataTable.defaults, {
     "sDom":
-      "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
-      "t"+
+      "<'row'<'col-xs-6'l><'col-xs-6'f>r>" +
+      "t" +
       "<'row'<'col-xs-6'i><'col-xs-6'p>>",
     "oLanguage": {
       "sLengthMenu": "_MENU_ records per page",
@@ -56,9 +56,9 @@ export default function initializeBootstrap() {
         };
 
         $(nPaging).append(
-          '<ul class="pagination pagination-sm">'+
-            '<li class="prev disabled"><a href="#">&larr; </a></li>'+
-            '<li class="next disabled"><a href="#"> &rarr; </a></li>'+
+          '<ul class="pagination pagination-sm">' +
+            '<li class="prev disabled"><a href="#">&larr; </a></li>' +
+            '<li class="next disabled"><a href="#"> &rarr; </a></li>' +
           '</ul>'
         );
         var els = $('a', nPaging);
@@ -70,7 +70,7 @@ export default function initializeBootstrap() {
         var iListLength = 5;
         var oPaging = oSettings.oInstance.fnPagingInfo();
         var an = oSettings.aanFeatures.p;
-        var i, ien, j, sClass, iStart, iEnd, iHalf=Math.floor(iListLength/2);
+        var i, ien, j, sClass, iStart, iEnd, iHalf = Math.floor(iListLength / 2);
 
         if ( oPaging.iTotalPages < iListLength) {
           iStart = 1;
@@ -78,7 +78,7 @@ export default function initializeBootstrap() {
         } else if ( oPaging.iPage <= iHalf ) {
           iStart = 1;
           iEnd = iListLength;
-        } else if ( oPaging.iPage >= (oPaging.iTotalPages-iHalf) ) {
+        } else if ( oPaging.iPage >= (oPaging.iTotalPages - iHalf) ) {
           iStart = oPaging.iTotalPages - iListLength + 1;
           iEnd = oPaging.iTotalPages;
         } else {
@@ -86,19 +86,19 @@ export default function initializeBootstrap() {
           iEnd = iStart + iListLength - 1;
         }
 
-        for ( i=0, ien=an.length ; i<ien ; i++ ) {
+        for ( i = 0, ien = an.length ; i < ien ; i++ ) {
           // Remove the middle elements
           $('li:gt(0)', an[i]).filter(':not(:last)').remove();
 
           // Add the new list items and their event handlers
-          for ( j=iStart ; j<=iEnd ; j++ ) {
-            sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
-            $('<li '+sClass+'><a href="#">'+j+'</a></li>')
+          for ( j = iStart ; j <= iEnd ; j++ ) {
+            sClass = (j == oPaging.iPage + 1) ? 'class="active"' : '';
+            $('<li ' + sClass + '><a href="#">' + j + '</a></li>')
               .insertBefore( $('li:last', an[i])[0] )
               .bind('click', function (e) {
                 e.preventDefault();
                 // EUGE - patched to make sure the "page" event is fired when numbers are clicked
-                oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10)-1);
+                oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10) - 1);
               } );
           }
 
@@ -109,7 +109,7 @@ export default function initializeBootstrap() {
             $('li:first', an[i]).removeClass('disabled');
           }
 
-          if ( oPaging.iPage === oPaging.iTotalPages-1 || oPaging.iTotalPages === 0 ) {
+          if ( oPaging.iPage === oPaging.iTotalPages - 1 || oPaging.iTotalPages === 0 ) {
             $('li:last', an[i]).addClass('disabled');
           } else {
             $('li:last', an[i]).removeClass('disabled');

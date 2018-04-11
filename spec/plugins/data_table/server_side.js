@@ -1023,12 +1023,12 @@ describe("DataTable Plugin", function() {
     function verifyFilterAjax(filterObj) {
       var url = jasmine.Ajax.requests.mostRecent().url;
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
-      expect(url).toMatch("ext_filter_json="+expectedFilterJson);
+      expect(url).toMatch("ext_filter_json=" + expectedFilterJson);
     }
 
     function verifyUrlParams(filterObj) {
       var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).filter_json)
-      var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
+      var expectedFilterJson = (filterObj.length > 0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
 
@@ -1095,7 +1095,7 @@ describe("DataTable Plugin", function() {
       expect(table).toBeDefined();
     });
 
-    it("should have an object for each filterable column in the column manager "+
+    it("should have an object for each filterable column in the column manager " +
         "which describes the filter to be applied", function() {
       var cg = table._columnManager._configGenerator;
       // should be 4 columns

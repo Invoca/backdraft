@@ -176,7 +176,7 @@ describe("DataTable Plugin", function() {
     beforeEach(function() {
       data = [];
       for (var iter = 0; iter < 100; ++iter) {
-        data.push({ id: iter +1, name: "hi " + iter });
+        data.push({ id: iter + 1, name: "hi " + iter });
       }
     });
 
