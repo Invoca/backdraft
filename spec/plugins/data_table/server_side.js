@@ -234,7 +234,7 @@ describe("DataTable Plugin", function() {
       try {
         jasmine.Ajax.requests.mostRecent().response(mockResponse.getBadKey());
         throw Error("DataTables did not throw an error when we expected it to. It should warn about a missing parameter based on bad server response.");
-      } catch(ex) {
+      } catch (ex) {
         expect(ex.message).toMatch(/Requested unknown parameter/)
       }
     });

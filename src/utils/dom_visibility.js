@@ -26,7 +26,7 @@ const DomVisibility = Class.extend({
 
 const Coordinates = {
   absolutePointAtViewportEdge: function(edge, x, buffer) {
-    switch(edge) {
+    switch (edge) {
       case 'left':
         return x - $(window).scrollLeft() <= buffer;
 
