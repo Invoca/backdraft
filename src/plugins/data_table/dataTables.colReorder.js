@@ -1197,7 +1197,7 @@ export default function initializeColReorderPlugin() {
       //Martin Marchetta: Determine if ScrollX is enabled
       var scrollXEnabled;
 
-      scrollXEnabled = this.s.dt.oInit.sScrollX === "" ? false : true;
+      scrollXEnabled = this.s.dt.oInit.sScrollX !== "";
 
       //Keep the current table's width (used in case sScrollX is enabled to resize the whole table, giving an Excel-like behavior)
       if (this.table_size < 0 && scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper) !== undefined) {
@@ -1491,7 +1491,7 @@ export default function initializeColReorderPlugin() {
         this.s.dt.aoColumns[aoColumnsColumnindex].sWidth = $(this.s.mouse.resizeElem).innerWidth() + "px";
 
         // If other columns might have changed their size, save their size too
-        scrollXEnabled = this.s.dt.oInit.sScrollX === "" ? false : true;
+        scrollXEnabled = this.s.dt.oInit.sScrollX !== "";
         if (!scrollXEnabled) {
           //The colResized index (internal model) here might not match the visible index since some columns might have been hidden
           for (nextVisibleColumnIndex = colResized + 1; nextVisibleColumnIndex < this.s.dt.aoColumns.length; nextVisibleColumnIndex++) {
