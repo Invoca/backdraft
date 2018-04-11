@@ -1063,7 +1063,7 @@ export default function initializeColReorderPlugin() {
       var tableWidth = $(nTable).width();
       var aoColumns = this.s.dt.aoColumns;
 
-      var realWidths = $.map($('th',$(this.s.dt.nThead)), function(l) {return $(l).width();});
+      var realWidths = $.map($('th',$(this.s.dt.nThead)), function(l) { return $(l).width(); });
       var nThWidth = $(nTh).width();
       var newWidth;
       var that = this;
