@@ -27,14 +27,14 @@ const DomVisibility = Class.extend({
 const Coordinates = {
   absolutePointAtViewportEdge: function(edge, x, buffer) {
     switch (edge) {
-      case 'left':
-        return x - $(window).scrollLeft() <= buffer;
+    case 'left':
+      return x - $(window).scrollLeft() <= buffer;
 
-      case 'right':
-        return x - $(window).scrollLeft() >= $(window).outerWidth() - buffer;
+    case 'right':
+      return x - $(window).scrollLeft() >= $(window).outerWidth() - buffer;
 
-      default:
-        throw new Error("unsupported edge value: " + edge);
+    default:
+      throw new Error("unsupported edge value: " + edge);
     }
   }
 };

@@ -150,19 +150,19 @@ var DataTableFilter = (function(options) {
       </div>\
       ', null, DEFAULT_JST_DELIMS),
 
-      afterRender: function() {
-        var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
-        // if there are filters in url, enable in UI
-        if (filterArray.length > 0) {
-          // find the filters that match this filter instance
-          var matches = _.where(filterArray, {type: "string", attr: this.attr});
-          // if there are filter params for this filter, add them to the markup
-          if (matches[0]) {
-            this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
-            this.parentView._toggleIcon(true);
-          }
+    afterRender: function() {
+      var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+      // if there are filters in url, enable in UI
+      if (filterArray.length > 0) {
+        // find the filters that match this filter instance
+        var matches = _.where(filterArray, {type: "string", attr: this.attr});
+        // if there are filter params for this filter, add them to the markup
+        if (matches[0]) {
+          this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
+          this.parentView._toggleIcon(true);
         }
-      },
+      }
+    },
 
     _onInputChange: function (event) {
       var filterInput = event.target;
@@ -212,7 +212,7 @@ var DataTableFilter = (function(options) {
     _onInputChange: function (event) {
       event.stopImmediatePropagation();
       var filterType = event.target.getAttribute('data-filter-type'),
-          filterValue = event.target.value;
+        filterValue = event.target.value;
       if (filterValue === "") {
         this.filter[filterType] = null;
         this.parentView._toggleIcon(false);
@@ -226,9 +226,9 @@ var DataTableFilter = (function(options) {
     _onSelectChange: function (event) {
       event.stopImmediatePropagation();
       var target = $(event.target),
-          filterElementId = target.data('filter-id'),
-          previousFilterType = target.data('previous-value'),
-          filterType = target.val();
+        filterElementId = target.data('filter-id'),
+        previousFilterType = target.data('previous-value'),
+        filterType = target.val();
       this.filter[filterType] = this.filter[previousFilterType];
       delete this.filter[previousFilterType];
       target.data('previous-value', filterType);
@@ -385,15 +385,15 @@ var DataTableFilter = (function(options) {
       // decide which filter view based on type, here
       var filterMenu = null;
       switch (this.filter.type) {
-        case 'string':
-          filterMenu = new StringFilterMenu({column: options.column, parentView: this});
-          break;
-        case 'numeric':
-          filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
-          break;
-        case 'list':
-          filterMenu = new ListFilterMenu({column: options.column, parentView: this});
-          break;
+      case 'string':
+        filterMenu = new StringFilterMenu({column: options.column, parentView: this});
+        break;
+      case 'numeric':
+        filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
+        break;
+      case 'list':
+        filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+        break;
       }
 
       // add as a child (backdraft thing just to keep bookkeeping on subviews)

@@ -191,8 +191,7 @@ var ServerSideDataTable = (function() {
           json.sEcho                = json.requestId || json.draw || json.sEcho;
           json.aaData               = json.data      || json.aaData;
           json.iTotalRecords        = json.hasOwnProperty('recordsTotal') ? json.recordsTotal : json.iTotalRecords;
-          json.iTotalDisplayRecords = json.hasOwnProperty('recordsFiltered') ? json.recordsFiltered :
-                                        (json.hasOwnProperty('iTotalDisplayRecords') ? json.iTotalDisplayRecords : json.iTotalRecords);
+          json.iTotalDisplayRecords = json.hasOwnProperty('recordsFiltered') ? json.recordsFiltered : (json.hasOwnProperty('iTotalDisplayRecords') ? json.iTotalDisplayRecords : json.iTotalRecords);
 
           // ensure we ignore old Ajax responses
           // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is

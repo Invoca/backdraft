@@ -976,19 +976,19 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
-              case "string":
-                $(".toggle-filter-button", this).click();
-                $('.filter-menu input').val("").trigger("change");
-                break;
-              case "numeric":
-                $(".toggle-filter-button", this).click();
-                $("input#first-filter").val("").trigger("change");
-                break;
+            case "string":
+              $(".toggle-filter-button", this).click();
+              $('.filter-menu input').val("").trigger("change");
+              break;
+            case "numeric":
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
+              break;
 
-              case "list":
-                $(".toggle-filter-button", this).click();
-                $('.filter-menu input').prop("checked", false).trigger("change");
-                break;
+            case "list":
+              $(".toggle-filter-button", this).click();
+              $('.filter-menu input').prop("checked", false).trigger("change");
+              break;
             }
           }
         }
@@ -1002,22 +1002,22 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
-              case "string":
-                $(".toggle-filter-button", this).click();
-                $('.filter-menu input').val("Scott").trigger("change");
-                $(".btn-filter").trigger("click");
-                break;
-              case "numeric":
-                $(".toggle-filter-button", this).click();
-                $('select[data-filter-id=first-filter]').val("eq").trigger("change");
-                $('input#first-filter').val("0.5").trigger("change");
-                $(".btn-filter").trigger("click");
-                break;
-              case "list":
-                $(".toggle-filter-button", this).click();
-                $(".filter-menu input[value=Basic]").prop("checked", true).trigger("change");
-                $(".btn-filter").trigger("click");
-                break;
+            case "string":
+              $(".toggle-filter-button", this).click();
+              $('.filter-menu input').val("Scott").trigger("change");
+              $(".btn-filter").trigger("click");
+              break;
+            case "numeric":
+              $(".toggle-filter-button", this).click();
+              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+              $('input#first-filter').val("0.5").trigger("change");
+              $(".btn-filter").trigger("click");
+              break;
+            case "list":
+              $(".toggle-filter-button", this).click();
+              $(".filter-menu input[value=Basic]").prop("checked", true).trigger("change");
+              $(".btn-filter").trigger("click");
+              break;
             }
           }
         }
@@ -1266,16 +1266,16 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
-              case "string":
-                expect($('.filter-menu input').val()).toEqual("Scott")
-                break;
-              case "numeric":
-                expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
-                expect($('input#first-filter').val()).toEqual("0.5");
-                break;
-              case "list":
-                expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
-                break;
+            case "string":
+              expect($('.filter-menu input').val()).toEqual("Scott")
+              break;
+            case "numeric":
+              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
+              expect($('input#first-filter').val()).toEqual("0.5");
+              break;
+            case "list":
+              expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
+              break;
             }
           }
         }

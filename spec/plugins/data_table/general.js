@@ -177,8 +177,8 @@ describe("DataTable Plugin", function() {
       it("should issue a change event for each row checkbox when header checkbox is toggled", function() {
         collection.add({ name: "foo" });
         var headerCheckbox = table.$("thead tr th:first :checkbox"),
-            rowCheckbox    = table.$("tbody tr td:first :checkbox"),
-            rowChanged     = 'row checkbox not changed';
+          rowCheckbox    = table.$("tbody tr td:first :checkbox"),
+          rowChanged     = 'row checkbox not changed';
 
         expect(headerCheckbox.length).toEqual(1);
         expect(rowCheckbox.length).toEqual(1);

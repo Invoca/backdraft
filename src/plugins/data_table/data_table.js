@@ -29,8 +29,7 @@ var LocalDataTable = (function() {
       this.options = options || {};
       // copy over certain properties from options to the table itself
       _.extend(this, _.pick(this.options, [ "selectedIds" ]));
-      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-          "_onColumnVisibilityChange", "_onColumnReorder");
+      _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw", "_onColumnVisibilityChange", "_onColumnReorder");
       this.cache = new Base.Cache();
       this.selectionManager = new SelectionManager();
       this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -491,10 +490,10 @@ var LocalDataTable = (function() {
     },
 
     _onRowHighlightClick: function(event) {
-     var el = $(event.target).closest("tr"),
-         currentState = el.hasClass("highlighted");
-     $(event.target).closest("tbody").find('tr').toggleClass('highlighted',false);
-     el.toggleClass("highlighted", !currentState);
+      var el = $(event.target).closest("tr"),
+        currentState = el.hasClass("highlighted");
+      $(event.target).closest("tbody").find('tr').toggleClass('highlighted',false);
+      el.toggleClass("highlighted", !currentState);
     },
 
     _dataTableConfig: function() {
@@ -522,8 +521,8 @@ var LocalDataTable = (function() {
 
     _setupSelect2PaginationAttributes: function () {
       this.$('select').
-          attr('data-plugin', 'select2').
-          css('width', '5em');
+        attr('data-plugin', 'select2').
+        css('width', '5em');
     },
 
     // DataTables does not provide a good way to programmatically disable sorting, so we:
