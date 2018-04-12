@@ -7,9 +7,10 @@
     "dist/backdraft.js"
   ],
   "scripts": {
+    "eslint": "eslint-git-changes --jsx",
     "setup": "npm install -g grunt-cli",
-    "specs": "karma start --single-run",
-    "dev": "karma start",
+    "specs": "yarn run eslint; karma start --single-run",
+    "dev": "yarn run eslint && karma start",
     "examples": "grunt examples",
     "prepublish": "NODE_ENV=production grunt build"
   },
@@ -25,6 +26,7 @@
     "backbone": "1.1.2",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^11.0.0",
+    "eslint-git-changes": "^2.0.1",
     "eslint-plugin-import": "^2.10.0",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
