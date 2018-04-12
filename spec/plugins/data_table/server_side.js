@@ -41,6 +41,7 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
+          /* eslint-disable camelcase */
           { name: 'Jon doe 1',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
           { name: 'Jon doe 2',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
           { name: 'Jon doe 3',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
@@ -51,8 +52,9 @@ describe("DataTable Plugin", function() {
           { name: 'Jon doe 8',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
           { name: 'Jon doe 9',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
           { name: 'Jon doe 10', cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" }
+          /* eslint-enable camelcase */
         ],
-        total: { name: null, cost: 10000, type: null, description: null, resale_value: 5000 }
+        total: { name: null, cost: 10000, type: null, description: null, resale_value: 5000 } // eslint-disable-line camelcase
       })
     };
   };
@@ -65,6 +67,7 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
+          /* eslint-disable camelcase */
           { name: 'Jon doe 1',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
           { name: 'Jon doe 2',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
           { name: 'Jon doe 3',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
@@ -75,8 +78,9 @@ describe("DataTable Plugin", function() {
           { name: 'Jon doe 8',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
           { name: 'Jon doe 9',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
           { name: 'Jon doe 10', cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" }
+          /* eslint-enable camelcase */
         ],
-        total: { name: null, cost: 10000, 'cost.unique': 10020, type: null, description: null, resale_value: 5000, 'resale_value.unique': 5010 }
+        total: { name: null, cost: 10000, 'cost.unique': 10020, type: null, description: null, resale_value: 5000, 'resale_value.unique': 5010 } // eslint-disable-line camelcase
       })
     };
   };
@@ -89,7 +93,7 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 1,
         iTotalDisplayRecords: 1,
         aaData: [
-          { name_misspelled: '1 - hey hey 1' }
+          { name_misspelled: '1 - hey hey 1' } // eslint-disable-line camelcase
         ]
       })
     };
@@ -535,7 +539,7 @@ describe("DataTable Plugin", function() {
 
   describe("server side params", function() {
     it("should automatically include column attributes", function() {
-      var expectedAttrParams = $.param({ column_attrs: [undefined, "name", "cost", "type", undefined] });
+      var expectedAttrParams = $.param({ column_attrs: [undefined, "name", "cost", "type", undefined] }); // eslint-disable-line camelcase
       table = new app.Views.T({ collection: collection });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);
@@ -1572,10 +1576,10 @@ describe("DataTable Plugin", function() {
         col.filter = {value: "filter_by_this_value"};
 
         // Set dummy URL
-        var csv_url = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
+        var csvUrl = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
 
         spyOn(table, "_goToWindowLocation").and.callFake(function() {});
-        table._fetchCSV(csv_url);
+        table._fetchCSV(csvUrl);
         expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
       });
 

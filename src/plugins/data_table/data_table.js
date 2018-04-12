@@ -229,7 +229,7 @@ var LocalDataTable = (function() {
       var params = $.deparam(splitUrl[1]);
 
       // make ext_filter_json param the same as the current url, now with new filters
-      params.ext_filter_json = JSON.stringify(this.configGenerator()._getUrlFilterParams());
+      params.ext_filter_json = JSON.stringify(this.configGenerator()._getUrlFilterParams()); // eslint-disable-line camelcase
 
       // Build new url with old endpoint but new params
       var newURL = endpoint + "?" + $.param(params);

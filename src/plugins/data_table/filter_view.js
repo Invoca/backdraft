@@ -116,7 +116,7 @@ var DataTableFilter = (function(options) {
 
       // if there are active filters, put them in the filter_json param
       if (JSON.parse(filteringSettings).length > 0) {
-        params.filter_json = filteringSettings;
+        params.filter_json = filteringSettings; // eslint-disable-line camelcase
       // otherwise delete the filter_json param to keep a clean uri
       } else {
         delete params.filter_json;

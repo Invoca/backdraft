@@ -513,7 +513,7 @@ export default function initializeColReorderPlugin() {
       "pointer": null
     };
 
-    this.table_size = -1;
+    this.tableSize = -1;
 
     /* Constructor logic */
     this.s.dt = oDTSettings.oInstance.fnSettings();
@@ -585,7 +585,7 @@ export default function initializeColReorderPlugin() {
     "fnReset": function () {
       var a = [];
       for (var i = 0, iLen = this.s.dt.aoColumns.length; i < iLen; i++) {
-        a.push(this.s.dt.aoColumns[i]._ColReorder_iOrigCol);
+        a.push(this.s.dt.aoColumns[i].colReorderIOrigCol);
       }
 
       this._fnOrderColumns(a);
@@ -644,7 +644,7 @@ export default function initializeColReorderPlugin() {
       if (set === undefined) {
         var a = [];
         for (var i = 0, iLen = this.s.dt.aoColumns.length; i < iLen; i++) {
-          a.push(this.s.dt.aoColumns[i]._ColReorder_iOrigCol);
+          a.push(this.s.dt.aoColumns[i].colReorderIOrigCol);
         }
         return a;
       }
@@ -770,7 +770,7 @@ export default function initializeColReorderPlugin() {
         }
 
         /* Mark the original column order for later reference */
-        this.s.dt.aoColumns[i]._ColReorder_iOrigCol = i;
+        this.s.dt.aoColumns[i].colReorderIOrigCol = i;
       }
 
       /* State saving */
@@ -954,7 +954,7 @@ export default function initializeColReorderPlugin() {
 
       /* Sorting */
       for (i = 0; i < oState.aaSorting.length; i++) {
-        oState.aaSorting[i][0] = oSettings.aoColumns[oState.aaSorting[i][0]]._ColReorder_iOrigCol;
+        oState.aaSorting[i][0] = oSettings.aoColumns[oState.aaSorting[i][0]].colReorderIOrigCol;
       }
 
       var aSearchCopy = $.extend(true, [], oState.aoSearchCols);
@@ -962,7 +962,7 @@ export default function initializeColReorderPlugin() {
       oState.ColSizes = [];
 
       for (i = 0, iLen = oSettings.aoColumns.length; i < iLen; i++) {
-        iOrigColumn = oSettings.aoColumns[i]._ColReorder_iOrigCol;
+        iOrigColumn = oSettings.aoColumns[i].colReorderIOrigCol;
 
         /* Column filter */
         oState.aoSearchCols[iOrigColumn] = aSearchCopy[i];
@@ -1200,9 +1200,9 @@ export default function initializeColReorderPlugin() {
       scrollXEnabled = this.s.dt.oInit.sScrollX !== "";
 
       //Keep the current table's width (used in case sScrollX is enabled to resize the whole table, giving an Excel-like behavior)
-      if (this.table_size < 0 && scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper) !== undefined) {
+      if (this.tableSize < 0 && scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper) !== undefined) {
         if ($('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length > 0)
-          this.table_size = $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width();
+          this.tableSize = $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width();
       }
       ////////////////////
 
@@ -1213,7 +1213,7 @@ export default function initializeColReorderPlugin() {
         var moveLength = e.pageX - this.s.mouse.startX;
         var newWidth = this.s.mouse.startWidth + moveLength;
         var newWidthNoScrollX = this.s.mouse.nextStartWidth - moveLength;
-        var newTableWidth = this.table_size + moveLength;
+        var newTableWidth = this.tableSize + moveLength;
         // set a min width of 10 - this would be good to configure
         if (newWidth < this.s.minResizeWidth) {
           newWidth = this.s.minResizeWidth;
@@ -1477,7 +1477,7 @@ export default function initializeColReorderPlugin() {
          }
          */
         for (i = 0; i < this.s.dt.aoColumns.length; i++) {
-          if (this.s.dt.aoColumns[i]._ColReorder_iOrigCol === colResized) {
+          if (this.s.dt.aoColumns[i].colReorderIOrigCol === colResized) {
             aoColumnsColumnindex = i;
             break;
           }
@@ -1520,7 +1520,7 @@ export default function initializeColReorderPlugin() {
         //Update the internal storage of the table's width (in case we changed it because the user resized some column and scrollX was enabled
         if (scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length) {
           if ($('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length > 0) {
-            this.table_size = $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width();
+            this.tableSize = $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width();
           }
         }
 

@@ -176,20 +176,20 @@ describe("DataTable Plugin", function() {
 
       it("should issue a change event for each row checkbox when header checkbox is toggled", function() {
         collection.add({ name: "foo" });
-        var header_checkbox = table.$("thead tr th:first :checkbox"),
-            row_checkbox    = table.$("tbody tr td:first :checkbox"),
-            row_changed     = 'row checkbox not changed';
+        var headerCheckbox = table.$("thead tr th:first :checkbox"),
+            rowCheckbox    = table.$("tbody tr td:first :checkbox"),
+            rowChanged     = 'row checkbox not changed';
 
-        expect(header_checkbox.length).toEqual(1);
-        expect(row_checkbox.length).toEqual(1);
+        expect(headerCheckbox.length).toEqual(1);
+        expect(rowCheckbox.length).toEqual(1);
 
-        row_checkbox.on('change', function() {
-          row_changed = 'row checkbox changed';
+        rowCheckbox.on('change', function() {
+          rowChanged = 'row checkbox changed';
         });
 
-        header_checkbox.click();
+        headerCheckbox.click();
 
-        expect(row_changed).toEqual('row checkbox changed');
+        expect(rowChanged).toEqual('row checkbox changed');
       });
     });
 
@@ -219,7 +219,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("invoke them correctly", function() {
-        collection.add({ age_value: 30 });
+        collection.add({ age_value: 30 }); // eslint-disable-line camelcase
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("column-age_value")).toEqual(true);
@@ -257,7 +257,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("invoke them correctly", function() {
-        collection.add({ age_value: 30 });
+        collection.add({ age_value: 30 }); // eslint-disable-line camelcase
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("age")).toEqual(true);
