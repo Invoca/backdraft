@@ -25,6 +25,7 @@
     "babel-preset-minify": "^0.3.0",
     "backbone": "1.1.2",
     "eslint": "^4.19.1",
+    "eslint-config-invoca": "^1.0.1",
     "eslint-config-standard": "^11.0.0",
     "eslint-git-changes": "^2.0.1",
     "eslint-plugin-import": "^2.10.0",
