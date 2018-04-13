@@ -2080,10 +2080,6 @@ escope@^3.6.0:
     esrecurse "^4.1.0"
     estraverse "^4.1.1"
 
-eslint-config-invoca@^1.0.0:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/eslint-config-invoca/-/eslint-config-invoca-1.0.3.tgz#f6b4b0091353ab82779dbca88139cc15de45dfd2"
-
 eslint-config-standard@^11.0.0:
   version "11.0.0"
   resolved "https://registry.yarnpkg.com/eslint-config-standard/-/eslint-config-standard-11.0.0.tgz#87ee0d3c9d95382dc761958cbb23da9eea31e0ba"
@@ -5272,6 +5268,10 @@ strip-json-comments@1.0.x:
 strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+
+style-guide@Invoca/style-guide#1804/m/STORY-2340_code_style_checker:
+  version "1.0.0"
+  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/b0e776291862b1fc788aa23ae2bee989257a114e"
 
 subarg@^1.0.0:
   version "1.0.0"
