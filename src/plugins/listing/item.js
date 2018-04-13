@@ -6,13 +6,13 @@ var Item = (function() {
 
   var Item = Base.View.extend({
 
-    closeItem : function() {
+    closeItem: function() {
       this.model.collection.remove(this.model);
     }
 
   }, {
 
-    finalize : function(name, listClass, views) {
+    finalize: function(name, listClass, views) {
     }
 
   });

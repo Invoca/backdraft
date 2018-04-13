@@ -15,11 +15,11 @@ export default function addBulkColumnType(app) {
         bSortable: config.sort,
         bSearchable: false,
         sTitle: "<input type='checkbox' />",
-        sClass : "bulk",
+        sClass: "bulk",
         mData: function(source, type, val) {
           return dataTable.collection.get(source);
         },
-        mRender : function(data, type, full) {
+        mRender: function(data, type, full) {
           if (type === "sort" || type === "type") {
             return dataTable.selectionManager.has(data) ? 1 : -1;
           } else {

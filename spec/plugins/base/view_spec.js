@@ -11,8 +11,8 @@ describe("Base Plugin", function() {
       var spy = jasmine.createSpyObj("eventSpy", [ "beforeClose", "afterClose" ]);
 
       view.on({
-        beforeClose : spy.beforeClose,
-        afterClose : spy.afterClose
+        beforeClose: spy.beforeClose,
+        afterClose: spy.afterClose
       });
 
       view.close();
@@ -74,8 +74,8 @@ describe("Base Plugin", function() {
         var spy = jasmine.createSpyObj("eventSpy", [ "abc", "xyz" ]);
 
         view.on({
-          abc : spy.abc,
-          xyz : spy.xyz
+          abc: spy.abc,
+          xyz: spy.xyz
         });
 
         view.trigger("abc");

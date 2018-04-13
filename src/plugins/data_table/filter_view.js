@@ -105,7 +105,7 @@ var DataTableFilter = (function(options) {
 
     _updateFilterUrlParams: function() {
       // get url parameters into an array
-      var params=[];
+      var params = [];
       // if there are already parameters there, get them
       var urlArray = window.location.href.split("?");
       if (urlArray[1]) {
@@ -115,11 +115,10 @@ var DataTableFilter = (function(options) {
       var filteringSettings = this.parent.table._getFilteringSettings();
 
       // if there are active filters, put them in the filter_json param
-      if (JSON.parse(filteringSettings).length>0) {
-        params.filter_json = filteringSettings;
-      }
+      if (JSON.parse(filteringSettings).length > 0) {
+        params.filter_json = filteringSettings; // eslint-disable-line camelcase
       // otherwise delete the filter_json param to keep a clean uri
-      else {
+      } else {
         delete params.filter_json;
       }
       // Delete ext_filter_json from the url, we're deprecating it
@@ -151,19 +150,19 @@ var DataTableFilter = (function(options) {
       </div>\
       ', null, DEFAULT_JST_DELIMS),
 
-      afterRender: function() {
-        var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
-        // if there are filters in url, enable in UI
-        if (filterArray.length > 0) {
-          // find the filters that match this filter instance
-          var matches = _.where(filterArray, {type: "string", attr: this.attr});
-          // if there are filter params for this filter, add them to the markup
-          if (matches[0]) {
-            this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
-            this.parentView._toggleIcon(true);
-          }
+    afterRender: function() {
+      var filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
+      // if there are filters in url, enable in UI
+      if (filterArray.length > 0) {
+        // find the filters that match this filter instance
+        var matches = _.where(filterArray, {type: "string", attr: this.attr});
+        // if there are filter params for this filter, add them to the markup
+        if (matches[0]) {
+          this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);
+          this.parentView._toggleIcon(true);
         }
-      },
+      }
+    },
 
     _onInputChange: function (event) {
       var filterInput = event.target;
@@ -213,7 +212,7 @@ var DataTableFilter = (function(options) {
     _onInputChange: function (event) {
       event.stopImmediatePropagation();
       var filterType = event.target.getAttribute('data-filter-type'),
-          filterValue = event.target.value;
+        filterValue = event.target.value;
       if (filterValue === "") {
         this.filter[filterType] = null;
         this.parentView._toggleIcon(false);
@@ -227,9 +226,9 @@ var DataTableFilter = (function(options) {
     _onSelectChange: function (event) {
       event.stopImmediatePropagation();
       var target = $(event.target),
-          filterElementId = target.data('filter-id'),
-          previousFilterType = target.data('previous-value'),
-          filterType = target.val();
+        filterElementId = target.data('filter-id'),
+        previousFilterType = target.data('previous-value'),
+        filterType = target.val();
       this.filter[filterType] = this.filter[previousFilterType];
       delete this.filter[previousFilterType];
       target.data('previous-value', filterType);
@@ -308,9 +307,9 @@ var DataTableFilter = (function(options) {
         // if there are url params for this filter...
         if (matches[0]) {
           // go through each of those list values
-          matches[0].value.forEach( function(element, index, array) {
+          matches[0].value.forEach(function(element, index, array) {
             // check it
-            this.$el.find('input[value="'+element+'"]').prop("checked", true);
+            this.$el.find('input[value="' + element + '"]').prop("checked", true);
           }.bind(this));
           // make the button show
           this.parentView._toggleIcon(true);
@@ -343,9 +342,8 @@ var DataTableFilter = (function(options) {
         this.filter.value = this.filter.value || [];
         this.filter.value.push(filterInput.value);
         this.parentView._toggleIcon(true);
-      }
       // remove filter from column manager if it is defined
-      else if (this.filter.value) {
+      } else if (this.filter.value) {
         var index = this.filter.value.indexOf(filterInput.value);
         if (index > -1) {
           this.filter.value.splice(index, 1);
@@ -387,15 +385,15 @@ var DataTableFilter = (function(options) {
       // decide which filter view based on type, here
       var filterMenu = null;
       switch (this.filter.type) {
-        case 'string':
-          filterMenu = new StringFilterMenu({column: options.column, parentView: this});
-          break;
-        case 'numeric':
-          filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
-          break;
-        case 'list':
-          filterMenu = new ListFilterMenu({column: options.column, parentView: this});
-          break;
+      case 'string':
+        filterMenu = new StringFilterMenu({column: options.column, parentView: this});
+        break;
+      case 'numeric':
+        filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
+        break;
+      case 'list':
+        filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+        break;
       }
 
       // add as a child (backdraft thing just to keep bookkeeping on subviews)

@@ -9,11 +9,11 @@ import Cache from "./cache";
 const Base = Plugin.factory("Base", function(plugin) {
 
   plugin.exports({
-    Router : Router,
-    View : View,
-    Model : Model,
-    Collection : Collection,
-    Cache : Cache
+    Router: Router,
+    View: View,
+    Model: Model,
+    Collection: Collection,
+    Cache: Cache
   });
 
   // factories

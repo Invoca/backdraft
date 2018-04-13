@@ -1,9 +1,9 @@
 Backdraft.app("ListingExample", {
 
-  plugins : [ "Listing"],
+  plugins: [ "Listing"],
 
-  activate : function($el) {
-    this.mainRouter = new this.Routers.Main({ $el : $el });
+  activate: function($el) {
+    this.mainRouter = new this.Routers.Main({ $el: $el });
     Backbone.history.start({ });
   }
 
@@ -13,11 +13,11 @@ Backdraft.app("ListingExample", function(app) {
 
   app.router("Main", {
 
-    routes : {
-      "" : "index"
+    routes: {
+      "": "index"
     },
 
-    index : function() {
+    index: function() {
       var view = new app.Views.Index();
       this.swap(view);
     }
@@ -38,7 +38,7 @@ Backdraft.app("ListingExample", function(app) {
 
   app.collection("Books", {
 
-    model : app.Models.Book
+    model: app.Models.Book
     
   });
 
@@ -50,9 +50,9 @@ Backdraft.app("ListingExample", function(app) {
 
   app.view.listing("BookList", {
 
-    itemClassName : "BookItem",
+    itemClassName: "BookItem",
 
-    tagName : "ul"
+    tagName: "ul"
   });
 
 });
@@ -61,20 +61,20 @@ Backdraft.app("ListingExample", function(app) {
 
   app.view.listing.item("BookItem", {
 
-    tagName : "li",
+    tagName: "li",
 
-    events : {
-      "click .remove-keyword" : "_onRemoveClick"
+    events: {
+      "click .remove-keyword": "_onRemoveClick"
     },
 
-    render : function() {
+    render: function() {
       this.$el.text(this.model.get('name'));
       this.$el.append(' <a href="#" class="remove-keyword">X</a>');
 
       return this;
     },
 
-    _onRemoveClick : function() {
+    _onRemoveClick: function() {
       this.closeItem();
       return false;
     }
@@ -87,17 +87,17 @@ Backdraft.app("ListingExample", function(app) {
 
   app.view("Index", {
 
-    render : function() {
+    render: function() {
       var collection  = new app.Collections.Books();
       var data = [];
 
       // fake data
       for (var iter = 0; iter < 10; ++iter) {
-        data.push({ name : "Item " + (iter + 1) });
+        data.push({ name: "Item " + (iter + 1) });
       }
 
       collection.add(data);
-      var list = new app.Views.BookList({ collection : collection });
+      var list = new app.Views.BookList({ collection: collection });
 
       this.$el.html(list.render().$el);
       return this;

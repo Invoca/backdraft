@@ -14,7 +14,7 @@ var extend = function(protoProps, staticProps) {
   if (protoProps && _.has(protoProps, 'constructor')) {
     child = protoProps.constructor;
   } else {
-    child = function(){ return parent.apply(this, arguments); };
+    child = function() { return parent.apply(this, arguments); };
   }
 
   // Add static properties to the constructor function, if supplied.
@@ -22,7 +22,7 @@ var extend = function(protoProps, staticProps) {
 
   // Set the prototype chain to inherit from `parent`, without calling
   // `parent`'s constructor function.
-  var Surrogate = function(){ this.constructor = child; };
+  var Surrogate = function() { this.constructor = child; };
   Surrogate.prototype = parent.prototype;
   child.prototype = new Surrogate;
 
@@ -54,7 +54,7 @@ Class.prototype._getterSetter = function(prop) {
 }
 
 _.extend(Class, {
-  extend : extend
+  extend: extend
 });
 
 export default Class;
