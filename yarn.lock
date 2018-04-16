@@ -5269,9 +5269,9 @@ strip-json-comments@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
 
-style-guide@Invoca/style-guide#1804/m/STORY-2340_code_style_checker:
+style-guide@Invoca/style-guide:
   version "1.0.0"
-  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/b0e776291862b1fc788aa23ae2bee989257a114e"
+  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/17c53cc91e5c745950a33b2c8203cd8f4753af30"
 
 subarg@^1.0.0:
   version "1.0.0"

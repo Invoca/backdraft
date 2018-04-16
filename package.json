@@ -10,7 +10,7 @@
     "eslint": "eslint-git-changes --jsx",
     "setup": "npm install -g grunt-cli",
     "specs": "yarn run eslint; karma start --single-run",
-    "dev": "yarn run eslint && karma start",
+    "dev": "yarn run eslint; karma start",
     "examples": "grunt examples",
     "prepublish": "NODE_ENV=production grunt build"
   },
@@ -25,7 +25,7 @@
     "babel-preset-minify": "^0.3.0",
     "backbone": "1.1.2",
     "eslint": "^4.19.1",
-    "style-guide": "Invoca/style-guide#1804/m/STORY-2340_code_style_checker",
+    "style-guide": "Invoca/style-guide",
     "eslint-config-standard": "^11.0.0",
     "eslint-git-changes": "^2.0.1",
     "eslint-plugin-import": "^2.11.0",
