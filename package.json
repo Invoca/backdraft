@@ -10,6 +10,7 @@
     "eslint": "eslint-git-changes --jsx",
     "setup": "npm install -g grunt-cli",
     "specs": "yarn run eslint; karma start --single-run",
+    "specs_without_eslint": "karma start --single-run",
     "dev": "yarn run eslint; karma start",
     "examples": "grunt examples",
     "prepublish": "NODE_ENV=production grunt build"
