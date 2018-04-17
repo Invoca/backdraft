@@ -219,7 +219,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("invoke them correctly", function() {
-        collection.add({ age_value: 30 }); // eslint-disable-line camelcase
+        collection.add({ age_value: 30 });
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("column-age_value")).toEqual(true);
@@ -257,7 +257,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("invoke them correctly", function() {
-        collection.add({ age_value: 30 }); // eslint-disable-line camelcase
+        collection.add({ age_value: 30 });
         var cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("age")).toEqual(true);

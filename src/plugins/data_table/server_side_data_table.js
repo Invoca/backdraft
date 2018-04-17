@@ -229,7 +229,7 @@ var ServerSideDataTable = (function() {
       var filterObj = {
         type: col.filter.type,
         attr: col.attr,
-        data_dictionary_name: col.filter.data_dictionary_name, // eslint-disable-line camelcase
+        data_dictionary_name: col.filter.data_dictionary_name,
         comparison: mval
       };
       if (isFloat) {
