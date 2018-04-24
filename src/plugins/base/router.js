@@ -33,7 +33,7 @@ var Router = (function() {
 
   var Router = Backbone.Router.extend({
 
-    constructor : function(options) {
+    constructor: function(options) {
       options || (options = {});
       if (!options.$el || options.$el.length !== 1) throw new Error("$el can't be found");
       this.$el = options.$el;
@@ -41,7 +41,7 @@ var Router = (function() {
       Router.__super__.constructor.apply(this, arguments);
     },
 
-    route : function(route, name, callback) {
+    route: function(route, name, callback) {
       var nameHelperMethod;
       if (!_.isFunction(name)) {
         if (!_.isArray(name)) {
@@ -55,7 +55,7 @@ var Router = (function() {
       return Router.__super__.route.apply(this, arguments);
     },
 
-    swap : function(nextView) {
+    swap: function(nextView) {
       this.activeView && this.activeView.close();
       this.activeView = nextView;
       this.activeView.trigger("beforeSwap", this);

@@ -28,10 +28,9 @@ var ColumnConfigGenerator =  Class.extend({
 
   _getUrlFilterParams: function() {
     var urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json)) {
       return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
-    }
-    else {
+    } else {
       return []
     }
   },
@@ -55,7 +54,7 @@ var ColumnConfigGenerator =  Class.extend({
       return !columnConfig.bulk;
     });
 
-    this._getUrlFilterParams().forEach(function(element, index, array){
+    this._getUrlFilterParams().forEach(function(element, index, array) {
       var columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
       if (columnConfigIndex >= 0) {
         this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;

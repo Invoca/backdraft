@@ -6,7 +6,7 @@ var List = (function() {
 
   var List = Base.View.extend({
 
-    constructor : function(options) {
+    constructor: function(options) {
       this.options = options || {};
       this.cache = new Base.Cache();
       this.itemClass = this.getItemClass();
@@ -17,15 +17,15 @@ var List = (function() {
       this.listenTo(this.collection, "reset", this._onReset);
     },
 
-    _onAdd : function(model) {
+    _onAdd: function(model) {
       this.$el.append(this._createNewItem(model).render().$el);
     },
 
-    _onRemove : function(model) {
+    _onRemove: function(model) {
       this.cache.unset(model).close();
     },
 
-    _onReset : function(collection) {
+    _onReset: function(collection) {
       this.cache.each(function(item) {
         item.close();
       }, this);
@@ -40,21 +40,21 @@ var List = (function() {
       this.$el.append(fragment);
     },
 
-    _createNewItem : function(model) {
-      var item = new this.itemClass({ model : model });
+    _createNewItem: function(model) {
+      var item = new this.itemClass({ model: model });
       this.cache.set(model, item);
       this.child("child" + item.cid, item);
       return item;
     },
 
-    render : function() {
+    render: function() {
       this._onReset();
       return this;
     }
 
   }, {
 
-    finalize : function(name, listClass, views) {
+    finalize: function(name, listClass, views) {
       listClass.prototype.getItemClass = function() {
         // TODO blow up if can't find class
         return views[this.itemClassName];

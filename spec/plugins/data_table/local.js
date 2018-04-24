@@ -8,11 +8,11 @@ describe("DataTable Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins : [ "DataTable" ]
+      plugins: [ "DataTable" ]
     });
     app.model("M", {});
     app.collection("Col", {
-      model : app.Models.M
+      model: app.Models.M
     });
     collection = new app.Collections.Col();
   });
@@ -21,14 +21,14 @@ describe("DataTable Plugin", function() {
     describe("collection changes", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "name", title : "Name" }
+          columns: [
+            { attr: "name", title: "Name" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R"
+          rowClassName: "R"
         });
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
       });
 
@@ -40,7 +40,7 @@ describe("DataTable Plugin", function() {
 
       describe("collection is reset", function() {
         beforeEach(function() {
-          collection.reset([ { name : "Bob" }, { name : "Joe" } ]);
+          collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
         });
 
         it("should render a view for every single model in the collection", function() {
@@ -72,7 +72,7 @@ describe("DataTable Plugin", function() {
 
       describe("collection is added to", function() {
         beforeEach(function() {
-          collection.add({ name : "Bob" });
+          collection.add({ name: "Bob" });
         });
 
         it("should add a view for the model added", function() {
@@ -93,7 +93,7 @@ describe("DataTable Plugin", function() {
 
       describe("collection is removed from", function() {
         beforeEach(function() {
-          collection.reset([ { name : "Bob"}, { name : "Joe"} ]);
+          collection.reset([ { name: "Bob"}, { name: "Joe"} ]);
           collection.remove(collection.models[0]);
         });
 
@@ -116,19 +116,19 @@ describe("DataTable Plugin", function() {
     describe("customization", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "name", title : "Name" }
+          columns: [
+            { attr: "name", title: "Name" }
           ]
         });
       });
 
       it("should allow a empty text to be provided", function() {
         app.view.dataTable("TableWithEmptyText", {
-          rowClassName : "R",
+          rowClassName: "R",
           emptyText: "Sad, there is nothing here!"
         });
 
-        table = new app.Views.TableWithEmptyText({ collection : collection });
+        table = new app.Views.TableWithEmptyText({ collection: collection });
         table.render();
         expect(table.$(".dataTables_empty").text()).toEqual("Sad, there is nothing here!");
       });
@@ -138,15 +138,15 @@ describe("DataTable Plugin", function() {
   describe("local data store pagination", function() {
     it("should paginate by default", function() {
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name" }
+        columns: [
+          { attr: "name", title: "Name" }
         ]
       });
       app.view.dataTable("T", {
-        rowClassName : "R"
+        rowClassName: "R"
       });
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       expect(table.$(".dataTables_paginate").length).toEqual(1);
@@ -154,16 +154,16 @@ describe("DataTable Plugin", function() {
 
     it("should allow pagination to be disabled", function() {
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name" }
+        columns: [
+          { attr: "name", title: "Name" }
         ]
       });
       app.view.dataTable("T", {
-        rowClassName : "R",
-        paginate : false
+        rowClassName: "R",
+        paginate: false
       });
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       expect(table.$(".dataTables_paginate").length).toEqual(0);
@@ -176,35 +176,35 @@ describe("DataTable Plugin", function() {
     beforeEach(function() {
       data = [];
       for (var iter = 0; iter < 100; ++iter) {
-        data.push({ id : iter +1, name : "hi " + iter });
+        data.push({ id: iter + 1, name: "hi " + iter });
       }
     });
 
     describe("without pagination", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { bulk : true },
-            { attr : "name", title : "Name" }
+          columns: [
+            { bulk: true },
+            { attr: "name", title: "Name" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R",
-          paginate : false
+          rowClassName: "R",
+          paginate: false
         });
         collection.reset(data);
       });
 
       it("should not unselect models that are filtered out", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
 
         expect(table.selectedModels().length).toEqual(0);
         table.selectAllVisible(true)
         expect(table.selectedModels().length).toEqual(data.length);
 
-        collection.add({ name : "monkey "});
-        collection.add({ name : "monkey and more "});
+        collection.add({ name: "monkey "});
+        collection.add({ name: "monkey and more "});
 
         table.filter("monkey");
         table.selectAllVisible(true);
@@ -212,7 +212,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should not allow selectAllMatching to be called", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
 
         expect(function() {
@@ -222,7 +222,7 @@ describe("DataTable Plugin", function() {
 
       it("should allow a list of pre-selected model ids to be provided and select the correct rows", function() {
         var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45 ];
-        table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+        table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
         table.render();
         expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
       });
@@ -230,7 +230,7 @@ describe("DataTable Plugin", function() {
       it("should not throw exceptions when provided pre-selected model ids that don't exist", function() {
         var selectedIds = [ 1, 2, 3, -1 ];
         expect(function() {
-          table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+          table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
           table.render();
         }).not.toThrow();
 
@@ -241,20 +241,20 @@ describe("DataTable Plugin", function() {
     describe("with pagination", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { bulk : true },
-            { attr : "name", title : "Name" }
+          columns: [
+            { bulk: true },
+            { attr: "name", title: "Name" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R",
-          paginate : true
+          rowClassName: "R",
+          paginate: true
         });
         collection.reset(data);
       });
 
       it("should select models that are not filtered out from the current page only", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         expect(table.selectedModels().length).toEqual(0);
         table.selectAllVisible(true);
@@ -271,7 +271,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should uncheck the header bulk checkbox when a page transitions and the next page doesn't have all rows already selected", function(done) {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         table.selectAllVisible(true);
 
@@ -287,7 +287,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should check the header bulk checkbox when a page transitions and the next page has all rows already selected", function(done) {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         table.selectAllVisible(true);
         table.page("next");
@@ -307,14 +307,14 @@ describe("DataTable Plugin", function() {
       describe("selectedIds", function() {
         it("should allow a list of model ids to be provided and select the correct models", function() {
           var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45 ];
-          table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+          table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
           table.render();
           expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
         });
 
         it("should make the correct rows appear selected as some my not be rendered initially due to deferred rendering", function() {
           var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45, 72, 97, 33, 5, 13 ];
-          table = new app.Views.T({ collection : collection, selectedIds : selectedIds });
+          table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
           table.render();
           table.$(".dataTables_length select").val(100).change();
           expect(table.$("td.bulk :checkbox:checked").length).toEqual(selectedIds.length);
@@ -327,20 +327,20 @@ describe("DataTable Plugin", function() {
     describe("regardless of pagination", function() {
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { bulk : true },
-            { attr : "name", title : "Name" }
+          columns: [
+            { bulk: true },
+            { attr: "name", title: "Name" }
           ]
         });
         app.view.dataTable("T", {
-          rowClassName : "R",
-          paginate : false
+          rowClassName: "R",
+          paginate: false
         });
         collection.reset(data);
       });
 
       it("should check/uncheck the header bulk checkbox when #selectAllVisible is called", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
 
         expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
@@ -352,7 +352,7 @@ describe("DataTable Plugin", function() {
 
       it("should trigger an event when #selectAllVisible is called", function() {
         var changeSelectSpy = jasmine.createSpy();
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
 
         table.on("change:selected", changeSelectSpy);
@@ -366,7 +366,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should uncheck the header bulk checkbox when a row's checkbox is unchecked", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         // need to append to body in order to do clicks on checkboxes
         $("body").append(table.render().$el);
 
@@ -378,7 +378,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should uncheck the header bulk checkbox when a filter is applied and the result set doesn't have all rows already selected", function(done) {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         table.filter("89");
         table.selectAllVisible(true);
@@ -398,7 +398,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should check the header bulk checkbox when a filter is applied and the result set has all rows already selected", function(done) {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         table.filter("9");
         table.selectAllVisible(true);
@@ -419,7 +419,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should adjust bulk selection after a model is removed from the collection", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
         var model = collection.find(function(m) {
           return m.id === 89;
@@ -432,7 +432,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should uncheck the header bulk checkbox when a filter is applied and the result set is empty", function(done) {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         table.render();
 
         // we need to test this using an async strategy because the checkbox is toggled async as well
@@ -448,7 +448,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should toggle the 'backdraft-selected' class on the row when a row's checkbox is toggled", function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         // need to append to body in order to do clicks on checkboxes
         $("body").append(table.render().$el);
 
@@ -468,12 +468,12 @@ describe("DataTable Plugin", function() {
       if (table) { table.close(); };
 
       app.view.dataTable("T", {
-        rowClassName : "R",
-        paginate : false
+        rowClassName: "R",
+        paginate: false
       });
-      collection.reset([{ id : 1, firstName : "Billy", lastName: "Bob", income: "1000" }]);
+      collection.reset([{ id: 1, firstName: "Billy", lastName: "Bob", income: "1000" }]);
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       $("body").append(table.render().$el);
     };
 
@@ -491,9 +491,9 @@ describe("DataTable Plugin", function() {
 
     var columns = function() {
       return [
-        { attr : "income",    title : "Income",     headerGroupDataIndex: "financial" },
-        { attr : "firstName", title : "First Name", headerGroupDataIndex: "user" },
-        { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+        { attr: "income",    title: "Income",     headerGroupDataIndex: "financial" },
+        { attr: "firstName", title: "First Name", headerGroupDataIndex: "user" },
+        { attr: "lastName",  title: "Last Name",  headerGroupDataIndex: "user" }
       ]
     };
 
@@ -550,15 +550,15 @@ describe("DataTable Plugin", function() {
 
         it("should gracefully render the column title when headerGroupDataIndex is not matched in columnGroupDefinitions", function() {
           app.view.dataTable.row("R", {
-            columns : [
-              { attr : "income",    title : "Income",     headerGroupDataIndex: "financial" },
-              { attr : "firstName", title : "First Name", headerGroupDataIndex: "BOGUS" },
-              { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+            columns: [
+              { attr: "income",    title: "Income",     headerGroupDataIndex: "financial" },
+              { attr: "firstName", title: "First Name", headerGroupDataIndex: "BOGUS" },
+              { attr: "lastName",  title: "Last Name",  headerGroupDataIndex: "user" }
             ],
 
             columnGroupDefinitions: [
-              { "headerName" : "Financial", "colspan" : 1, headerGroupDataIndex: "financial" },
-              { "headerName" : "User Info", "colspan" : 2, headerGroupDataIndex: "user" }
+              { "headerName": "Financial", "colspan": 1, headerGroupDataIndex: "financial" },
+              { "headerName": "User Info", "colspan": 2, headerGroupDataIndex: "user" }
             ]
           });
 
@@ -568,15 +568,15 @@ describe("DataTable Plugin", function() {
 
         it("should gracefully render the column title when headerGroupDataIndex is not matched in columns", function() {
           app.view.dataTable.row("R", {
-            columns : [
-              { attr : "income",    title : "Income",     headerGroupDataIndex: "financial" },
-              { attr : "firstName", title : "First Name", headerGroupDataIndex: "user" },
-              { attr : "lastName",  title : "Last Name",  headerGroupDataIndex: "user" }
+            columns: [
+              { attr: "income",    title: "Income",     headerGroupDataIndex: "financial" },
+              { attr: "firstName", title: "First Name", headerGroupDataIndex: "user" },
+              { attr: "lastName",  title: "Last Name",  headerGroupDataIndex: "user" }
             ],
 
             columnGroupDefinitions: [
-              { "headerName" : "Financial", "colspan" : 1, headerGroupDataIndex: "financial" },
-              { "headerName" : "User Info", "colspan" : 2, headerGroupDataIndex: "BOGUS" }
+              { "headerName": "Financial", "colspan": 1, headerGroupDataIndex: "financial" },
+              { "headerName": "User Info", "colspan": 2, headerGroupDataIndex: "BOGUS" }
             ]
           });
 
@@ -590,7 +590,7 @@ describe("DataTable Plugin", function() {
 
       beforeEach(function() {
         app.view.dataTable.row("R", {
-          columns : columns
+          columns: columns
         });
 
         buildAndAppendTable();
@@ -607,7 +607,7 @@ describe("DataTable Plugin", function() {
 
       it("should omit header group row when columnGroupDefinitions is empty", function() {
         app.view.dataTable.row("R", {
-          columns : columns,
+          columns: columns,
           columnGroupDefinitions: []
         });
 
@@ -620,16 +620,16 @@ describe("DataTable Plugin", function() {
   describe("columnElements", function() {
     beforeEach(function() {
       app.view.dataTable.row("R", {
-        columns : [
-          { bulk : true },
-          { attr : "name", title : "Name" }
+        columns: [
+          { bulk: true },
+          { attr: "name", title: "Name" }
         ]
       });
       app.view.dataTable("T", {
-        rowClassName : "R"
+        rowClassName: "R"
       });
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
     });
 

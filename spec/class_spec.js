@@ -9,12 +9,12 @@ describe("Backdraft.Utils.Class", function() {
   it("should work like all Backbone classes", function() {
     var Vehicle = Backdraft.Utils.Class.extend({
 
-      initialize : function(arg1) {
+      initialize: function(arg1) {
         this.stuff = [];
         this.stuff.push(arg1);
       },
 
-      identify : function() {
+      identify: function() {
         return "Vehicle";
       }
 
@@ -22,12 +22,12 @@ describe("Backdraft.Utils.Class", function() {
 
     var Train = Vehicle.extend({
 
-      initialize : function(arg1, arg2) {
+      initialize: function(arg1, arg2) {
         Train.__super__.initialize.call(this, arg1);
         this.stuff.push(arg2);
       },
 
-      identify : function() {
+      identify: function() {
         return "Train";
       }
 

@@ -12,8 +12,8 @@ describe("DataTable Plugin", function() {
 
   MockResponse.prototype.get = function() {
     return {
-      status : 200,
-      responseText : JSON.stringify({
+      status: 200,
+      responseText: JSON.stringify({
         sEcho: this.echo++,
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
@@ -35,8 +35,8 @@ describe("DataTable Plugin", function() {
 
   MockResponse.prototype.getWithTotals = function() {
     return {
-      status : 200,
-      responseText : JSON.stringify({
+      status: 200,
+      responseText: JSON.stringify({
         sEcho: this.echo++,
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
@@ -59,8 +59,8 @@ describe("DataTable Plugin", function() {
 
   MockResponse.prototype.getWithUniques = function() {
     return {
-      status : 200,
-      responseText : JSON.stringify({
+      status: 200,
+      responseText: JSON.stringify({
         sEcho: this.echo++,
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
@@ -83,8 +83,8 @@ describe("DataTable Plugin", function() {
 
   MockResponse.prototype.getBadKey = function() {
     return {
-      status : 200,
-      responseText : JSON.stringify({
+      status: 200,
+      responseText: JSON.stringify({
         sEcho: this.echo++,
         iTotalRecords: 1,
         iTotalDisplayRecords: 1,
@@ -97,8 +97,8 @@ describe("DataTable Plugin", function() {
 
   MockResponse.prototype.getEmpty = function() {
     return {
-      status : 200,
-      responseText : JSON.stringify({
+      status: 200,
+      responseText: JSON.stringify({
         sEcho: this.echo++,
         iTotalRecords: 0,
         iTotalDisplayRecords: 0,
@@ -124,20 +124,20 @@ describe("DataTable Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins : [ "DataTable" ]
+      plugins: [ "DataTable" ]
     });
     app.model("M", {});
     app.collection("Col", {
-      model : app.Models.M,
-      url : "/somewhere"
+      model: app.Models.M,
+      url: "/somewhere"
     });
     app.view.dataTable.row("R", {
-      columns : [
-        { bulk : true },
-        { attr : "name", title : "Name", filter : { type : "string" } },
-        { attr : "cost", title : "Cost", filter : { type : "numeric" } },
-        { attr : "type", title : "Type", filter : { type : "list", options: ["Basic", "Advanced"] } },
-        { title : "Non attr column"}
+      columns: [
+        { bulk: true },
+        { attr: "name", title: "Name", filter: { type: "string" } },
+        { attr: "cost", title: "Cost", filter: { type: "numeric" } },
+        { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
+        { title: "Non attr column"}
       ],
       renderers: {
         "non attr column": function(node, config) {
@@ -146,25 +146,25 @@ describe("DataTable Plugin", function() {
       }
     });
     app.view.dataTable("T", {
-      rowClassName : "R",
-      serverSide : true,
-      sorting : [['name', 'desc']],
+      rowClassName: "R",
+      serverSide: true,
+      sorting: [['name', 'desc']],
       filteringEnabled: true,
-      serverSideFiltering : true
+      serverSideFiltering: true
     });
 
     app.view.dataTable.row("RSimple", {
-      columns : [
-        { attr : "cost", title : "Cost", filter : { type : "numeric" } },
-        { attr : "name", title : "Name", filter : { type : "string" } }
+      columns: [
+        { attr: "cost", title: "Cost", filter: { type: "numeric" } },
+        { attr: "name", title: "Name", filter: { type: "string" } }
       ]
     });
 
     app.view.dataTable("TSimple", {
-      rowClassName : "RSimple",
-      serverSide : true,
-      sorting : [['name', 'desc']],
-      simpleParams : true
+      rowClassName: "RSimple",
+      serverSide: true,
+      sorting: [['name', 'desc']],
+      simpleParams: true
     });
 
     collection = new app.Collections.Col();
@@ -188,59 +188,59 @@ describe("DataTable Plugin", function() {
 
   describe("server side restrictions", function() {
     it("should not allow the collection to contain models on creation", function() {
-      collection.add({ name : "Bob" });
+      collection.add({ name: "Bob" });
       expect(function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
       }).toThrowError("Server side dataTables requires an empty collection")
     });
 
     it("should not allow adding to the collection", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       expect(function() {
-        collection.add({ name : "Bob" });
+        collection.add({ name: "Bob" });
       }).toThrowError("Server side dataTables do not allow adding to the collection");
     });
 
     it("should require that collections define a url", function() {
       expect(function() {
         collection.url = null;
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
       }).toThrowError("Server side dataTables require the collection to define a url");
     });
 
     it("should not allow the collection to be reset without providing an addData callback", function() {
       expect(function() {
-        table = new app.Views.T({ collection : collection });
+        table = new app.Views.T({ collection: collection });
         collection.reset();
       }).toThrowError("An addData option is required to reset the collection");
     });
 
     it("should force pagination", function() {
       app.view.dataTable("T2", {
-        rowClassName : "R",
-        serverSide : true,
-        paginate : false
+        rowClassName: "R",
+        serverSide: true,
+        paginate: false
       });
-      table = new app.Views.T2({ collection : collection });
+      table = new app.Views.T2({ collection: collection });
       expect(table.paginate).toEqual(true);
     });
   });
 
   describe("server side rendering", function() {
     it("should log a warning via DataTables when the keys returned do not match", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       try {
         jasmine.Ajax.requests.mostRecent().response(mockResponse.getBadKey());
         throw Error("DataTables did not throw an error when we expected it to. It should warn about a missing parameter based on bad server response.");
-      } catch(ex) {
+      } catch (ex) {
         expect(ex.message).toMatch(/Requested unknown parameter/)
       }
     });
 
     it("should disable filtering", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
       expect(table.$(".dataTables_filter").css("visibility")).toEqual("hidden");
@@ -248,24 +248,24 @@ describe("DataTable Plugin", function() {
 
     it("should allow a processing text to be provided", function() {
       app.view.dataTable("TableWithProcessing", {
-        rowClassName : "R",
-        serverSide : true,
+        rowClassName: "R",
+        serverSide: true,
         processingText: "HELLO I am processing stuff"
       });
 
-      table = new app.Views.TableWithProcessing({ collection : collection });
+      table = new app.Views.TableWithProcessing({ collection: collection });
       table.render();
       expect(table.$(".dataTables_processing").text()).toEqual("HELLO I am processing stuff");
     });
 
     it("should allow a empty text to be provided", function() {
       app.view.dataTable("TableWithEmptyText", {
-        rowClassName : "R",
-        serverSide : true,
+        rowClassName: "R",
+        serverSide: true,
         emptyText: "Sad, there is nothing here!"
       });
 
-      table = new app.Views.TableWithEmptyText({ collection : collection });
+      table = new app.Views.TableWithEmptyText({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.getEmpty());
       expect(table.$(".dataTables_empty").text()).toEqual("Sad, there is nothing here!");
@@ -276,7 +276,7 @@ describe("DataTable Plugin", function() {
       var finishSpy = jasmine.createSpy("finishSpy");
       $("body").on(app.name + ":" + "ajax-start.backdraft", startSpy);
       $("body").on(app.name + ":" + "ajax-finish.backdraft", finishSpy);
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       expect(startSpy).toHaveBeenCalled();
@@ -324,13 +324,13 @@ describe("DataTable Plugin", function() {
       });
 
       app.collection("CollectionOfModelWithParse", {
-        model : app.Models.ModelWithParse,
-        url : "/somewhere"
+        model: app.Models.ModelWithParse,
+        url: "/somewhere"
       });
 
       collection = new app.Collections.CollectionOfModelWithParse();
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
@@ -344,12 +344,12 @@ describe("DataTable Plugin", function() {
   describe("grand totals row", function() {
     beforeEach(function() {
       app.view.dataTable.row("R", {
-        columns : [
-          { attr : "name", title : "Name", id: "name"},
-          { attr : "cost", title : "Cost", id: "cost"},
-          { attr : "type", title : "Type", id: "type"},
-          { attr : "description", title : "description", id: "description"},
-          { attr : "resale_value", title : "Resale value", id: "resale_value"},
+        columns: [
+          { attr: "name", title: "Name", id: "name"},
+          { attr: "cost", title: "Cost", id: "cost"},
+          { attr: "type", title: "Type", id: "type"},
+          { attr: "description", title: "description", id: "description"},
+          { attr: "resale_value", title: "Resale value", id: "resale_value"},
         ],
 
         renderers: {
@@ -371,17 +371,17 @@ describe("DataTable Plugin", function() {
       });
 
       app.view.dataTable("T", {
-        rowClassName : "R",
-        serverSide : true,
-        sorting : [['name', 'desc']],
+        rowClassName: "R",
+        serverSide: true,
+        sorting: [['name', 'desc']],
         filteringEnabled: true,
-        serverSideFiltering : true,
+        serverSideFiltering: true,
         isNontotalsColumn: function(col) {
           return (col.id !== "cost" && col.id !== "resale_value");
         },
       });
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
     });
 
     describe("without uniques", function() {
@@ -449,12 +449,12 @@ describe("DataTable Plugin", function() {
 
       it("should render title from grandTotalsRenderer if it exists for column", function() {
         app.view.dataTable.row("R", {
-          columns : [
-            { attr : "name", title : "asdfdasdfas", id: "name", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
-            { attr : "cost", title : "Cost", id: "cost", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
-            { attr : "type", title : "Type", id: "type", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
-            { attr : "description", title : "description", id: "description"},
-            { attr : "resale_value", title : "Resale value", id: "resale_value"},
+          columns: [
+            { attr: "name", title: "asdfdasdfas", id: "name", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
+            { attr: "cost", title: "Cost", id: "cost", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
+            { attr: "type", title: "Type", id: "type", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
+            { attr: "description", title: "description", id: "description"},
+            { attr: "resale_value", title: "Resale value", id: "resale_value"},
           ],
 
           renderers: {
@@ -476,7 +476,7 @@ describe("DataTable Plugin", function() {
         });
 
         collection = new app.Collections.Col();
-        var table1 = new app.Views.T({ collection : collection });
+        var table1 = new app.Views.T({ collection: collection });
         table1.render();
         jasmine.Ajax.requests.mostRecent().response(mockResponse.getWithUniques());
 
@@ -503,7 +503,7 @@ describe("DataTable Plugin", function() {
 
   describe("server side removal", function() {
     it("should reload the collection to the page", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       collection.remove(collection.models[0])
 
       expect(table.$("tbody tr").length).toEqual(0);
@@ -512,7 +512,7 @@ describe("DataTable Plugin", function() {
 
   describe("server side urls", function() {
     it("should work with a url that is a string", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/somewhere?");
@@ -524,7 +524,7 @@ describe("DataTable Plugin", function() {
       var oldUrl = collection.url;
       collection.url = function() { return oldUrl };
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/somewhere?");
@@ -535,41 +535,41 @@ describe("DataTable Plugin", function() {
 
   describe("server side params", function() {
     it("should automatically include column attributes", function() {
-      var expectedAttrParams = $.param({ column_attrs : [undefined, "name", "cost", "type", undefined] });
-      table = new app.Views.T({ collection : collection });
+      var expectedAttrParams = $.param({ column_attrs: [undefined, "name", "cost", "type", undefined] });
+      table = new app.Views.T({ collection: collection });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);
     });
 
     it("should allow for addition of server params", function() {
-      table = new app.Views.T({ collection : collection });
-      table.serverParams({ monkey : "chicken" });
+      table = new app.Views.T({ collection: collection });
+      table.serverParams({ monkey: "chicken" });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
     });
 
     it("should allow for addition of server params that are arrays and convert to rails syntax", function() {
-      table = new app.Views.T({ collection : collection });
-      table.serverParams({ monkey : ["chicken", "goat"] });
+      table = new app.Views.T({ collection: collection });
+      table.serverParams({ monkey: ["chicken", "goat"] });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey%5B%5D=chicken&monkey%5B%5D=goat");
     });
 
     it("should reload the table when server params are set", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
 
-      table.serverParams({ monkey : "chicken" });
+      table.serverParams({ monkey: "chicken" });
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=chicken");
 
-      table.serverParams({ monkey : "rabbit" });
+      table.serverParams({ monkey: "rabbit" });
       expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("monkey=chicken");
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey=rabbit");
     });
 
     it("should pass the current server params with each page change", function() {
-      table = new app.Views.T({ collection : collection });
-      table.serverParams({ monkey : "chicken" });
+      table = new app.Views.T({ collection: collection });
+      table.serverParams({ monkey: "chicken" });
       table.render();
       table.page("next");
 
@@ -579,7 +579,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should set an X-Backdraft header on dataTables' ajax requests", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       expect(jasmine.Ajax.requests.mostRecent().requestHeaders["X-Backdraft"]).toEqual("1");
       expect(jasmine.Ajax.requests.count()).toEqual(1);
@@ -590,12 +590,12 @@ describe("DataTable Plugin", function() {
 
     it("should allow an AJAX method to be specified", function() {
       app.view.dataTable("AjaxMethodTestTable", {
-        rowClassName : "R",
-        serverSide : true,
+        rowClassName: "R",
+        serverSide: true,
         ajaxMethod: "POST",
       });
 
-      table = new app.Views.AjaxMethodTestTable({ collection : collection });
+      table = new app.Views.AjaxMethodTestTable({ collection: collection });
       table.render();
 
       expect(jasmine.Ajax.requests.mostRecent().method).toEqual("POST");
@@ -614,7 +614,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should handle DT 1.10 param for sEcho (draw) for ajax response", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
 
       var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
@@ -622,8 +622,8 @@ describe("DataTable Plugin", function() {
       table.render();
 
       jasmine.Ajax.requests.mostRecent().response({
-        status : 200,
-        responseText : JSON.stringify({
+        status: 200,
+        responseText: JSON.stringify({
           draw: '33',
           iTotalRecords: 0,
           iTotalDisplayRecords: 0,
@@ -640,7 +640,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should handle generic API param for sEcho (requestId) for ajax response", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
 
       var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
@@ -648,8 +648,8 @@ describe("DataTable Plugin", function() {
       table.render();
 
       jasmine.Ajax.requests.mostRecent().response({
-        status : 200,
-        responseText : JSON.stringify({
+        status: 200,
+        responseText: JSON.stringify({
           requestId: '33',
           iTotalRecords: 0,
           iTotalDisplayRecords: 0,
@@ -666,7 +666,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should handle generic API param for total records and data for ajax response", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
 
       var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
@@ -674,12 +674,12 @@ describe("DataTable Plugin", function() {
       table.render();
 
       jasmine.Ajax.requests.mostRecent().response({
-        status : 200,
-        responseText : JSON.stringify({
+        status: 200,
+        responseText: JSON.stringify({
           requestId: '33',
           recordsTotal: 2,
           recordsFiltered: 1,
-          data: [{ name : 'bar' }]
+          data: [{ name: 'bar' }]
         })
       });
 
@@ -693,11 +693,11 @@ describe("DataTable Plugin", function() {
       expect(ajaxUpdateArgs[0].iTotalDisplayRecords).toEqual(1);
 
       // testing the aaData is mapped (need to spy the collection.reset since it then modifies the aaData param internally)
-      expect(table.collection.reset.calls.argsFor(0)[0]).toEqual([{ name : 'bar' }]);
+      expect(table.collection.reset.calls.argsFor(0)[0]).toEqual([{ name: 'bar' }]);
     });
 
     it("should handle generic API param for total records when 0 in ajax response", function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
 
       var callbackSpy = spyOnDataTableAjaxResponse(table);
       expect(callbackSpy).not.toHaveBeenCalled();
@@ -705,8 +705,8 @@ describe("DataTable Plugin", function() {
       table.render();
 
       jasmine.Ajax.requests.mostRecent().response({
-        status : 200,
-        responseText : JSON.stringify({
+        status: 200,
+        responseText: JSON.stringify({
           requestId: '33',
           recordsTotal: 0,
           data: []
@@ -817,8 +817,8 @@ describe("DataTable Plugin", function() {
 
   describe("#selectAllMatching", function() {
     beforeEach(function() {
-      table = new app.Views.T({ collection : collection });
-      table.serverParams({ monkey : "chicken" });
+      table = new app.Views.T({ collection: collection });
+      table.serverParams({ monkey: "chicken" });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
     });
@@ -838,14 +838,14 @@ describe("DataTable Plugin", function() {
       table.selectAllVisible(true);
       table.selectAllMatching(true);
 
-      expect(table.selectAllMatching()).toEqual({ monkey : "chicken" });
+      expect(table.selectAllMatching()).toEqual({ monkey: "chicken" });
     });
 
     it("should allow clearing", function() {
       table.selectAllVisible(true);
       table.selectAllMatching(true);
 
-      expect(table.selectAllMatching()).toEqual({ monkey : "chicken" });
+      expect(table.selectAllMatching()).toEqual({ monkey: "chicken" });
 
       table.selectAllMatching(false);
       expect(table.selectAllMatching()).toEqual(null);
@@ -855,7 +855,7 @@ describe("DataTable Plugin", function() {
       beforeEach(function() {
         table.selectAllVisible(true);
         table.selectAllMatching(true);
-        expect(table.selectAllMatching()).toEqual({ monkey : "chicken" });
+        expect(table.selectAllMatching()).toEqual({ monkey: "chicken" });
       })
 
       it("should clear on pagination", function() {
@@ -903,7 +903,7 @@ describe("DataTable Plugin", function() {
 
   describe("bulk selection", function() {
     beforeEach(function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
     });
@@ -953,7 +953,7 @@ describe("DataTable Plugin", function() {
   describe("filtering", function() {
     var cg;
     beforeEach(function() {
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
       Backbone.history.navigate("?", { trigger: false, replace: true });
@@ -972,19 +972,19 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
-              case "string":
-                $(".toggle-filter-button", this).click();
-                $('.filter-menu input').val("").trigger("change");
-                break;
-              case "numeric":
-                $(".toggle-filter-button", this).click();
-                $("input#first-filter").val("").trigger("change");
-                break;
+            case "string":
+              $(".toggle-filter-button", this).click();
+              $('.filter-menu input').val("").trigger("change");
+              break;
+            case "numeric":
+              $(".toggle-filter-button", this).click();
+              $("input#first-filter").val("").trigger("change");
+              break;
 
-              case "list":
-                $(".toggle-filter-button", this).click();
-                $('.filter-menu input').prop("checked", false).trigger("change");
-                break;
+            case "list":
+              $(".toggle-filter-button", this).click();
+              $('.filter-menu input').prop("checked", false).trigger("change");
+              break;
             }
           }
         }
@@ -998,22 +998,22 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
-              case "string":
-                $(".toggle-filter-button", this).click();
-                $('.filter-menu input').val("Scott").trigger("change");
-                $(".btn-filter").trigger("click");
-                break;
-              case "numeric":
-                $(".toggle-filter-button", this).click();
-                $('select[data-filter-id=first-filter]').val("eq").trigger("change");
-                $('input#first-filter').val("0.5").trigger("change");
-                $(".btn-filter").trigger("click");
-                break;
-              case "list":
-                $(".toggle-filter-button", this).click();
-                $(".filter-menu input[value=Basic]").prop("checked", true).trigger("change");
-                $(".btn-filter").trigger("click");
-                break;
+            case "string":
+              $(".toggle-filter-button", this).click();
+              $('.filter-menu input').val("Scott").trigger("change");
+              $(".btn-filter").trigger("click");
+              break;
+            case "numeric":
+              $(".toggle-filter-button", this).click();
+              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+              $('input#first-filter').val("0.5").trigger("change");
+              $(".btn-filter").trigger("click");
+              break;
+            case "list":
+              $(".toggle-filter-button", this).click();
+              $(".filter-menu input[value=Basic]").prop("checked", true).trigger("change");
+              $(".btn-filter").trigger("click");
+              break;
             }
           }
         }
@@ -1023,12 +1023,12 @@ describe("DataTable Plugin", function() {
     function verifyFilterAjax(filterObj) {
       var url = jasmine.Ajax.requests.mostRecent().url;
       var expectedFilterJson = encodeURIComponent(JSON.stringify(filterObj));
-      expect(url).toMatch("ext_filter_json="+expectedFilterJson);
+      expect(url).toMatch("ext_filter_json=" + expectedFilterJson);
     }
 
     function verifyUrlParams(filterObj) {
       var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).filter_json)
-      var expectedFilterJson = (filterObj.length>0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
+      var expectedFilterJson = (filterObj.length > 0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
 
@@ -1037,23 +1037,23 @@ describe("DataTable Plugin", function() {
       // Create a brand new table with duplicate titles
       Backdraft.app.destroyAll();
       app = Backdraft.app("myapp", {
-        plugins : [ "DataTable" ]
+        plugins: [ "DataTable" ]
       });
 
       app.model("M", {});
       app.collection("Col", {
-        model : app.Models.M,
-        url : "/somewhere"
+        model: app.Models.M,
+        url: "/somewhere"
       });
 
       app.view.dataTable.row("R", {
-        columns : [
-          { bulk : true },
-          { attr : "name", title : "Name", filter : { type : "string" } },
-          { attr : "cost", title : "Cost", filter : { type : "numeric" } },
-          { attr : "cost2", title : "Cost", filter : { type : "numeric" } },
-          { attr : "type", title : "Type", filter : { type : "list", options: ["Basic", "Advanced"] } },
-          { title : "Non attr column"}
+        columns: [
+          { bulk: true },
+          { attr: "name", title: "Name", filter: { type: "string" } },
+          { attr: "cost", title: "Cost", filter: { type: "numeric" } },
+          { attr: "cost2", title: "Cost", filter: { type: "numeric" } },
+          { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
+          { title: "Non attr column"}
         ],
         renderers: {
           "non attr column": function(node, config) {
@@ -1062,16 +1062,16 @@ describe("DataTable Plugin", function() {
         }
       });
       app.view.dataTable("T", {
-        rowClassName : "R",
-        serverSide : true,
-        sorting : [['name', 'desc']],
+        rowClassName: "R",
+        serverSide: true,
+        sorting: [['name', 'desc']],
         filteringEnabled: true,
-        serverSideFiltering : true
+        serverSideFiltering: true
       });
 
       var mockResponse = {
-        status : 200,
-        responseText : JSON.stringify({
+        status: 200,
+        responseText: JSON.stringify({
           sEcho: 'custom1',
           iTotalRecords: 1,
           iTotalDisplayRecords: 1,
@@ -1085,7 +1085,7 @@ describe("DataTable Plugin", function() {
 
       jasmine.Ajax.install();
 
-      table = new app.Views.T({ collection : collection });
+      table = new app.Views.T({ collection: collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(mockResponse);
       expect(table.children["filter-name"]).toBeDefined();
@@ -1095,7 +1095,7 @@ describe("DataTable Plugin", function() {
       expect(table).toBeDefined();
     });
 
-    it("should have an object for each filterable column in the column manager "+
+    it("should have an object for each filterable column in the column manager " +
         "which describes the filter to be applied", function() {
       var cg = table._columnManager._configGenerator;
       // should be 4 columns
@@ -1152,8 +1152,7 @@ describe("DataTable Plugin", function() {
               expectedFilterObj = [];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
-            }
-            else if (col.filter.type === "numeric") {
+            } else if (col.filter.type === "numeric") {
               // test assignment
               $(".toggle-filter-button", this).click();
               $('select[data-filter-id=first-filter]').val("eq").trigger("change");
@@ -1174,8 +1173,7 @@ describe("DataTable Plugin", function() {
               expectedFilterObj = [];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
-            }
-            else if (col.filter.type === "list") {
+            } else if (col.filter.type === "list") {
               // test assignment
               $(".toggle-filter-button", this).click();
               $('.filter-menu input').prop("checked", true).trigger("change");
@@ -1264,16 +1262,16 @@ describe("DataTable Plugin", function() {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
-              case "string":
-                expect($('.filter-menu input').val()).toEqual("Scott")
-                break;
-              case "numeric":
-                expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
-                expect($('input#first-filter').val()).toEqual("0.5");
-                break;
-              case "list":
-                expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
-                break;
+            case "string":
+              expect($('.filter-menu input').val()).toEqual("Scott")
+              break;
+            case "numeric":
+              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
+              expect($('input#first-filter').val()).toEqual("0.5");
+              break;
+            case "list":
+              expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
+              break;
             }
           }
         }
@@ -1299,14 +1297,12 @@ describe("DataTable Plugin", function() {
               expect($("span", this).attr("class")).toEqual("filterActive");
               $(".filter-menu input").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
-            }
-            else if (col.filter.type === "numeric") {
+            } else if (col.filter.type === "numeric") {
               $("input#first-filter").val("3").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
               $("input#first-filter").val("").trigger("change");
               expect($("span", this).attr("class")).toEqual("filterInactive");
-            }
-            else if (col.filter.type === "list") {
+            } else if (col.filter.type === "list") {
               $(".filter-menu input").prop("checked", true).trigger("change");
               expect($("span", this).attr("class")).toEqual("filterActive");
               $(".filter-menu input").prop("checked", false).trigger("change");
@@ -1414,8 +1410,7 @@ describe("DataTable Plugin", function() {
               // verify assignment
               toggleButton.click();
               expect($(".filter-menu input").val()).toEqual("");
-            }
-            else if (col.filter.type === "numeric") {
+            } else if (col.filter.type === "numeric") {
               // test equal assignment
               toggleButton.click();
               $('select[data-filter-id=first-filter]').val("eq").trigger("change");
@@ -1441,8 +1436,7 @@ describe("DataTable Plugin", function() {
               // verify assignment
               toggleButton.click();
               expect($("input#first-filter").val()).toEqual("");
-            }
-            else if (col.filter.type === "list") {
+            } else if (col.filter.type === "list") {
               // test assignment
               toggleButton.click();
               $('.filter-menu input').prop("checked", true).trigger("change");
@@ -1578,23 +1572,23 @@ describe("DataTable Plugin", function() {
         col.filter = {value: "filter_by_this_value"};
 
         // Set dummy URL
-        var csv_url = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
+        var csvUrl = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
 
-        spyOn(table, "_goToWindowLocation").and.callFake(function(){});
-        table._fetchCSV(csv_url);
+        spyOn(table, "_goToWindowLocation").and.callFake(function() {});
+        table._fetchCSV(csvUrl);
         expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
       });
 
       it("should throw error when serverSideFiltering is not enabled", function () {
         table.serverSideFiltering = false;
         expect(table.serverSideFiltering).toEqual(false);
-        expect(function(){ table._fetchCSV("/fake_url"); } ).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
+        expect(function() { table._fetchCSV("/fake_url"); }).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
       });
     });
 
     describe("_goToWindowLocation", function () {
       it("should throw error when sUrl is not defined", function () {
-        expect(function(){ table._goToWindowLocation(); } ).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
+        expect(function() { table._goToWindowLocation(); }).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
       });
     });
   });

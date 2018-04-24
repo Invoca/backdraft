@@ -23,7 +23,7 @@ describe("Plugin", function() {
     it("should store and return exports", function() {
       Backdraft.plugin("myplugin", function(plugin) {
         plugin.exports({
-          xyz : 123
+          xyz: 123
         })
       });
 
@@ -38,7 +38,7 @@ describe("Plugin", function() {
     it("should error when an app specifies an invalid plugin", function() {
       expect(function() {
         Backdraft.app("myapp", {
-          plugins : [ "invalid-one" ]
+          plugins: [ "invalid-one" ]
         });
       }).toThrow();
     });
@@ -60,7 +60,7 @@ describe("Plugin", function() {
       });
 
       Backdraft.app("myapp", {
-        plugins : [ "p1" ]
+        plugins: [ "p1" ]
       });
 
       expect(runSpy1).toHaveBeenCalled();

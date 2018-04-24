@@ -14,7 +14,7 @@ var Row = (function() {
       this.$el.data("row", this);
     },
 
-    render : function() {
+    render: function() {
       var cells = this.findCells(), node;
       _.each(this.columnsConfig, function(config) {
         node = cells.filter(config.nodeMatcher(config));
@@ -27,7 +27,7 @@ var Row = (function() {
       this._invokeRenderer(config, node);
     },
 
-    bulkState : function(state) {
+    bulkState: function(state) {
       // TODO: throw error when no checkbox
       if (!this.checkbox) return;
 
@@ -45,7 +45,7 @@ var Row = (function() {
       return this.$el.find("td");
     },
 
-    renderers : {
+    renderers: {
     },
 
     _invokeRenderer: function(config, node) {
@@ -65,7 +65,7 @@ var Row = (function() {
         _.each(columns, function (column) {
           if (column && columns.indexOf(column + ".unique") !== -1) {
             var columnVal = this.model.get(column);
-            if (!(columnVal instanceof Array) && columnVal != this.model.get(column + '.unique')) {
+            if (!(columnVal instanceof Array) && columnVal !== this.model.get(column + '.unique')) {
               hasUniques = true;
               return false;
             }
@@ -78,7 +78,7 @@ var Row = (function() {
 
   }, {
 
-    finalize : function(name, rowClass) {
+    finalize: function(name, rowClass) {
     }
 
   });
