@@ -88,12 +88,11 @@ describe("DataTable Plugin", function() {
         it("should populate the cache for the model added", function() {
           expect(table.cache.size()).toEqual(1);
         });
-
       });
 
       describe("collection is removed from", function() {
         beforeEach(function() {
-          collection.reset([ { name: "Bob"}, { name: "Joe"} ]);
+          collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
           collection.remove(collection.models[0]);
         });
 
@@ -200,11 +199,11 @@ describe("DataTable Plugin", function() {
         table.render();
 
         expect(table.selectedModels().length).toEqual(0);
-        table.selectAllVisible(true)
+        table.selectAllVisible(true);
         expect(table.selectedModels().length).toEqual(data.length);
 
-        collection.add({ name: "monkey "});
-        collection.add({ name: "monkey and more "});
+        collection.add({ name: "monkey " });
+        collection.add({ name: "monkey and more " });
 
         table.filter("monkey");
         table.selectAllVisible(true);
@@ -263,7 +262,7 @@ describe("DataTable Plugin", function() {
           return m.toJSON();
         });
 
-        var selectedModelsExpected = _.map(collection.slice(0,10), function(m) {
+        var selectedModelsExpected = _.map(collection.slice(0, 10), function(m) {
           return m.toJSON();
         });
 
@@ -279,7 +278,7 @@ describe("DataTable Plugin", function() {
         table.dataTable.on("page", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-            done()
+            done();
           });
         });
 
@@ -318,9 +317,7 @@ describe("DataTable Plugin", function() {
           table.render();
           table.$(".dataTables_length select").val(100).change();
           expect(table.$("td.bulk :checkbox:checked").length).toEqual(selectedIds.length);
-
         });
-
       });
     });
 
@@ -370,7 +367,7 @@ describe("DataTable Plugin", function() {
         // need to append to body in order to do clicks on checkboxes
         $("body").append(table.render().$el);
 
-        table.selectAllVisible(true)
+        table.selectAllVisible(true);
 
         // uncheck a single row checkbox
         table.$("td.bulk :checkbox:first").click();
@@ -389,7 +386,7 @@ describe("DataTable Plugin", function() {
         table.dataTable.on("filter", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-            done()
+            done();
           });
         });
 
@@ -410,7 +407,7 @@ describe("DataTable Plugin", function() {
         table.dataTable.on("filter", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
-            done()
+            done();
           });
         });
 
@@ -439,7 +436,7 @@ describe("DataTable Plugin", function() {
         table.dataTable.on("filter", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
-            done()
+            done();
           });
         });
 
@@ -491,17 +488,15 @@ describe("DataTable Plugin", function() {
 
     var columns = function() {
       return [
-        { attr: "income",    title: "Income",     headerGroupDataIndex: "financial" },
+        { attr: "income", title: "Income", headerGroupDataIndex: "financial" },
         { attr: "firstName", title: "First Name", headerGroupDataIndex: "user" },
-        { attr: "lastName",  title: "Last Name",  headerGroupDataIndex: "user" }
-      ]
+        { attr: "lastName", title: "Last Name", headerGroupDataIndex: "user" }
+      ];
     };
 
     describe("present", function() {
-
       describe("", function() {
-
-        beforeEach(function () {
+        beforeEach(function() {
           app.view.dataTable.row("R", {
             columns: columns(),
             columnGroupDefinitions: [
@@ -513,19 +508,19 @@ describe("DataTable Plugin", function() {
           buildAndAppendTable();
         });
 
-        it("should build a single header group row when columnGroupDefinitions is supplied, using headerGroupDataIndex to match up between columns and columnGroupDefinitions", function () {
+        it("should build a single header group row when columnGroupDefinitions is supplied, using headerGroupDataIndex to match up between columns and columnGroupDefinitions", function() {
           expect(table.$(".header-groups-row").length).toEqual(1);
           expect(getHeaderGroupText(table)).toEqual(['Financial', 'User Info']);
           expect(table.$(".header-groups-row").children()[1].attributes.colspan.value).toEqual("2");
           expect(table._colReorder).toEqual(undefined);
         });
 
-        it("should disable column sorting (_colReorder) when using a header group", function () {
+        it("should disable column sorting (_colReorder) when using a header group", function() {
           expect(table.$(".header-groups-row").length).toEqual(1);
           expect(table._colReorder).toEqual(undefined);
         });
 
-        it("should hide corresponding header group when child column is set visible false", function () {
+        it("should hide corresponding header group when child column is set visible false", function() {
           expect(table.$(".header-groups-row").length).toEqual(1);
           expect(getHeaderGroupText(table)).toEqual(['Financial', 'User Info']);
           expect(getHeaderText(table)).toEqual(["Income", "First Name", "Last Name"]);
@@ -534,26 +529,25 @@ describe("DataTable Plugin", function() {
           expect(getHeaderText(table)).toEqual(['First Name', 'Last Name']);
           expect(getHeaderGroupText(table)).toEqual(['User Info']);
         });
-
       });
 
       describe("no match for headerGroupDataIndex", function() {
-        beforeEach(function () {
+        beforeEach(function() {
           console.log = jasmine.createSpy("log");
         });
 
         var buildTableAndExpectMismatchedColumn = function() {
           buildAndAppendTable();
-          expect(console.log.calls.mostRecent().args[0]).toMatch(/Unable to find a matching headerGroupDataIndex for/)
+          expect(console.log.calls.mostRecent().args[0]).toMatch(/Unable to find a matching headerGroupDataIndex for/);
           expect(table.$(".header-groups-row").length).toEqual(1);
         };
 
         it("should gracefully render the column title when headerGroupDataIndex is not matched in columnGroupDefinitions", function() {
           app.view.dataTable.row("R", {
             columns: [
-              { attr: "income",    title: "Income",     headerGroupDataIndex: "financial" },
+              { attr: "income", title: "Income", headerGroupDataIndex: "financial" },
               { attr: "firstName", title: "First Name", headerGroupDataIndex: "BOGUS" },
-              { attr: "lastName",  title: "Last Name",  headerGroupDataIndex: "user" }
+              { attr: "lastName", title: "Last Name", headerGroupDataIndex: "user" }
             ],
 
             columnGroupDefinitions: [
@@ -569,9 +563,9 @@ describe("DataTable Plugin", function() {
         it("should gracefully render the column title when headerGroupDataIndex is not matched in columns", function() {
           app.view.dataTable.row("R", {
             columns: [
-              { attr: "income",    title: "Income",     headerGroupDataIndex: "financial" },
+              { attr: "income", title: "Income", headerGroupDataIndex: "financial" },
               { attr: "firstName", title: "First Name", headerGroupDataIndex: "user" },
-              { attr: "lastName",  title: "Last Name",  headerGroupDataIndex: "user" }
+              { attr: "lastName", title: "Last Name", headerGroupDataIndex: "user" }
             ],
 
             columnGroupDefinitions: [
@@ -587,7 +581,6 @@ describe("DataTable Plugin", function() {
     });
 
     describe("not present", function() {
-
       beforeEach(function() {
         app.view.dataTable.row("R", {
           columns: columns

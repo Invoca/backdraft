@@ -27,22 +27,22 @@ describe("DataTable Plugin", function() {
 
   describe("factories and constructors", function() {
     it("should expose #dataTable and #dataTable.row", function() {
-      app.view.dataTable.row("abc", { columns: [] });
-      app.view.dataTable("def", {
-        rowClassName: "abc"
+      app.view.dataTable.row("Abc", { columns: [] });
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
-      expect(new app.Views.abc({ columnsConfig: [] })).toEqual(jasmine.any(baseExports.View));
-      expect(new app.Views.def({ collection: collection })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.Abc({ columnsConfig: [] })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.Def({ collection: collection })).toEqual(jasmine.any(baseExports.View));
     });
 
     it("should allow rows to be subclassed", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         baseMethod: function() {
           return "i am base";
         }
       });
 
-      app.view.dataTable.row("new_abc", "abc", {
+      app.view.dataTable.row("new_abc", "Abc", {
         baseMethod: function() {
           return "i am the new base";
         }
@@ -52,14 +52,14 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow tables to be subclassed", function() {
-      app.view.dataTable.row("abc", { columns: [] });
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable.row("Abc", { columns: [] });
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         baseMethod: function() {
           return "i am base";
         }
       });
-      app.view.dataTable("new_def", "def", {
+      app.view.dataTable("new_def", "Def", {
         baseMethod: function() {
           return "i am the new base";
         }
@@ -69,63 +69,67 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow rowClass to be provided as an argument instead of rowClassName", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "I came from a rowClass argument" }
         ]
       });
-      app.view.dataTable("def", { });
-      table = new app.Views.def({ collection: collection, rowClass: app.Views.abc }).render();
+      app.view.dataTable("Def", { });
+      table = new app.Views.Def({ collection: collection, rowClass: app.Views.Abc }).render();
       expect(getHeaders(table)).toEqual(["I came from a rowClass argument"]);
     });
   });
 
   describe("object names", function() {
     beforeEach(function() {
-      app.view.dataTable.row("abc", { columns: [] });
+      app.view.dataTable.row("Abc", { columns: [] });
     });
 
     it("should default to using the object name of 'row' / 'rows'", function() {
-      app.view.dataTable("def", {
-        rowClassName: "abc"
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
-      var table = new app.Views.def({ collection: collection });
+      var table = new app.Views.Def({ collection: collection });
       expect(table.objectName.singular).toEqual("row");
       expect(table.objectName.plural).toEqual("rows");
     });
 
     it("should allow the object name to be configurable", function() {
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         objectName: {
           singular: "server",
           plural: "servers"
         }
       });
-      var table = new app.Views.def({ collection: collection });
+      var table = new app.Views.Def({ collection: collection });
       expect(table.objectName.singular).toEqual("server");
       expect(table.objectName.plural).toEqual("servers");
     });
 
     it("should require that both the singular and plural forms of the object name be provided", function() {
       expect(function() {
-        app.view.dataTable("noplural", {
-          rowClassName: "abc",
+        app.view.dataTable("Noplural", {
+          rowClassName: "Abc",
           objectName: {
             singular: "server"
           }
         });
-        var table = new app.Views.noplural({ collection: collection });
+
+        // eslint-disable-next-line no-new
+        new app.Views.Noplural({ collection: collection });
       }).toThrowError(/plural object name must be provided/);
 
       expect(function() {
-        app.view.dataTable("nosingular", {
-          rowClassName: "abc",
+        app.view.dataTable("Nosingular", {
+          rowClassName: "Abc",
           objectName: {
             plural: "servers"
           }
         });
-        var table = new app.Views.nosingular({ collection: collection });
+
+        // eslint-disable-next-line no-new
+        new app.Views.Nosingular({ collection: collection });
       }).toThrowError(/singular object name must be provided/);
     });
   });
@@ -176,9 +180,9 @@ describe("DataTable Plugin", function() {
 
       it("should issue a change event for each row checkbox when header checkbox is toggled", function() {
         collection.add({ name: "foo" });
-        var headerCheckbox = table.$("thead tr th:first :checkbox"),
-          rowCheckbox    = table.$("tbody tr td:first :checkbox"),
-          rowChanged     = 'row checkbox not changed';
+        const headerCheckbox = table.$("thead tr th:first :checkbox");
+        const rowCheckbox = table.$("tbody tr td:first :checkbox");
+        let rowChanged = 'row checkbox not changed';
 
         expect(headerCheckbox.length).toEqual(1);
         expect(rowCheckbox.length).toEqual(1);
@@ -267,7 +271,7 @@ describe("DataTable Plugin", function() {
 
     describe("subclassed renderers", function() {
       beforeEach(function() {
-        app.view.dataTable.row("abc", {
+        app.view.dataTable.row("Abc", {
           renderers: {
             "monkey": function(node, config) {
               return "Monkey";
@@ -280,7 +284,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should inherit renderers when a subclass does not provide a renderers property", function() {
-        app.view.dataTable.row("new_abc", "abc", {
+        app.view.dataTable.row("new_abc", "Abc", {
         });
 
         expect(app.Views.new_abc.prototype.renderers["monkey"]()).toEqual("Monkey");
@@ -288,7 +292,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should inherit renderers when a subclass does provide a renderers property", function() {
-        app.view.dataTable.row("new_abc", "abc", {
+        app.view.dataTable.row("new_abc", "Abc", {
           renderers: {
             "zebra": function(node, config) {
               return "Zebra";
@@ -393,8 +397,8 @@ describe("DataTable Plugin", function() {
       app.view.dataTable.row("R", {
         columns: [
           { attr: "name", title: "Name" },
-          { attr: "age",  title: "Age", sortDir: ['desc', 'asc'] },
-          { attr: "zip",  title: "Zip", sortDir: ['asc', 'desc'] }
+          { attr: "age", title: "Age", sortDir: ['desc', 'asc'] },
+          { attr: "zip", title: "Zip", sortDir: ['asc', 'desc'] }
         ]
       });
       app.view.dataTable("T", {
@@ -402,9 +406,9 @@ describe("DataTable Plugin", function() {
       });
 
       collection.reset([
-        { name: "Zebra", age: 1,  zip: 90000 },
-        { name: "Bob",   age: 10, zip: 10000 },
-        { name: "Joe",   age: 8,  zip: 33333 }
+        { name: "Zebra", age: 1, zip: 90000 },
+        { name: "Bob", age: 10, zip: 10000 },
+        { name: "Joe", age: 8, zip: 33333 }
       ]);
 
       table = new app.Views.T({ collection: collection });
@@ -414,7 +418,6 @@ describe("DataTable Plugin", function() {
       table.$("thead th.column-name .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 0)).toEqual(["Bob", "Joe", "Zebra"]);
 
-
       // when clicking on a 'desc' specified one, sort desc by default
       table.$("thead th.column-age .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
@@ -422,7 +425,6 @@ describe("DataTable Plugin", function() {
       // a second click should go to 'asc'
       table.$("thead th.column-age .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
       expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
-
 
       // when clicking on a 'asc' specified one, sort asc by default
       table.$("thead th.column-zip .DataTables_sort_wrapper .DataTables_sort_interceptor").click();
@@ -460,7 +462,7 @@ describe("DataTable Plugin", function() {
 
       collection.reset([
         { name: "A", demographics: { age: 7, gender: "male" } },
-        { name: "B",  demographics: { age: 5, gender: "male" } },
+        { name: "B", demographics: { age: 5, gender: "male" } },
         { name: "C", demographics: { age: 9, gender: "female" } }
       ]);
 
@@ -503,7 +505,7 @@ describe("DataTable Plugin", function() {
 
       collection.reset([
         { name: "A", demographics: { age: 7, gender: "male" } },
-        { name: "B",  demographics: { age: 5, gender: "male" } },
+        { name: "B", demographics: { age: 5, gender: "male" } },
         { name: "C", demographics: { age: 9, gender: "female" } }
       ]);
 
@@ -634,7 +636,7 @@ describe("DataTable Plugin", function() {
         expect(function() {
           app.view.dataTable.row("RError", {
             columns: [
-              { attr: "attr5", title: "Attr5", required: true},
+              { attr: "attr5", title: "Attr5", required: true }
             ]
           });
           app.view.dataTable("TError", {
@@ -650,52 +652,52 @@ describe("DataTable Plugin", function() {
 
     it("should allow columns to be reorderable by default", function() {
       var reorderableSpy = jasmine.createSpy("reorderableSpy");
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         _enableReorderableColumns: reorderableSpy
       });
 
-      new app.Views.def({ collection: collection }).render();
+      new app.Views.Def({ collection: collection }).render();
       expect(reorderableSpy).toHaveBeenCalled();
     });
 
     it("should allow disabling of column reordering", function() {
       var reorderableSpy = jasmine.createSpy("reorderableSpy");
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         reorderableColumns: false,
         _enableReorderableColumns: reorderableSpy
       });
 
-      new app.Views.def({ collection: collection }).render();
+      new app.Views.Def({ collection: collection }).render();
       expect(reorderableSpy).not.toHaveBeenCalled();
     });
 
     it("should default column resize to off", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
-      app.view.dataTable("def", {
-        rowClassName: "abc"
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
 
       expect(table.resizableColumns).toEqual(false, "Table resizableColumns default");
       expect(table._colReorder.s.allowResize).toEqual(false, "ColReorder allowResize");
@@ -703,19 +705,19 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow columns to be resized with flag", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         resizableColumns: true
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
 
       expect(table.resizableColumns).toEqual(true, "Table resizableColumns default");
       expect(table._colReorder.s.allowResize).toEqual(true, "ColReorder allowResize");
@@ -728,74 +730,74 @@ describe("DataTable Plugin", function() {
     });
 
     it("should add dataTable-resizeableColumns class to resizable tables", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         resizableColumns: true
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(true, "Has class dataTable-resizeableColumns");
     });
 
     it("should not add dataTable-resizeableColumns class to non-resizable tables", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         resizableColumns: false
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(false, "Has class dataTable-resizeableColumns");
     });
 
     it("should add table-striped class to tables by default", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
-      app.view.dataTable("def", {
-        rowClassName: "abc"
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("table-striped")).toEqual(true, "class table-striped");
     });
 
     it("should not add table-striped class to tables if setting is false", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" }
         ]
       });
 
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc",
         striped: false
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
       expect(table.$el.find("table").hasClass("table-striped")).toEqual(false, "class table-striped");
     });
 
     it("should keep track of columns being reordered", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
           { attr: "age", title: "Age" },
@@ -803,11 +805,11 @@ describe("DataTable Plugin", function() {
           { attr: "bday", title: "Birthday" }
         ]
       });
-      app.view.dataTable("def", {
-        rowClassName: "abc",
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
 
-      table = new app.Views.def({ collection: collection }).render();
+      table = new app.Views.Def({ collection: collection }).render();
       table.$el.appendTo("body");
 
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Name", "Age", "Location", "Birthday"]);
@@ -1117,7 +1119,7 @@ describe("DataTable Plugin", function() {
         expect(function() {
           app.view.dataTable.row("RError", {
             columns: [
-              { attr: "attr6", title: "Attr6", required: true, visible: false },
+              { attr: "attr6", title: "Attr6", required: true, visible: false }
             ]
           });
           app.view.dataTable("TError", {
@@ -1175,7 +1177,7 @@ describe("DataTable Plugin", function() {
         { attr1: "A1", attr2: "A2", attr3: "A3", attr4: "A4" },
         { attr1: "B1", attr2: "B2", attr3: "B3", attr4: "B4" },
         { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
-        { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" },
+        { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" }
       ]);
       table = new app.Views.T({ collection: collection });
       table.render();
@@ -1321,15 +1323,15 @@ describe("DataTable Plugin", function() {
       app.view.dataTable.row("R", {
         columns: [
           { attr: "name", title: "Name" },
-          { attr: "age",  title: "Age" },
-          { attr: "zip",  title: "Zip" }
+          { attr: "age", title: "Age" },
+          { attr: "zip", title: "Zip" }
         ]
       });
 
       collection.reset([
-        { name: "Zebra", age: 1,  zip: 90000 },
-        { name: "Bob",   age: 10, zip: 10000 },
-        { name: "Joe",   age: 8,  zip: 33333 }
+        { name: "Zebra", age: 1, zip: 90000 },
+        { name: "Bob", age: 10, zip: 10000 },
+        { name: "Joe", age: 8, zip: 33333 }
       ]);
     });
 
@@ -1427,7 +1429,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "R",
         sorting: [[1, "desc"]]
       });
-      collection.add([ { name: "A" }, { name: "B"}, { name: "C" } ]);
+      collection.add([ { name: "A" }, { name: "B" }, { name: "C" } ]);
       table = new app.Views.LockUnlock({ collection: collection }).render();
     });
 
@@ -1472,12 +1474,12 @@ describe("DataTable Plugin", function() {
     it("should work for sorting api", function() {
       table.lock("sort", true);
       expect(function() {
-        table.sort([ [0,"asc"] ]);
+        table.sort([ [0, "asc"] ]);
       }).toThrowError(/sorting is locked/);
 
       table.lock("sort", false);
       expect(function() {
-        table.sort([ [0,"asc"] ]);
+        table.sort([ [0, "asc"] ]);
       }).not.toThrow();
     });
 
@@ -1543,18 +1545,18 @@ describe("DataTable Plugin", function() {
 
   describe("totalRecordsCount", function() {
     it("should return total number of records across all pages", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "id", title: "Id" }
         ]
       });
-      app.view.dataTable("def", {
-        rowClassName: "abc"
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
       var data = _.map(_.range(1, 100), function(id) {
         return { id: id };
       });
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
       expect(table.totalRecordsCount()).toEqual(0);
       collection.reset(data);
       expect(table.totalRecordsCount()).toEqual(99);
@@ -1563,16 +1565,16 @@ describe("DataTable Plugin", function() {
 
   describe("pageLimit", function() {
     it("should get the current page limit selection from fnSettings", function() {
-      app.view.dataTable.row("abc", {
+      app.view.dataTable.row("Abc", {
         columns: [
           { attr: "id", title: "Id" }
         ]
       });
-      app.view.dataTable("def", {
-        rowClassName: "abc"
+      app.view.dataTable("Def", {
+        rowClassName: "Abc"
       });
 
-      var table = new app.Views.def({ collection: collection }).render();
+      var table = new app.Views.Def({ collection: collection }).render();
       table.dataTable.fnSettings()._iDisplayLength = 50;
       expect(table.pageLimit()).toEqual(50);
     });

@@ -31,5 +31,5 @@ module.exports = function(config) {
       runInParent: true
     },
     singleRun: false
-  })
+  });
 };
