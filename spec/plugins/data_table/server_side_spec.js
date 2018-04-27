@@ -122,6 +122,14 @@ describe("DataTable Plugin", function() {
   }
 
   beforeEach(function() {
+    jasmine.clock().install();
+  });
+
+  afterEach(function() {
+    jasmine.clock().uninstall();
+  });
+
+  beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
       plugins: [ "DataTable" ]
@@ -1328,16 +1336,25 @@ describe("DataTable Plugin", function() {
 
     it("should close the activeFilterMenu when the user clicks out of it", function() {
       table.dataTable.find("thead th").not(".bulk").each(function() {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          if (col && col.filter) {
-            expect($(".popover .filter-menu").length).toEqual(0);
-            $("span", this).trigger("click");
-            expect($(".popover .filter-menu").length).toEqual(1);
-            $("div:first-child", this).trigger("click");
-            expect($(".popover .filter-menu").length).toEqual(0);
-          }
+        const wrapper = $(".DataTables_sort_wrapper", this);
+        expect(wrapper).toBeDefined();
+
+        const col = getColumnConfigByCSS(this);
+
+        if (col && col.filter) {
+          expect($(".popover .filter-menu").length).toEqual(0);
+
+          // open the menu
+          const toggleButton = $(".toggle-filter-button", this);
+          toggleButton.click();
+          expect($(".popover .filter-menu").length).toEqual(1);
+
+          // click away
+          $("div:first-child", this).trigger("click");
+          expect($(".popover .filter-menu").length).toEqual(0);
+
+          // catch the timeout for dataTable's _fnSortAttachListener()
+          jasmine.clock().tick(1000);
         }
       });
     });
