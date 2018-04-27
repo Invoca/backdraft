@@ -148,13 +148,21 @@ To develop a Backdraft plugin or modify Backdraft, the following setup needs to 
 
 ### Testing
 
-Run the yarn `dev` task from the main directory to have the source and test files watched and tests auto-run when any modifications are done
+Run the yarn `dev` script from the main directory to have the source and test files watched and tests auto-run when any modifications are done
 
     yarn run dev
 
-You can also specifically run tests with:
+Run the `specs` script to run all the tests and exit
 
     yarn run specs
+    
+Use the following two ENV variables to target specific tests:
+
+- `SPEC_FILTER` - target specific tests via [karma-jasmine's --grep feature](https://github.com/karma-runner/karma-jasmine/blob/4f70e5e77831998dc252b2f7ad1353398144588b/README.md#configuration).
+    
+- `SPEC_FILE_FILTER` - target specific tests by file path. This value must be a regex. For example:
+
+    `SPEC_FILE_FILTER="/data_table.*_spec.js/" yarn run specs`    
 
 See all available commands with:
 
