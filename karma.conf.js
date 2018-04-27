@@ -1,3 +1,14 @@
+const specFilesGlob = "spec/support/spec_bundle.js";
+
+const clientOptions = {
+  useIframe: false,
+  runInParent: true
+};
+
+if (process.env.SPEC_FILTER) {
+  clientOptions.args = ['--grep', process.env.SPEC_FILTER];
+}
+
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine'],
@@ -11,25 +22,28 @@ module.exports = function(config) {
       "vendor/bootstrap-3.1.1-dist/js/bootstrap.js",
       "vendor/jquery.dataTables-1.9.4.js",
       "vendor/jquery.dataTables.errorMode.js",
-      "spec/**/*_spec.js"
+      specFilesGlob
     ],
+
+    webpack: require('./webpack.config.js'),
 
     // Webpack each spec we run to resolve imports and transpile on the fly
     preprocessors: {
-      'spec/**/*.js': ['webpack', 'sourcemap']
+      [specFilesGlob]: ["webpack", "sourcemap"]
     },
-
-    webpack: require('./webpack.config.js'),
+    reporters: ["spec"],
+    specReporter: {
+      suppressPassed: true,
+      suppressSkipped: false,
+      showSpecTiming: true
+    },
 
     port: 9876,
     colors: true,
 
     autoWatch: true,
     browsers: ['PhantomJS'],
-    client: {
-      useIframe: false,
-      runInParent: true
-    },
+    client: clientOptions,
     singleRun: false
   });
 };
