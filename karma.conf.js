@@ -13,7 +13,6 @@ module.exports = function(config) {
   config.set({
     frameworks: ['jasmine'],
     files: [
-      "vendor/json2.js",
       "vendor/jquery-1.10.2.js",
       "vendor/jquery-deparam.js",
       "node_modules/underscore/underscore.js",
