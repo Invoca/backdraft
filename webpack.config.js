@@ -5,7 +5,7 @@ const webpack = require('webpack');
 const defaultSpecFileFilter = "/_spec\\.js$/";
 
 module.exports = {
-  entry: "./src/entry.js",
+  entry: "./src/legacy/entry.js",
 
   devtool: 'inline-source-map',
 
