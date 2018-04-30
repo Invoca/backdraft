@@ -3,6 +3,8 @@ import Item from "../../src/listing/item";
 
 import Collection from "../../src/collection";
 
+import { default as Backdraft } from "../../src/legacy/entry";
+
 class Sub extends Item {
   get tagName() { return "li"; }
 
@@ -17,11 +19,18 @@ class Main extends List {
   get itemClass() { return Sub; }
 }
 
-describe("Listing Plugin", function() {
+describe("Listing", function() {
   let collection;
 
   beforeEach(function() {
     collection = new Collection();
+  });
+
+  describe("exports", function() {
+    it("internal classes are available on Backdraft.Listing", function() {
+      expect(Backdraft.Listing.ListView).toEqual(List);
+      expect(Backdraft.Listing.ItemView).toEqual(Item);
+    });
   });
 
   describe("inheritance", function() {

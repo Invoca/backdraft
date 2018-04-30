@@ -1,7 +1,12 @@
 import Router from "../src/router";
 import View from "../src/view";
+import {default as Backdraft} from "../src/legacy/entry";
 
 describe("Router", function() {
+  it("is exported", function() {
+    expect(Backdraft.Router).toEqual(Router);
+  });
+
   it("should trigger events on views when swapping", function() {
     const router = new Router({ $el: $("<div>") });
     const view = new View();
