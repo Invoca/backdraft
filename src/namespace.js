@@ -2,7 +2,7 @@ import Class from "./legacy/utils/class";
 import { toCSSClass, toColumnCSSClass, extractColumnCSSClass } from "./utils/css";
 
 import Plugin from "./plugin";
-import App from "./app";
+import createRegistry from "./app_registry";
 
 import View from "./view";
 import Collection from "./collection";
@@ -35,7 +35,7 @@ const Namespace = {
   },
 
   plugin: Plugin.factory,
-  app: App.factory
+  app: createRegistry()
 };
 
 export default Namespace;
