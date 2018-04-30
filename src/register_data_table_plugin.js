@@ -9,12 +9,17 @@ import ServerSideDataTable from "./data_table/server_side_data_table";
 
 import initializeBootstrap from "./data_table/bootstrap";
 
-import addBaseColumnType from "./data_table/column_types/base";
-import addBulkColumnType from "./data_table/column_types/bulk";
+import Config from "./data_table/config";
 
 import initializeColReorderPlugin from "./data_table/dataTables.colReorder";
 
 Plugin.factory("DataTable", plugin => {
+
+  plugin.exports({
+    LocalDataTable,
+    ServerSideDataTable,
+    Row
+  });
 
   plugin.initializer(app => {
 
@@ -50,18 +55,12 @@ Plugin.factory("DataTable", plugin => {
     };
 
     // storage for app wide configuration of the plugin
-    app.view.dataTable.config = {
-      columnTypes: []
-    };
+    app.view.dataTable.config = new Config();
 
     app.view.dataTable.columnType = function(cb) {
       const columnType = new ColumnType();
       cb(columnType);
-      app.view.dataTable.config.columnTypes.push(columnType);
+      app.view.dataTable.config.addColumnType(columnType);
     };
-
-    // add standard column types
-    addBulkColumnType(app);
-    addBaseColumnType(app);
   });
 });

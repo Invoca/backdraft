@@ -12,6 +12,10 @@ import Router from "./router";
 import ListView from "./listing/list";
 import ItemView from "./listing/item";
 
+import LocalDataTable from "./data_table/local_data_table";
+import ServerSideDataTable from "./data_table/server_side_data_table";
+import Row from "./data_table/row";
+
 import "./legacy/register_base_plugin";
 import "./legacy/register_listing_plugin";
 import "./register_data_table_plugin";
@@ -28,6 +32,12 @@ const Namespace = {
   Collection,
   Model,
   Router,
+
+  DataTable: {
+    Local: LocalDataTable,
+    ServerSide: ServerSideDataTable,
+    Row
+  },
 
   Listing: {
     ListView,

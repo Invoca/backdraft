@@ -14,6 +14,7 @@ import FilterView from "./filter_view";
 import {extractColumnCSSClass, toColumnCSSClass} from "../utils/css";
 
 import cidMap from "./cid_map";
+import Config from "./config";
 
 class LocalDataTable extends View {
   constructor(...args) {
@@ -29,13 +30,18 @@ class LocalDataTable extends View {
     // copy over certain properties from options to the table itself
     _.extend(this, _.pick(this.options, [ "selectedIds" ]));
     _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-        "_onColumnVisibilityChange", "_onColumnReorder");
+      "_onColumnVisibilityChange", "_onColumnReorder");
     this.cache = new Cache();
     this.selectionManager = new SelectionManager();
     this.rowClass = this.options.rowClass || this._resolveRowClass();
+    this.config = this.options.config || (this._configFromPlugin && this._configFromPlugin()) || new Config();
     this._applyDefaults();
     this._columnManager = new ColumnManager(this);
     this._lockManager = new LockManager(this);
+  }
+
+  availableColumnTypes() {
+    return this.config.columnTypes;
   }
 
   // apply filtering
@@ -156,7 +162,7 @@ class LocalDataTable extends View {
 
   restoreColumnOrder() {
     if (this._reorderableColumnsEnabled()) {
-      this._changeColumnOrder({ reset: true});
+      this._changeColumnOrder({reset: true});
     }
   }
 
@@ -312,7 +318,7 @@ class LocalDataTable extends View {
       _.each(this._columnManager._visibilitySummary().visible, col => {
         const columnConfig = _.findWhere(this._columnManager.columnsConfig(), { attr: col });
         let headerGroupDataIndex = columnConfig.headerGroupDataIndex;
-        let columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex" : headerGroupDataIndex } );
+        let columnGroupConfig = _.findWhere(columnGroups, { "headerGroupDataIndex": headerGroupDataIndex });
 
         if (!columnGroupConfig || !headerGroupDataIndex) {
           console.log(`Unable to find a matching headerGroupDataIndex for ${columnConfig.attr}`);
@@ -353,7 +359,7 @@ class LocalDataTable extends View {
       // fill in config in correct order
       _.each(this.dataTable.fnSettings().aoColumns, tableColumn => {
         const oldIndex = columnsOrig.indexOf(tableColumn);
-        if (oldIndex != -1) {
+        if (oldIndex !== -1) {
           columnsConfig.push(columnsConfigOrig[oldIndex]);
         }
       });
@@ -375,22 +381,7 @@ class LocalDataTable extends View {
 
   _applyDefaults() {
     _.defaults(this, {
-      paginate : true,
-      paginateLengthMenu : [ 10, 25, 50, 100 ],
-      paginateLength : 10,
-      selectedIds : [],
-      filteringEnabled: false,
-      layout : "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
-      striped: true,
-      reorderableColumns: true,
-      resizableColumns: false,
-      objectName: {
-        singular: "row",
-        plural: "rows"
-      }
-    });
-    _.defaults(this, {
-      sorting : [ [ 0, this.paginate ? "desc" : "asc" ] ]
+      sorting: [ [ 0, this.paginate ? "desc" : "asc" ] ]
     });
 
     if (!this.objectName.plural) {
@@ -403,7 +394,7 @@ class LocalDataTable extends View {
   // returns row objects that have not been filtered out and are on the current page
   _visibleRowsOnCurrentPage() {
     // non-paginated tables will return all rows, ignoring the page param
-    const visibleRowsCurrentPageArgs = { filter : "applied", page : "current" };
+    const visibleRowsCurrentPageArgs = { filter: "applied", page: "current" };
     return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map((index, node) => $(node).data("row"));
   }
 
@@ -429,7 +420,7 @@ class LocalDataTable extends View {
     if (this.collection.length) this._onReset(this.collection);
     // if resizeable, add resizeable class
     if (this._colReorder && this._colReorder.s.allowResize) {
-      this.$("table").addClass("dataTable-resizeableColumns")
+      this.$("table").addClass("dataTable-resizeableColumns");
     }
 
     if (this.striped) {
@@ -484,22 +475,22 @@ class LocalDataTable extends View {
   _onRowHighlightClick(event) {
     const el = $(event.target).closest("tr");
     const currentState = el.hasClass("highlighted");
-    $(event.target).closest("tbody").find('tr').toggleClass('highlighted',false);
+    $(event.target).closest("tbody").find('tr').toggleClass('highlighted', false);
     el.toggleClass("highlighted", !currentState);
   }
 
   _dataTableConfig() {
     return {
-      sDom : this.layout,
-      bDeferRender : true,
-      bPaginate : this.paginate,
-      aLengthMenu : this.paginateLengthMenu,
-      iDisplayLength : this.paginateLength,
-      bInfo : true,
-      fnCreatedRow : this._onRowCreated,
-      aoColumns : this._columnManager.dataTableColumnsConfig(),
-      aaSorting : this._columnManager.dataTableSortingConfig(),
-      fnDrawCallback : this._onDraw,
+      sDom: this.layout,
+      bDeferRender: true,
+      bPaginate: this.paginate,
+      aLengthMenu: this.paginateLengthMenu,
+      iDisplayLength: this.paginateLength,
+      bInfo: true,
+      fnCreatedRow: this._onRowCreated,
+      aoColumns: this._columnManager.dataTableColumnsConfig(),
+      aaSorting: this._columnManager.dataTableSortingConfig(),
+      fnDrawCallback: this._onDraw,
       oLanguage: {
         sEmptyTable: this.emptyText
       }
@@ -507,14 +498,14 @@ class LocalDataTable extends View {
   }
 
   _triggerChangeSelection(extraData) {
-    const data = _.extend(extraData || {}, { count : this.selectionManager.count() });
+    const data = _.extend(extraData || {}, { count: this.selectionManager.count() });
     this.trigger("change:selected", data);
   }
 
   _setupSelect2PaginationAttributes() {
-    this.$('select').
-    attr('data-plugin', 'select2').
-    css('width', '5em');
+    this.$('select')
+      .attr('data-plugin', 'select2')
+      .css('width', '5em');
   }
 
   // DataTables does not provide a good way to programmatically disable sorting, so we:
@@ -558,7 +549,7 @@ class LocalDataTable extends View {
     });
 
     // We make a filter for each column header
-    table.dataTable.find("thead th").each(function (index) {
+    table.dataTable.find("thead th").each(function(index) {
       // here we use the CSS in the header to get the column config by attr
       // there isn't a better way to do this currently
       let col;
@@ -568,9 +559,8 @@ class LocalDataTable extends View {
           if (currentColConfig.id && toColumnCSSClass(currentColConfig.id) === columnClassName) {
             col = currentColConfig;
           }
-        })
-      }
-      else {
+        });
+      } else {
         // TODO: FAIL!!!
       }
 
@@ -627,8 +617,9 @@ class LocalDataTable extends View {
 
   _onRowCreated(node, data) {
     const model = this.collection.get(data);
+    // eslint-disable-next-line new-cap
     const row = new this.rowClass({
-      el : node,
+      el: node,
       model,
       columnsConfig: this.columnsConfig()
     });
@@ -640,7 +631,7 @@ class LocalDataTable extends View {
 
   _onAdd(model) {
     if (!this.dataTable) return;
-    this.dataTable.fnAddData({ cid : model.cid });
+    this.dataTable.fnAddData({ cid: model.cid });
     this._triggerChangeSelection();
   }
 
@@ -685,9 +676,20 @@ _.extend(LocalDataTable.prototype, {
   BULK_COLUMN_HEADER_CHECKBOX_SELECTOR: "th:first.bulk :checkbox",
   BULK_COLUMN_CHECKBOXES_SELECTOR: "td:first-child.bulk :checkbox",
   ROWS_SELECTOR: "tbody tr",
-  template: '\
-    <table cellpadding="0" class="table"></table>\
-  '
+  template: '<table cellpadding="0" class="table"></table>',
+  paginate: true,
+  paginateLengthMenu: [ 10, 25, 50, 100 ],
+  paginateLength: 10,
+  selectedIds: [],
+  filteringEnabled: false,
+  layout: "<'row'<'col-xs-6'l><'col-xs-6'f>r>t<'row'<'col-xs-6'i><'col-xs-6'p>>",
+  striped: true,
+  reorderableColumns: true,
+  resizableColumns: false,
+  objectName: {
+    singular: "row",
+    plural: "rows"
+  }
 });
 
 LocalDataTable.finalize = function(name, tableClass, views, pluginConfig, appName) {
@@ -696,9 +698,7 @@ LocalDataTable.finalize = function(name, tableClass, views, pluginConfig, appNam
     tableClass.prototype._resolveRowClass = function() { return views[tableClass.prototype.rowClassName]; };
   }
 
-  // return all registered column types
-  tableClass.prototype.availableColumnTypes = function() { return pluginConfig.columnTypes; };
-
+  tableClass.prototype._configFromPlugin = function() { return pluginConfig; };
 };
 
 export default LocalDataTable;

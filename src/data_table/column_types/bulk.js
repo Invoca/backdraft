@@ -1,14 +1,16 @@
 import $ from "jquery";
+import ColumnType from "../column_type";
 
-export default function addBulkColumnType(app) {
-  app.view.dataTable.columnType(function(columnType) {
-    columnType.configMatcher(function(config) {
-      return config.bulk;
-    });
+export default function createBulkColumnType() {
+  const columnType = new ColumnType();
 
-    columnType.nodeMatcher(function(config) {
-      return ".bulk";
-    });
+  columnType.configMatcher(function(config) {
+    return config.bulk;
+  });
+
+  columnType.nodeMatcher(function(config) {
+    return ".bulk";
+  });
 
     columnType.definition(function(dataTable, config) {
       return {
@@ -29,10 +31,11 @@ export default function addBulkColumnType(app) {
       };
     });
 
-    columnType.renderer(function(cell, config) {
-      if (this.checkbox) return;
-      this.checkbox = $("<input>").attr("type", "checkbox");
-      cell.html(this.checkbox);
-    });
+  columnType.renderer(function(cell, config) {
+    if (this.checkbox) return;
+    this.checkbox = $("<input>").attr("type", "checkbox");
+    cell.html(this.checkbox);
   });
+
+  return columnType;
 }
