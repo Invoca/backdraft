@@ -699,9 +699,6 @@ LocalDataTable.finalize = function(name, tableClass, views, pluginConfig, appNam
   // return all registered column types
   tableClass.prototype.availableColumnTypes = function() { return pluginConfig.columnTypes; };
 
-  tableClass.prototype._triggerGlobalEvent = function(eventName, args) {
-    $("body").trigger(`${appName}:${eventName}`, args);
-  };
 };
 
 export default LocalDataTable;
