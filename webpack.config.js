@@ -1,4 +1,8 @@
 const path = require('path');
+const webpack = require('webpack');
+
+// File filter for targeting specific spec files.
+const defaultSpecFileFilter = "/_spec\\.js$/";
 
 module.exports = {
   entry: "./src/entry.js",
@@ -16,7 +20,7 @@ module.exports = {
   externals: {
     "backbone": "Backbone",
     "jquery": "$",
-    "underscore": "_",
+    "underscore": "_"
   },
 
   module: {
@@ -25,5 +29,12 @@ module.exports = {
       exclude: /(node_modules)/,
       loader: 'babel-loader'
     }]
-  }
+  },
+
+  plugins: [
+    new webpack.DefinePlugin({
+      SPEC_FILE_FILTER: process.env.SPEC_FILE_FILTER || defaultSpecFileFilter,
+      DEFAULT_SPEC_FILE_FILTER: defaultSpecFileFilter
+    })
+  ]
 };

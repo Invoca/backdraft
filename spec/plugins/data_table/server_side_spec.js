@@ -41,16 +41,16 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
-          { name: 'Jon doe 1',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 2',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 3',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 4',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 5',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 6',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 7',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 8',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 9',  cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" },
-          { name: 'Jon doe 10', cost: '100',   type: 'boat',  description: "simple boat", resale_value: "50" }
+          { name: 'Jon doe 1', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 2', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 3', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 4', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 5', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 6', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 7', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 8', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 9', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" },
+          { name: 'Jon doe 10', cost: '100', type: 'boat', description: "simple boat", resale_value: "50" }
         ],
         total: { name: null, cost: 10000, type: null, description: null, resale_value: 5000 }
       })
@@ -65,16 +65,16 @@ describe("DataTable Plugin", function() {
         iTotalRecords: 100,
         iTotalDisplayRecords: 100,
         aaData: [
-          { name: 'Jon doe 1',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 2',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 3',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 4',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 5',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 6',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 7',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 8',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 9',  cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
-          { name: 'Jon doe 10', cost: '100', 'cost.unique': '102',  type: 'boat',  description: "simple boat", resale_value: "50", 'resale_value.unique': "51" }
+          { name: 'Jon doe 1', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 2', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 3', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 4', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 5', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 6', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 7', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 8', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 9', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" },
+          { name: 'Jon doe 10', cost: '100', 'cost.unique': '102', type: 'boat', description: "simple boat", resale_value: "50", 'resale_value.unique': "51" }
         ],
         total: { name: null, cost: 10000, 'cost.unique': 10020, type: null, description: null, resale_value: 5000, 'resale_value.unique': 5010 }
       })
@@ -111,7 +111,7 @@ describe("DataTable Plugin", function() {
     var callbackSpy = jasmine.createSpy("callbackSpy");
     var originalFetchServerData = table._fetchServerData;
 
-    spyOn(table, '_fetchServerData').and.callFake(function (sUrl, aoData, fnCallback, oSettings) {
+    spyOn(table, '_fetchServerData').and.callFake(function(sUrl, aoData, fnCallback, oSettings) {
       // pass through except use our own callBack to test the right json was passed to it (which is an internal DT callback that can't be spied on or stubbed)
       originalFetchServerData.call(this, sUrl, aoData, callbackSpy, oSettings);
     });
@@ -120,6 +120,14 @@ describe("DataTable Plugin", function() {
 
     return callbackSpy;
   }
+
+  beforeEach(function() {
+    jasmine.clock().install();
+  });
+
+  afterEach(function() {
+    jasmine.clock().uninstall();
+  });
 
   beforeEach(function() {
     Backdraft.app.destroyAll();
@@ -137,7 +145,7 @@ describe("DataTable Plugin", function() {
         { attr: "name", title: "Name", filter: { type: "string" } },
         { attr: "cost", title: "Cost", filter: { type: "numeric" } },
         { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
-        { title: "Non attr column"}
+        { title: "Non attr column" }
       ],
       renderers: {
         "non attr column": function(node, config) {
@@ -180,8 +188,8 @@ describe("DataTable Plugin", function() {
   });
 
   afterEach(function() {
-    $('[data-toggle="popover"]').remove()
-    $('.popover').remove()
+    $('[data-toggle="popover"]').remove();
+    $('.popover').remove();
     Backbone.history.stop();
     jasmine.Ajax.uninstall();
   });
@@ -191,7 +199,7 @@ describe("DataTable Plugin", function() {
       collection.add({ name: "Bob" });
       expect(function() {
         table = new app.Views.T({ collection: collection });
-      }).toThrowError("Server side dataTables requires an empty collection")
+      }).toThrowError("Server side dataTables requires an empty collection");
     });
 
     it("should not allow adding to the collection", function() {
@@ -235,7 +243,7 @@ describe("DataTable Plugin", function() {
         jasmine.Ajax.requests.mostRecent().response(mockResponse.getBadKey());
         throw Error("DataTables did not throw an error when we expected it to. It should warn about a missing parameter based on bad server response.");
       } catch (ex) {
-        expect(ex.message).toMatch(/Requested unknown parameter/)
+        expect(ex.message).toMatch(/Requested unknown parameter/);
       }
     });
 
@@ -290,16 +298,16 @@ describe("DataTable Plugin", function() {
       // event
       expect(startArgs[0] instanceof jQuery.Event).toEqual(true);
       // xhr
-      expect(_.keys(startArgs[1])).toContain("responseText")
-      expect(_.keys(startArgs[1])).toContain("statusCode")
+      expect(_.keys(startArgs[1])).toContain("responseText");
+      expect(_.keys(startArgs[1])).toContain("statusCode");
       // table
       expect(startArgs[2]).toEqual(table);
 
       // event
       expect(finishArgs[0] instanceof jQuery.Event).toEqual(true);
       // xhr
-      expect(_.keys(finishArgs[1])).toContain("responseText")
-      expect(_.keys(finishArgs[1])).toContain("statusCode")
+      expect(_.keys(finishArgs[1])).toContain("responseText");
+      expect(_.keys(finishArgs[1])).toContain("statusCode");
       // status
       expect(finishArgs[2]).toEqual("success");
       // table
@@ -345,11 +353,11 @@ describe("DataTable Plugin", function() {
     beforeEach(function() {
       app.view.dataTable.row("R", {
         columns: [
-          { attr: "name", title: "Name", id: "name"},
-          { attr: "cost", title: "Cost", id: "cost"},
-          { attr: "type", title: "Type", id: "type"},
-          { attr: "description", title: "description", id: "description"},
-          { attr: "resale_value", title: "Resale value", id: "resale_value"},
+          { attr: "name", title: "Name", id: "name" },
+          { attr: "cost", title: "Cost", id: "cost" },
+          { attr: "type", title: "Type", id: "type" },
+          { attr: "description", title: "description", id: "description" },
+          { attr: "resale_value", title: "Resale value", id: "resale_value" }
         ],
 
         renderers: {
@@ -367,7 +375,7 @@ describe("DataTable Plugin", function() {
             }
             node.html(value + "$" + this.model.get(config.id));
           }
-        },
+        }
       });
 
       app.view.dataTable("T", {
@@ -378,7 +386,7 @@ describe("DataTable Plugin", function() {
         serverSideFiltering: true,
         isNontotalsColumn: function(col) {
           return (col.id !== "cost" && col.id !== "resale_value");
-        },
+        }
       });
 
       table = new app.Views.T({ collection: collection });
@@ -415,10 +423,10 @@ describe("DataTable Plugin", function() {
       });
 
       it("should correctly render grand totals row data after reorder", function() {
-        expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
-        table._colReorder.fnOrder([1,0,2,3,4]);
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([0, 1, 2, 3, 4]);
+        table._colReorder.fnOrder([1, 0, 2, 3, 4]);
         table._colReorder.s.dropCallback(1, 0);
-        expect(table._colReorder.fnGetCurrentOrder()).toEqual([1,0,2,3,4]);
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([1, 0, 2, 3, 4]);
         var grandTotalsCells = table.$('tfoot tr td');
         expect(grandTotalsCells.eq(0).text()).toEqual("$10000");
         expect(grandTotalsCells.eq(1).text()).toEqual("Grand Total");
@@ -428,7 +436,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should keep grand totals row leftmost", function() {
-        expect(table._colReorder.fnGetCurrentOrder()).toEqual([0,1,2,3,4]);
+        expect(table._colReorder.fnGetCurrentOrder()).toEqual([0, 1, 2, 3, 4]);
         table._colReorder.fnOrder([3, 0, 1, 2, 4]);
         table._colReorder.s.dropCallback(3, 0);
         expect(table._colReorder.fnGetCurrentOrder()).toEqual([3, 0, 1, 2, 4]);
@@ -453,8 +461,8 @@ describe("DataTable Plugin", function() {
             { attr: "name", title: "asdfdasdfas", id: "name", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
             { attr: "cost", title: "Cost", id: "cost", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
             { attr: "type", title: "Type", id: "type", grandTotalRenderer: function(node, config) { node.html("Total Gross<br>Total Net"); } },
-            { attr: "description", title: "description", id: "description"},
-            { attr: "resale_value", title: "Resale value", id: "resale_value"},
+            { attr: "description", title: "description", id: "description" },
+            { attr: "resale_value", title: "Resale value", id: "resale_value" }
           ],
 
           renderers: {
@@ -472,7 +480,7 @@ describe("DataTable Plugin", function() {
               }
               node.html(value + "$" + this.model.get(config.id));
             }
-          },
+          }
         });
 
         collection = new app.Collections.Col();
@@ -504,7 +512,7 @@ describe("DataTable Plugin", function() {
   describe("server side removal", function() {
     it("should reload the collection to the page", function() {
       table = new app.Views.T({ collection: collection });
-      collection.remove(collection.models[0])
+      collection.remove(collection.models[0]);
 
       expect(table.$("tbody tr").length).toEqual(0);
     });
@@ -522,7 +530,7 @@ describe("DataTable Plugin", function() {
 
     it("should work with a url that is a function", function() {
       var oldUrl = collection.url;
-      collection.url = function() { return oldUrl };
+      collection.url = function() { return oldUrl; };
 
       table = new app.Views.T({ collection: collection });
       table.render();
@@ -592,7 +600,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("AjaxMethodTestTable", {
         rowClassName: "R",
         serverSide: true,
-        ajaxMethod: "POST",
+        ajaxMethod: "POST"
       });
 
       table = new app.Views.AjaxMethodTestTable({ collection: collection });
@@ -743,7 +751,7 @@ describe("DataTable Plugin", function() {
 
         var originalAddServerParams = table._addServerParams;
 
-        spyOn(table, '_addServerParams').and.callFake(function (aoData) {
+        spyOn(table, '_addServerParams').and.callFake(function(aoData) {
           // pass in same array object but emptied out, to simulate no existing sort params
           aoData.splice(0, aoData.length);
           aoData.push({name: "sEcho", value: "3"});
@@ -767,7 +775,7 @@ describe("DataTable Plugin", function() {
 
         var originalAddServerParams = table._addServerParams;
 
-        spyOn(table, '_addServerParams').and.callFake(function (aoData) {
+        spyOn(table, '_addServerParams').and.callFake(function(aoData) {
           // pass in same array object but emptied out, to simulate no existing sort params
           aoData.splice(0, aoData.length);
           aoData.push({name: "sEcho", value: "3"});
@@ -792,7 +800,7 @@ describe("DataTable Plugin", function() {
 
         var originalAddServerParams = table._addServerParams;
 
-        spyOn(table, '_addServerParams').and.callFake(function (aoData) {
+        spyOn(table, '_addServerParams').and.callFake(function(aoData) {
           // pass in same array object but emptied out first
           aoData.splice(0, aoData.length);
           aoData.push({ name: "sEcho", value: "3" });
@@ -826,7 +834,7 @@ describe("DataTable Plugin", function() {
     it("should require that all visible rows are also currently selected", function() {
       expect(function() {
         table.selectAllMatching(true);
-      }).toThrowError("all rows must be selected before calling #selectAllMatching")
+      }).toThrowError("all rows must be selected before calling #selectAllMatching");
 
       expect(function() {
         table.selectAllVisible(true);
@@ -856,7 +864,7 @@ describe("DataTable Plugin", function() {
         table.selectAllVisible(true);
         table.selectAllMatching(true);
         expect(table.selectAllMatching()).toEqual({ monkey: "chicken" });
-      })
+      });
 
       it("should clear on pagination", function() {
         table.page("next");
@@ -866,7 +874,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should clear on sorting", function() {
-        table.sort([ [1,'asc'] ]);
+        table.sort([ [1, 'asc'] ]);
         jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
         expect(table.selectAllMatching()).toEqual(null);
@@ -961,12 +969,12 @@ describe("DataTable Plugin", function() {
     });
 
     function getColumnConfigByCSS(element) {
-      var id = Backdraft.Utils.extractColumnCSSClass(element.className).replace("column-","");
+      var id = Backdraft.Utils.extractColumnCSSClass(element.className).replace("column-", "");
       return cg.columnConfigById.attributes[id];
     }
 
     function clearFilters() {
-      table.dataTable.find("thead th").not(".bulk").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function(index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -992,7 +1000,7 @@ describe("DataTable Plugin", function() {
     }
 
     function populateFilters() {
-      table.dataTable.find("thead th").not(".bulk").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function(index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -1027,13 +1035,12 @@ describe("DataTable Plugin", function() {
     }
 
     function verifyUrlParams(filterObj) {
-      var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).filter_json)
+      var uri = encodeURIComponent($.deparam(window.location.href.split("?")[1]).filter_json);
       var expectedFilterJson = (filterObj.length > 0) ? encodeURIComponent(JSON.stringify(filterObj)) : "";
       expect(uri).toMatch(expectedFilterJson);
     }
 
     it("should not duplicate filter view when there are duplicate title names", function() {
-
       // Create a brand new table with duplicate titles
       Backdraft.app.destroyAll();
       app = Backdraft.app("myapp", {
@@ -1053,7 +1060,7 @@ describe("DataTable Plugin", function() {
           { attr: "cost", title: "Cost", filter: { type: "numeric" } },
           { attr: "cost2", title: "Cost", filter: { type: "numeric" } },
           { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
-          { title: "Non attr column"}
+          { title: "Non attr column" }
         ],
         renderers: {
           "non attr column": function(node, config) {
@@ -1117,7 +1124,7 @@ describe("DataTable Plugin", function() {
 
     it("shouldn't create filter inputs for unfilterable columns", function() {
       var hasFilter = [];
-      table.dataTable.find("thead th").each(function (index) {
+      table.dataTable.find("thead th").each(function(index) {
         hasFilter.push(this.getElementsByClassName('DataTables_filter_wrapper').length > 0);
       });
       expect(hasFilter).toEqual([false, true, true, true, false]);
@@ -1127,7 +1134,7 @@ describe("DataTable Plugin", function() {
       Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
 
       var expectedFilterObj = [];
-      table.dataTable.find("thead th").not(".bulk").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function(index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -1201,7 +1208,6 @@ describe("DataTable Plugin", function() {
 
     it("should load filters from url params", function() {
       Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-      var expectedFilters = [];
       // populate url with filters
       populateFilters();
       // get url
@@ -1222,7 +1228,6 @@ describe("DataTable Plugin", function() {
 
     it("should load filters from url params with old uri param", function() {
       Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-      var expectedFilters = [];
       populateFilters();
       var oldFilterSettings = table._getFilteringSettings();
       var populatedURL = window.location.search;
@@ -1236,7 +1241,6 @@ describe("DataTable Plugin", function() {
 
     it("should populate filter markup from url params", function() {
       Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-      var expectedFilters = [];
 
       // populate url with filters
       populateFilters();
@@ -1251,22 +1255,22 @@ describe("DataTable Plugin", function() {
 
       // Since we can't do a refresh, we just call the methods that fires at that moment
       cg._computeColumnConfig();
-      cg.table.children["filter-name"].children["filter-menu"].afterRender()
-      cg.table.children["filter-cost"].children["filter-menu"].afterRender()
-      cg.table.children["filter-type"].children["filter-menu"].afterRender()
+      cg.table.children["filter-name"].children["filter-menu"].afterRender();
+      cg.table.children["filter-cost"].children["filter-menu"].afterRender();
+      cg.table.children["filter-type"].children["filter-menu"].afterRender();
 
       // Check the filters are there
-      table.dataTable.find("thead th").not(".bulk").each(function (index) {
+      table.dataTable.find("thead th").not(".bulk").each(function(index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
           if (col && col.filter) {
             switch (col.filter.type) {
             case "string":
-              expect($('.filter-menu input').val()).toEqual("Scott")
+              expect($('.filter-menu input').val()).toEqual("Scott");
               break;
             case "numeric":
-              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq")
+              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq");
               expect($('input#first-filter').val()).toEqual("0.5");
               break;
             case "list":
@@ -1281,12 +1285,10 @@ describe("DataTable Plugin", function() {
 
       // remove filters again so that other tests don't fail
       clearFilters();
-
     });
 
-
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
-      table.dataTable.find("thead th").not(".bulk").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function() {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -1314,7 +1316,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
-      table.dataTable.find("thead th").not(".bulk").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function() {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -1333,17 +1335,26 @@ describe("DataTable Plugin", function() {
     });
 
     it("should close the activeFilterMenu when the user clicks out of it", function() {
-      table.dataTable.find("thead th").not(".bulk").each(function () {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          if (col && col.filter) {
-            expect($(".popover .filter-menu").length).toEqual(0);
-            $("span", this).trigger("click");
-            expect($(".popover .filter-menu").length).toEqual(1);
-            $("div:first-child", this).trigger("click");
-            expect($(".popover .filter-menu").length).toEqual(0);
-          }
+      table.dataTable.find("thead th").not(".bulk").each(function() {
+        const wrapper = $(".DataTables_sort_wrapper", this);
+        expect(wrapper).toBeDefined();
+
+        const col = getColumnConfigByCSS(this);
+
+        if (col && col.filter) {
+          expect($(".popover .filter-menu").length).toEqual(0);
+
+          // open the menu
+          const toggleButton = $(".toggle-filter-button", this);
+          toggleButton.click();
+          expect($(".popover .filter-menu").length).toEqual(1);
+
+          // click away
+          $("div:first-child", this).trigger("click");
+          expect($(".popover .filter-menu").length).toEqual(0);
+
+          // catch the timeout for dataTable's _fnSortAttachListener()
+          jasmine.clock().tick(1000);
         }
       });
     });
@@ -1351,7 +1362,7 @@ describe("DataTable Plugin", function() {
     it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
       var lastFilterMenu;
       var currentFilterMenu;
-      table.dataTable.find("thead th").not(".bulk").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function() {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -1379,7 +1390,7 @@ describe("DataTable Plugin", function() {
       Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
 
       var expectedFilterObj = [];
-      table.dataTable.find("thead th").not(".bulk").each(function () {
+      table.dataTable.find("thead th").not(".bulk").each(function() {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
           var col = getColumnConfigByCSS(this);
@@ -1467,14 +1478,14 @@ describe("DataTable Plugin", function() {
       });
     });
 
-    describe("filterView", function () {
-      describe("clear() should null filter values and update url even when not enabled", function () {
+    describe("filterView", function() {
+      describe("clear() should null filter values and update url even when not enabled", function() {
         it("for stringFilterMenu", function() {
           Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
 
           var stringFilterMenu = table.configGenerator().table.children["filter-name"].children["filter-menu"];
 
-          stringFilterMenu.enabled      = false;
+          stringFilterMenu.enabled = false;
           stringFilterMenu.filter.value = "scott";
           expect(stringFilterMenu.filter.value).toEqual("scott");
 
@@ -1488,7 +1499,7 @@ describe("DataTable Plugin", function() {
 
           var numericFilterMenu = table.configGenerator().table.children["filter-cost"].children["filter-menu"];
 
-          numericFilterMenu.enabled   = false;
+          numericFilterMenu.enabled = false;
           numericFilterMenu.filter.lt = 0.1;
           numericFilterMenu.filter.gt = 0.2;
           numericFilterMenu.filter.eq = 0.3;
@@ -1509,7 +1520,7 @@ describe("DataTable Plugin", function() {
 
           var listFilterMenu = table.configGenerator().table.children["filter-type"].children["filter-menu"];
 
-          listFilterMenu.enabled      = false;
+          listFilterMenu.enabled = false;
           listFilterMenu.filter.value = ["Basic", "Advanced"];
 
           expect(listFilterMenu.filter.value).toEqual(["Basic", "Advanced"]);
@@ -1526,9 +1537,9 @@ describe("DataTable Plugin", function() {
       var columns = table.columnsConfig();
       var currentFilterMenu;
 
-      for (var c in columns) {
+      for (let c in columns) {
         if (!columns[c].filter) continue;
-        var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
+        let renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
         expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(1, "error-message length");
         expect(renderedFilterMenu.find("[data-mount=error-message]").text()).toMatch(/Test error message/);
@@ -1538,9 +1549,9 @@ describe("DataTable Plugin", function() {
       }
 
       table.enableFilters();
-      for (var c in columns) {
+      for (let c in columns) {
         if (!columns[c].filter) continue;
-        var renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
+        let renderedFilterMenu = table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
 
         expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(0, 'no error message');
         expect(renderedFilterMenu.find(".filter-menu .btn-filter").last().prop('disabled')).toEqual(false);
@@ -1550,7 +1561,7 @@ describe("DataTable Plugin", function() {
       }
     });
 
-    it("should overwrite existing numeric filter when filter type is changed", function () {
+    it("should overwrite existing numeric filter when filter type is changed", function() {
       var cg = table.configGenerator();
       var col = cg.columnConfigById.attributes["cost"];
       table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
@@ -1562,8 +1573,8 @@ describe("DataTable Plugin", function() {
       expect(col.filter).toEqual({type: "numeric", lt: "3"});
     });
 
-    describe("_fetchCSV", function () {
-      it("should append current filter parameters to the URL when requesting a CSV export", function () {
+    describe("_fetchCSV", function() {
+      it("should append current filter parameters to the URL when requesting a CSV export", function() {
         expect(table.serverSideFiltering).toEqual(true);
 
         // Set one column filter value so that the request contains filtering settings
@@ -1579,15 +1590,15 @@ describe("DataTable Plugin", function() {
         expect(table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
       });
 
-      it("should throw error when serverSideFiltering is not enabled", function () {
+      it("should throw error when serverSideFiltering is not enabled", function() {
         table.serverSideFiltering = false;
         expect(table.serverSideFiltering).toEqual(false);
         expect(function() { table._fetchCSV("/fake_url"); }).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
       });
     });
 
-    describe("_goToWindowLocation", function () {
-      it("should throw error when sUrl is not defined", function () {
+    describe("_goToWindowLocation", function() {
+      it("should throw error when sUrl is not defined", function() {
         expect(function() { table._goToWindowLocation(); }).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
       });
     });
