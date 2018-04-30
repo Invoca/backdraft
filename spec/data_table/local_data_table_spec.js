@@ -1,5 +1,15 @@
 import { default as Backdraft } from "../../src/legacy/entry";
 
+function inDom(element, block) {
+  $("body").append(element);
+
+  try {
+    block();
+  } finally {
+    element.remove();
+  }
+}
+
 describe("DataTable Plugin", function() {
   var app;
   var collection;
@@ -364,14 +374,15 @@ describe("DataTable Plugin", function() {
 
       it("should uncheck the header bulk checkbox when a row's checkbox is unchecked", function() {
         table = new app.Views.T({ collection: collection });
+
         // need to append to body in order to do clicks on checkboxes
-        $("body").append(table.render().$el);
+        inDom(table.render().$el, () => {
+          table.selectAllVisible(true);
 
-        table.selectAllVisible(true);
-
-        // uncheck a single row checkbox
-        table.$("td.bulk :checkbox:first").click();
-        expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+          // uncheck a single row checkbox
+          table.$("td.bulk :checkbox:first").click();
+          expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
+        });
       });
 
       it("should uncheck the header bulk checkbox when a filter is applied and the result set doesn't have all rows already selected", function(done) {

@@ -11,10 +11,10 @@ describe("Listing Plugin", function() {
       plugins: [ "Listing" ]
     });
     app.model("M", {});
-    app.collection("col", {
+    app.collection("Col", {
       model: app.Models.M
     });
-    collection = new app.Collections.col();
+    collection = new app.Collections.Col();
     baseExports = Backdraft.plugin("Base");
   });
 
@@ -53,6 +53,7 @@ describe("Listing Plugin", function() {
       expect(() => {
         app.view.listing.item("AbcItem", {});
         app.view.listing("Abc", {itemClassName: "AbcItem"});
+        // eslint-disable-next-line no-new
         new app.Views.Abc();
       }).toThrowError("A collection must be provided");
     });
@@ -60,6 +61,8 @@ describe("Listing Plugin", function() {
     it("requires that an itemClassName is provided", function() {
       expect(() => {
         app.view.listing("Abc", {});
+
+        // eslint-disable-next-line no-new
         new app.Views.Abc();
       }).toThrowError("itemClass must be defined");
     });

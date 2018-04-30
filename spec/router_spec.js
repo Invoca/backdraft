@@ -20,10 +20,12 @@ describe("Router", function() {
 
   it("should throw and error if $el is not found", function() {
     expect(() => {
+      // eslint-disable-next-line no-new
       new Router({ $el: $(".not-going-to-find-me") });
     }).toThrowError("$el can't be found");
 
     expect(() => {
+      // eslint-disable-next-line no-new
       new Router();
     }).toThrowError("$el can't be found");
   });

@@ -28,23 +28,23 @@ describe("Base Plugin", function() {
     });
 
     it("should expose #view", function() {
-      app.view("abc", {});
-      expect(new app.Views.abc()).toEqual(jasmine.any(exports.View));
+      app.view("Abc", {});
+      expect(new app.Views.Abc()).toEqual(jasmine.any(exports.View));
     });
 
     it("should expose #model", function() {
-      app.model("abc", {});
-      expect(new app.Models.abc()).toEqual(jasmine.any(exports.Model));
+      app.model("Abc", {});
+      expect(new app.Models.Abc()).toEqual(jasmine.any(exports.Model));
     });
 
     it("should expose #collection", function() {
-      app.collection("abc", {});
-      expect(new app.Collections.abc()).toEqual(jasmine.any(exports.Collection));
+      app.collection("Abc", {});
+      expect(new app.Collections.Abc()).toEqual(jasmine.any(exports.Collection));
     });
 
     it("should expose #router", function() {
-      app.router("abc", {});
-      expect(new app.Routers.abc({ $el: $("<div>") })).toEqual(jasmine.any(exports.Router));
+      app.router("Abc", {});
+      expect(new app.Routers.Abc({ $el: $("<div>") })).toEqual(jasmine.any(exports.Router));
     });
   });
 

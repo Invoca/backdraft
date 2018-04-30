@@ -1,10 +1,10 @@
 import { default as Backdraft } from "../../src/legacy/entry";
 
 describe("DataTable Plugin", function() {
-  var app;
-  var baseExports;
-  var collection;
-  var table;
+  let app;
+  let baseExports;
+  let collection;
+  let table;
 
   function getHeaders(table) {
     return table.$("thead tr th").map(function() {
@@ -32,18 +32,18 @@ describe("DataTable Plugin", function() {
         rowClassName: "Abc"
       });
       expect(new app.Views.Abc({ columnsConfig: [] })).toEqual(jasmine.any(baseExports.View));
-      expect(new app.Views.Def({ collection: collection })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.Def({ collection })).toEqual(jasmine.any(baseExports.View));
     });
 
     it("should allow rows to be subclassed", function() {
       app.view.dataTable.row("Abc", {
-        baseMethod: function() {
+        baseMethod() {
           return "i am base";
         }
       });
 
       app.view.dataTable.row("new_abc", "Abc", {
-        baseMethod: function() {
+        baseMethod() {
           return "i am the new base";
         }
       });
@@ -55,12 +55,12 @@ describe("DataTable Plugin", function() {
       app.view.dataTable.row("Abc", { columns: [] });
       app.view.dataTable("Def", {
         rowClassName: "Abc",
-        baseMethod: function() {
+        baseMethod() {
           return "i am base";
         }
       });
       app.view.dataTable("new_def", "Def", {
-        baseMethod: function() {
+        baseMethod() {
           return "i am the new base";
         }
       });
@@ -75,7 +75,7 @@ describe("DataTable Plugin", function() {
         ]
       });
       app.view.dataTable("Def", { });
-      table = new app.Views.Def({ collection: collection, rowClass: app.Views.Abc }).render();
+      table = new app.Views.Def({ collection, rowClass: app.Views.Abc }).render();
       expect(getHeaders(table)).toEqual(["I came from a rowClass argument"]);
     });
   });
@@ -89,7 +89,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("Def", {
         rowClassName: "Abc"
       });
-      var table = new app.Views.Def({ collection: collection });
+      const table = new app.Views.Def({ collection });
       expect(table.objectName.singular).toEqual("row");
       expect(table.objectName.plural).toEqual("rows");
     });
@@ -102,13 +102,13 @@ describe("DataTable Plugin", function() {
           plural: "servers"
         }
       });
-      var table = new app.Views.Def({ collection: collection });
+      const table = new app.Views.Def({ collection });
       expect(table.objectName.singular).toEqual("server");
       expect(table.objectName.plural).toEqual("servers");
     });
 
     it("should require that both the singular and plural forms of the object name be provided", function() {
-      expect(function() {
+      expect(() => {
         app.view.dataTable("Noplural", {
           rowClassName: "Abc",
           objectName: {
@@ -117,10 +117,10 @@ describe("DataTable Plugin", function() {
         });
 
         // eslint-disable-next-line no-new
-        new app.Views.Noplural({ collection: collection });
+        new app.Views.Noplural({ collection });
       }).toThrowError(/plural object name must be provided/);
 
-      expect(function() {
+      expect(() => {
         app.view.dataTable("Nosingular", {
           rowClassName: "Abc",
           objectName: {
@@ -129,7 +129,7 @@ describe("DataTable Plugin", function() {
         });
 
         // eslint-disable-next-line no-new
-        new app.Views.Nosingular({ collection: collection });
+        new app.Views.Nosingular({ collection });
       }).toThrowError(/singular object name must be provided/);
     });
   });
@@ -146,7 +146,7 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
@@ -169,7 +169,7 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
@@ -187,7 +187,7 @@ describe("DataTable Plugin", function() {
         expect(headerCheckbox.length).toEqual(1);
         expect(rowCheckbox.length).toEqual(1);
 
-        rowCheckbox.on('change', function() {
+        rowCheckbox.on('change', () => {
           rowChanged = 'row checkbox changed';
         });
 
@@ -206,10 +206,10 @@ describe("DataTable Plugin", function() {
           ],
           renderers: {
             // pure html, not based on model
-            "name": function(node, config) {
+            "name"(node, config) {
               node.html('<a href="#">I AM LINK</a>');
             },
-            "age_value": function(node, config) {
+            "age_value"(node, config) {
               node.addClass("age-added-by-renderer").text(this.model.get(config.attr));
             }
           }
@@ -218,13 +218,13 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
       it("invoke them correctly", function() {
         collection.add({ age_value: 30 });
-        var cells = table.$("tbody td");
+        const cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("column-age_value")).toEqual(true);
         expect(cells.eq(1).hasClass("age-added-by-renderer")).toEqual(true);
@@ -238,14 +238,14 @@ describe("DataTable Plugin", function() {
           columns: [
             {
               title: "Name",
-              renderer: function(node, config) {
+              renderer(node, config) {
                 node.html('<a href="#">I AM LINK</a>');
               }
             },
             {
               title: "Age",
               attr: "age_value",
-              renderer: function(node, config) {
+              renderer(node, config) {
                 node.addClass("age").text(this.model.get(config.attr));
               }
             }
@@ -256,13 +256,13 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
       it("invoke them correctly", function() {
         collection.add({ age_value: 30 });
-        var cells = table.$("tbody td");
+        const cells = table.$("tbody td");
         expect(cells.eq(0).html()).toEqual('<a href="#">I AM LINK</a>');
         expect(cells.eq(1).hasClass("age")).toEqual(true);
         expect(cells.eq(1).text()).toEqual("30");
@@ -273,10 +273,10 @@ describe("DataTable Plugin", function() {
       beforeEach(function() {
         app.view.dataTable.row("Abc", {
           renderers: {
-            "monkey": function(node, config) {
+            "monkey"(node, config) {
               return "Monkey";
             },
-            "chicken": function(node, config) {
+            "chicken"(node, config) {
               return "Chicken";
             }
           }
@@ -294,10 +294,10 @@ describe("DataTable Plugin", function() {
       it("should inherit renderers when a subclass does provide a renderers property", function() {
         app.view.dataTable.row("new_abc", "Abc", {
           renderers: {
-            "zebra": function(node, config) {
+            "zebra"(node, config) {
               return "Zebra";
             },
-            "monkey": function(node, config) {
+            "monkey"(node, config) {
               return "OVERRIDE Monkey";
             }
           }
@@ -312,7 +312,7 @@ describe("DataTable Plugin", function() {
 
   describe("columns", function() {
     it("can only be provided as an array or a function that returns an array", function() {
-      var passingArray = function() {
+      const passingArray = () => {
         app.view.dataTable.row("ArrayCol", {
           columns: [
             { bulk: true }
@@ -322,13 +322,13 @@ describe("DataTable Plugin", function() {
           rowClassName: "ArrayCol"
         });
 
-        table = new app.Views.TableCol({ collection: collection });
+        table = new app.Views.TableCol({ collection });
         table.render();
       };
 
-      var passingFn = function() {
+      const passingFn = () => {
         app.view.dataTable.row("ArrayCol", {
-          columns: function() {
+          columns() {
             return [
               { bulk: true }
             ];
@@ -338,13 +338,13 @@ describe("DataTable Plugin", function() {
           rowClassName: "ArrayCol"
         });
 
-        table = new app.Views.TableCol({ collection: collection });
+        table = new app.Views.TableCol({ collection });
         table.render();
       };
 
-      var failing = function() {
+      const failing = () => {
         app.view.dataTable.row("ArrayCol", {
-          columns: function() {
+          columns() {
             return { bulk: true };
           }
         });
@@ -352,7 +352,7 @@ describe("DataTable Plugin", function() {
           rowClassName: "ArrayCol"
         });
 
-        table = new app.Views.TableCol({ collection: collection });
+        table = new app.Views.TableCol({ collection });
         table.render();
       };
 
@@ -362,12 +362,8 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow columns to provide a #present method controlling whether they are included", function() {
-      var yes = function() {
-        return true;
-      };
-      var no = function() {
-        return false;
-      };
+      const yes = () => true;
+      const no = () => false;
       app.view.dataTable.row("R", {
         columns: [
           { attr: "attr1", title: "Attr1", present: yes },
@@ -381,7 +377,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "R"
       });
 
-      table = new app.Views.T({ collection: collection });
+      table = new app.Views.T({ collection });
       table.render();
 
       expect(getHeaders(table)).toEqual(["Attr1", "Attr4", "Attr5"]);
@@ -389,7 +385,7 @@ describe("DataTable Plugin", function() {
 
     it("should allow columns to set default sort direction", function() {
       function cellsByIndex(table, index) {
-        return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+        return table.$(`tbody td:nth-child(${index + 1})`).map(function() {
           return $(this).text();
         }).get();
       }
@@ -411,7 +407,7 @@ describe("DataTable Plugin", function() {
         { name: "Joe", age: 8, zip: 33333 }
       ]);
 
-      table = new app.Views.T({ collection: collection });
+      table = new app.Views.T({ collection });
       table.render();
 
       // when nothing specified, sort asc by default
@@ -437,7 +433,7 @@ describe("DataTable Plugin", function() {
 
     it("should allow columns to set a sortBy method", function() {
       function cellsByIndex(table, index) {
-        return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+        return table.$(`tbody td:nth-child(${index + 1})`).map(function() {
           return $(this).text();
         }).get();
       }
@@ -445,12 +441,12 @@ describe("DataTable Plugin", function() {
       app.view.dataTable.row("R", {
         columns: [
           { attr: "name", title: "Name" },
-          { title: "User Age", sortBy: function(model) { return model.get('demographics').age; } }
+          { title: "User Age", sortBy(model) { return model.get('demographics').age; } }
         ],
 
         renderers: {
-          "user-age": function(node, config) {
-            var d = this.model.get('demographics');
+          "user-age"(node, config) {
+            const d = this.model.get('demographics');
             return node.text(d.age);
           }
         }
@@ -466,7 +462,7 @@ describe("DataTable Plugin", function() {
         { name: "C", demographics: { age: 9, gender: "female" } }
       ]);
 
-      table = new app.Views.T({ collection: collection });
+      table = new app.Views.T({ collection });
       table.render();
 
       // should be based on name order
@@ -480,7 +476,7 @@ describe("DataTable Plugin", function() {
 
     it("should allow columns to set a searchBy method", function() {
       function cellsByIndex(table, index) {
-        return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+        return table.$(`tbody td:nth-child(${index + 1})`).map(function() {
           return $(this).text();
         }).get();
       }
@@ -488,12 +484,12 @@ describe("DataTable Plugin", function() {
       app.view.dataTable.row("R", {
         columns: [
           { attr: "name", title: "Name" },
-          { title: "User Age", searchBy: function(model) { return model.get('demographics').gender; } }
+          { title: "User Age", searchBy(model) { return model.get('demographics').gender; } }
         ],
 
         renderers: {
-          "user-age": function(node, config) {
-            var d = this.model.get('demographics');
+          "user-age"(node, config) {
+            const d = this.model.get('demographics');
             return node.text(d.age);
           }
         }
@@ -509,7 +505,7 @@ describe("DataTable Plugin", function() {
         { name: "C", demographics: { age: 9, gender: "female" } }
       ]);
 
-      table = new app.Views.T({ collection: collection });
+      table = new app.Views.T({ collection });
       table.render();
 
       // all names are present
@@ -535,14 +531,12 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
       function getVisibilities() {
-        return _.map(table.columnsConfig(), function(column) {
-          return table.columnVisibility(column.attr);
-        });
+        return _.map(table.columnsConfig(), column => table.columnVisibility(column.attr));
       }
 
       function getColspanLength() {
@@ -633,7 +627,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should raise when setting visibility to false on a column that is required", function() {
-        expect(function() {
+        expect(() => {
           app.view.dataTable.row("RError", {
             columns: [
               { attr: "attr5", title: "Attr5", required: true }
@@ -643,7 +637,7 @@ describe("DataTable Plugin", function() {
             rowClassName: "RError"
           });
 
-          table = new app.Views.TError({ collection: collection });
+          table = new app.Views.TError({ collection });
           table.render();
           table.columnVisibility("attr5", false);
         }).toThrowError(/can not disable visibility when column is required/);
@@ -651,7 +645,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should allow columns to be reorderable by default", function() {
-      var reorderableSpy = jasmine.createSpy("reorderableSpy");
+      const reorderableSpy = jasmine.createSpy("reorderableSpy");
       app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
@@ -663,12 +657,12 @@ describe("DataTable Plugin", function() {
         _enableReorderableColumns: reorderableSpy
       });
 
-      new app.Views.Def({ collection: collection }).render();
+      new app.Views.Def({ collection }).render();
       expect(reorderableSpy).toHaveBeenCalled();
     });
 
     it("should allow disabling of column reordering", function() {
-      var reorderableSpy = jasmine.createSpy("reorderableSpy");
+      const reorderableSpy = jasmine.createSpy("reorderableSpy");
       app.view.dataTable.row("Abc", {
         columns: [
           { attr: "name", title: "Name" },
@@ -681,7 +675,7 @@ describe("DataTable Plugin", function() {
         _enableReorderableColumns: reorderableSpy
       });
 
-      new app.Views.Def({ collection: collection }).render();
+      new app.Views.Def({ collection }).render();
       expect(reorderableSpy).not.toHaveBeenCalled();
     });
 
@@ -697,7 +691,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "Abc"
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
 
       expect(table.resizableColumns).toEqual(false, "Table resizableColumns default");
       expect(table._colReorder.s.allowResize).toEqual(false, "ColReorder allowResize");
@@ -717,7 +711,7 @@ describe("DataTable Plugin", function() {
         resizableColumns: true
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
 
       expect(table.resizableColumns).toEqual(true, "Table resizableColumns default");
       expect(table._colReorder.s.allowResize).toEqual(true, "ColReorder allowResize");
@@ -742,7 +736,7 @@ describe("DataTable Plugin", function() {
         resizableColumns: true
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(true, "Has class dataTable-resizeableColumns");
     });
 
@@ -759,7 +753,7 @@ describe("DataTable Plugin", function() {
         resizableColumns: false
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
       expect(table.$el.find("table").hasClass("dataTable-resizeableColumns")).toEqual(false, "Has class dataTable-resizeableColumns");
     });
 
@@ -775,7 +769,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "Abc"
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
       expect(table.$el.find("table").hasClass("table-striped")).toEqual(true, "class table-striped");
     });
 
@@ -792,7 +786,7 @@ describe("DataTable Plugin", function() {
         striped: false
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
       expect(table.$el.find("table").hasClass("table-striped")).toEqual(false, "class table-striped");
     });
 
@@ -809,7 +803,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "Abc"
       });
 
-      table = new app.Views.Def({ collection: collection }).render();
+      table = new app.Views.Def({ collection }).render();
       table.$el.appendTo("body");
 
       expect(_.pluck(table.columnsConfig(), "title")).toEqual(["Name", "Age", "Location", "Birthday"]);
@@ -840,7 +834,7 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
@@ -883,7 +877,7 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
         $('body').append(table.$el);
         $('body').css('margin', 0);
@@ -896,15 +890,15 @@ describe("DataTable Plugin", function() {
 
       function stubDragMode(table) {
         table._colReorder.dom.drag = {
-          css: function() {}
+          css() {}
         };
         table._colReorder.dom.pointer = {
-          css: function() {}
+          css() {}
         };
       }
 
       function triggerMouseMoveEvent(table, options) {
-        var event = jQuery.Event("mousemove.ColReorder");
+        const event = jQuery.Event("mousemove.ColReorder");
         event.pageX = options.mouseX;
 
         // the below didn't work, so just calling the mouse move callback directly
@@ -945,14 +939,14 @@ describe("DataTable Plugin", function() {
 
           // now scroll to end of it
           $('body').scrollLeft(3000);
-          var originalScroll = $('body').scrollLeft();
+          const originalScroll = $('body').scrollLeft();
 
           expect($('body').scrollLeft()).toEqual(originalScroll, "Before the move event");
 
           stubDragMode(table);
           triggerMouseMoveEvent(table, { mouseX: originalScroll + $('body').outerWidth() - 50 });
 
-          expect($('body').scrollLeft()).toEqual(originalScroll, "After the move event should be " + originalScroll);
+          expect($('body').scrollLeft()).toEqual(originalScroll, `After the move event should be ${originalScroll}`);
         });
 
         it("should scroll body left if dragging column and mouse is at the left edge and table is not all in view", function() {
@@ -988,7 +982,7 @@ describe("DataTable Plugin", function() {
 
           // make the table really wide
           table.$el.find("table").width(3000);
-          var wrapper = table.$el.children("div:first");
+          const wrapper = table.$el.children("div:first");
           wrapper.css({ overflowX: "auto" });
           expect($('body').scrollLeft()).toEqual(0);
           expect(wrapper.scrollLeft()).toEqual(0);
@@ -1005,12 +999,12 @@ describe("DataTable Plugin", function() {
 
           // make the table really wide
           table.$el.find("table").width(3000);
-          var wrapper = table.$el.children("div:first");
+          const wrapper = table.$el.children("div:first");
           wrapper.css({ overflowX: "auto" });
           expect($('body').scrollLeft()).toEqual(0);
           expect(wrapper.scrollLeft(3000));
 
-          var originalScroll = wrapper.scrollLeft();
+          const originalScroll = wrapper.scrollLeft();
 
           stubDragMode(table);
           triggerMouseMoveEvent(table, { mouseX: $('body').outerWidth() - 50 });
@@ -1024,12 +1018,12 @@ describe("DataTable Plugin", function() {
 
           // make the table really wide
           table.$el.find("table").width(3000);
-          var wrapper = table.$el.children("div:first");
+          const wrapper = table.$el.children("div:first");
           wrapper.css({ overflowX: "auto" });
           expect($('body').scrollLeft()).toEqual(0);
           expect(wrapper.scrollLeft(3000));
 
-          var originalScroll = wrapper.scrollLeft();
+          const originalScroll = wrapper.scrollLeft();
 
           stubDragMode(table);
           triggerMouseMoveEvent(table, { mouseX: 50 });
@@ -1054,21 +1048,21 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
       });
 
       it("should return the configuration with some additional properties", function() {
-        var columnsConfig = table.columnsConfig();
+        const columnsConfig = table.columnsConfig();
         expect(columnsConfig.length).toEqual(4);
 
-        var expectedAttrs = ["attr1", "attr2", "attr3", "attr4"];
-        var expectedTitles = ["Attr1", "Attr2", "Attr3", "Attr4"];
+        const expectedAttrs = ["attr1", "attr2", "attr3", "attr4"];
+        const expectedTitles = ["Attr1", "Attr2", "Attr3", "Attr4"];
 
         expect(_.pluck(columnsConfig, "attr")).toEqual(expectedAttrs);
         expect(_.pluck(columnsConfig, "title")).toEqual(expectedTitles);
 
-        _.each(columnsConfig, function(c) {
+        _.each(columnsConfig, c => {
           expect(c.renderer).toBeDefined();
           expect(c.nodeMatcher).toBeDefined();
         });
@@ -1076,7 +1070,7 @@ describe("DataTable Plugin", function() {
     });
 
     describe("initial visibility and required property", function() {
-      var columnsConfig;
+      let columnsConfig;
 
       beforeEach(function() {
         app.view.dataTable.row("R", {
@@ -1093,7 +1087,7 @@ describe("DataTable Plugin", function() {
           rowClassName: "R"
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
         columnsConfig = table.columnsConfig();
       });
@@ -1116,7 +1110,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should throw an error if a column is not visible, but is required", function() {
-        expect(function() {
+        expect(() => {
           app.view.dataTable.row("RError", {
             columns: [
               { attr: "attr6", title: "Attr6", required: true, visible: false }
@@ -1126,7 +1120,7 @@ describe("DataTable Plugin", function() {
             rowClassName: "RError"
           });
 
-          table = new app.Views.TError({ collection: collection });
+          table = new app.Views.TError({ collection });
           table.render();
         }).toThrowError(/column can't be required, but not visible/);
       });
@@ -1141,7 +1135,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should restore columns to their default visibility", function() {
-        var defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
+        const defaultColumnVisibility = ["Attr1", "Attr2", "Attr4", "Attr5"];
         table.columnVisibility("attr1", false);
         table.columnVisibility("attr2", false);
         table.columnVisibility("attr3", true);
@@ -1155,7 +1149,7 @@ describe("DataTable Plugin", function() {
 
     it("should allow specific columns to be re rendered", function() {
       function cellsForColumn(view, attr) {
-        return view.$("tbody td." + attr).map(function() {
+        return view.$(`tbody td.${attr}`).map(function() {
           return $.trim($(this).text());
         }).get();
       }
@@ -1179,7 +1173,7 @@ describe("DataTable Plugin", function() {
         { attr1: "C1", attr2: "C2", attr3: "C3", attr4: "C4" },
         { attr1: "D1", attr2: "D2", attr3: "D3", attr4: "D4" }
       ]);
-      table = new app.Views.T({ collection: collection });
+      table = new app.Views.T({ collection });
       table.render();
 
       // enable columns that were hidden when initially rendered, which should now be populated
@@ -1209,7 +1203,7 @@ describe("DataTable Plugin", function() {
           resizableColumns: true
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
         $('body').append(table.$el);
       });
@@ -1220,10 +1214,10 @@ describe("DataTable Plugin", function() {
 
       function stubResizeMode(table) {
         table._colReorder.dom.drag = {
-          css: function() {}
+          css() {}
         };
         table._colReorder.dom.pointer = {
-          css: function() {}
+          css() {}
         };
         table._colReorder.dom.resize = true;
         table._colReorder.s.mouse.resizeElem = $('thead th').get(0);
@@ -1232,7 +1226,7 @@ describe("DataTable Plugin", function() {
       }
 
       function triggerMouseMoveEvent(table, options) {
-        var event = jQuery.Event("mousemove.ColReorder");
+        const event = jQuery.Event("mousemove.ColReorder");
         event.pageX = options.mouseX;
 
         // the below didn't work, so just calling the mouse move callback directly
@@ -1246,7 +1240,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should apply css to all columns to allow for truncate if also allowed to resize columns", function() {
-        var interceptors = table.$el.find("thead th div.DataTables_sort_interceptor");
+        const interceptors = table.$el.find("thead th div.DataTables_sort_interceptor");
 
         expect(interceptors.length).toEqual(4);
         interceptors.each(function() {
@@ -1262,13 +1256,13 @@ describe("DataTable Plugin", function() {
           resizableColumns: false
         });
 
-        table = new app.Views.T({ collection: collection });
+        table = new app.Views.T({ collection });
         table.render();
         $('body').append(table.$el);
 
         expect(table._colReorder.s.allowResize).toEqual(false, "ColReorder allowResize");
         expect(table._colReorder.s.bTruncateHeaders).toEqual(true, "ColReorder bTruncateHeaders");
-        var interceptors = table.$el.find("thead th div.DataTables_sort_interceptor");
+        const interceptors = table.$el.find("thead th div.DataTables_sort_interceptor");
 
         expect(interceptors.length).toEqual(4);
         interceptors.each(function() {
@@ -1277,36 +1271,36 @@ describe("DataTable Plugin", function() {
       });
 
       it("should set the max width to the DataTables_sort_interceptor on resize", function() {
-        var startWidth = $('thead th').innerWidth();
+        const startWidth = $('thead th').innerWidth();
 
         stubResizeMode(table);
         triggerMouseMoveEvent(table, { mouseX: -10 });
-        var endWidth = startWidth - 10;
+        const endWidth = startWidth - 10;
         expect(parseInt($('thead th .DataTables_sort_interceptor').css('max-width'))).toEqual(endWidth, "max-width equal to new width of column (startWidth - 10)");
       });
 
       it("should remove padding between the sort interceptor and column", function() {
-        var column = $('thead th');
+        const column = $('thead th');
         column.css("padding-right", "10px");
-        var startWidth = column.innerWidth();
+        const startWidth = column.innerWidth();
 
         stubResizeMode(table);
         triggerMouseMoveEvent(table, { mouseX: -10 });
-        var endWidth = startWidth - 20;
+        const endWidth = startWidth - 20;
         expect(parseInt($('thead th .DataTables_sort_interceptor').css('max-width'))).toEqual(endWidth, "max-width equal to new width of column minus the padding (startWidth - 10 - 10)");
       });
 
       it("should allow the DataTables_sort_interceptor to overflow", function() {
         stubResizeMode(table);
         triggerMouseMoveEvent(table, { mouseX: -30 });
-        var interceptor = $('thead th .DataTables_sort_interceptor');
+        const interceptor = $('thead th .DataTables_sort_interceptor');
         expect(interceptor.get(0).scrollWidth > interceptor.width()).toEqual(true, "has overflow");
       });
 
       it("should respect min resize width on the sort interceptor", function() {
         stubResizeMode(table);
         triggerMouseMoveEvent(table, { mouseX: -3000 });
-        var interceptor = $('thead th .DataTables_sort_interceptor');
+        const interceptor = $('thead th .DataTables_sort_interceptor');
         expect(parseInt(interceptor.css('max-width'))).toEqual(table._colReorder.s.minResizeWidth + 1, "respect min resize width");
       });
     });
@@ -1314,7 +1308,7 @@ describe("DataTable Plugin", function() {
 
   describe("sorting", function() {
     function cellsByIndex(table, index) {
-      return table.$("tbody td:nth-child(" + (index + 1) + ")").map(function() {
+      return table.$(`tbody td:nth-child(${index + 1})`).map(function() {
         return $(this).text();
       }).get();
     }
@@ -1342,7 +1336,7 @@ describe("DataTable Plugin", function() {
         sorting: [ [ 2, "asc" ] ]
       });
 
-      table = new app.Views.ByIndex2({ collection: collection }).render();
+      table = new app.Views.ByIndex2({ collection }).render();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       app.view.dataTable("ByIndex1", {
@@ -1351,7 +1345,7 @@ describe("DataTable Plugin", function() {
         sorting: [ [ 1, "desc" ] ]
       });
 
-      table = new app.Views.ByIndex1({ collection: collection }).render();
+      table = new app.Views.ByIndex1({ collection }).render();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
 
@@ -1362,7 +1356,7 @@ describe("DataTable Plugin", function() {
         sorting: [ [ "zip", "asc" ] ]
       });
 
-      table = new app.Views.ByZip({ collection: collection }).render();
+      table = new app.Views.ByZip({ collection }).render();
       expect(cellsByIndex(table, 2)).toEqual(["10000", "33333", "90000"]);
 
       app.view.dataTable("ByAge", {
@@ -1371,7 +1365,7 @@ describe("DataTable Plugin", function() {
         sorting: [ [ "age", "desc" ] ]
       });
 
-      table = new app.Views.ByAge({ collection: collection }).render();
+      table = new app.Views.ByAge({ collection }).render();
       expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
     });
 
@@ -1382,7 +1376,7 @@ describe("DataTable Plugin", function() {
           sorting: [ [ 2, "asc" ] ]
         });
 
-        table = new app.Views.ByIndex2({ collection: collection });
+        table = new app.Views.ByIndex2({ collection });
         table.changeSorting([['age', 'asc']]);
         table.render();
         expect(cellsByIndex(table, 1)).toEqual(["1", "8", "10"]);
@@ -1394,7 +1388,7 @@ describe("DataTable Plugin", function() {
           sorting: [ [ 2, "asc" ] ]
         });
 
-        table = new app.Views.ByIndex2({ collection: collection }).render();
+        table = new app.Views.ByIndex2({ collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
         spyOn(table.dataTable, 'fnSort').and.callThrough();
         table.changeSorting([['age', 'asc']]);
@@ -1408,7 +1402,7 @@ describe("DataTable Plugin", function() {
           sorting: [ [ 2, "asc" ] ]
         });
 
-        table = new app.Views.ByIndex2({ collection: collection }).render();
+        table = new app.Views.ByIndex2({ collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
         spyOn(table.dataTable, 'fnSort').and.callThrough();
         table.changeSorting([ [ 2, "asc" ] ]);
@@ -1430,7 +1424,7 @@ describe("DataTable Plugin", function() {
         sorting: [[1, "desc"]]
       });
       collection.add([ { name: "A" }, { name: "B" }, { name: "C" } ]);
-      table = new app.Views.LockUnlock({ collection: collection }).render();
+      table = new app.Views.LockUnlock({ collection }).render();
     });
 
     it("should work for pagination ui", function() {
@@ -1446,12 +1440,12 @@ describe("DataTable Plugin", function() {
 
     it("should work for pagination api", function() {
       table.lock("page", true);
-      expect(function() {
+      expect(() => {
         table.page("next");
       }).toThrowError(/pagination is locked/);
 
       table.lock("page", false);
-      expect(function() {
+      expect(() => {
         table.page("next");
       }).not.toThrow();
     });
@@ -1473,12 +1467,12 @@ describe("DataTable Plugin", function() {
 
     it("should work for sorting api", function() {
       table.lock("sort", true);
-      expect(function() {
+      expect(() => {
         table.sort([ [0, "asc"] ]);
       }).toThrowError(/sorting is locked/);
 
       table.lock("sort", false);
-      expect(function() {
+      expect(() => {
         table.sort([ [0, "asc"] ]);
       }).not.toThrow();
     });
@@ -1494,12 +1488,12 @@ describe("DataTable Plugin", function() {
 
     it("should work for filter api", function() {
       table.lock("filter", true);
-      expect(function() {
+      expect(() => {
         table.filter("stuff");
       }).toThrowError(/filtering is locked/);
 
       table.lock("filter", false);
-      expect(function() {
+      expect(() => {
         table.filter("stuff");
       }).not.toThrow();
     });
@@ -1514,30 +1508,30 @@ describe("DataTable Plugin", function() {
 
     it("should work for bulk api", function() {
       table.lock("bulk", true);
-      expect(function() {
+      expect(() => {
         table.selectedModels();
       }).toThrowError(/bulk selection is locked/);
-      expect(function() {
+      expect(() => {
         table.selectAllVisible(true);
       }).toThrowError(/bulk selection is locked/);
-      expect(function() {
+      expect(() => {
         table.selectAllMatching();
       }).toThrowError(/bulk selection is locked/);
-      expect(function() {
+      expect(() => {
         table.matchingCount();
       }).toThrowError(/bulk selection is locked/);
 
       table.lock("bulk", false);
-      expect(function() {
+      expect(() => {
         table.selectedModels();
       }).not.toThrow();
-      expect(function() {
+      expect(() => {
         table.selectAllVisible(true);
       }).not.toThrow();
-      expect(function() {
+      expect(() => {
         table.selectAllMatching();
       }).not.toThrow();
-      expect(function() {
+      expect(() => {
         table.matchingCount();
       }).not.toThrow();
     });
@@ -1553,10 +1547,10 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("Def", {
         rowClassName: "Abc"
       });
-      var data = _.map(_.range(1, 100), function(id) {
-        return { id: id };
-      });
-      var table = new app.Views.Def({ collection: collection }).render();
+      const data = _.map(_.range(1, 100), id => ({
+        id
+      }));
+      const table = new app.Views.Def({ collection }).render();
       expect(table.totalRecordsCount()).toEqual(0);
       collection.reset(data);
       expect(table.totalRecordsCount()).toEqual(99);
@@ -1574,7 +1568,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "Abc"
       });
 
-      var table = new app.Views.Def({ collection: collection }).render();
+      const table = new app.Views.Def({ collection }).render();
       table.dataTable.fnSettings()._iDisplayLength = 50;
       expect(table.pageLimit()).toEqual(50);
     });
