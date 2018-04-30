@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../../src/legacy/entry";
+import { default as Backdraft } from "../src/entry";
 
 describe("App", function() {
   beforeEach(function() {

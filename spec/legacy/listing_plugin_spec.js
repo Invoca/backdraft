@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../../src/legacy/entry";
+import { default as Backdraft } from "../../src/entry";
 
 describe("Listing Plugin", function() {
   let app;

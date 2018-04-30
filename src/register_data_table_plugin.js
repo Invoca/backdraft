@@ -2,17 +2,17 @@ import _ from "underscore";
 
 import Plugin from "./plugin";
 
-import ColumnType from "../data_table/column_type";
-import Row from "../data_table/row";
-import LocalDataTable from "../data_table/local_data_table";
-import ServerSideDataTable from "../data_table/server_side_data_table";
+import ColumnType from "./data_table/column_type";
+import Row from "./data_table/row";
+import LocalDataTable from "./data_table/local_data_table";
+import ServerSideDataTable from "./data_table/server_side_data_table";
 
-import initializeBootstrap from "../data_table/bootstrap";
+import initializeBootstrap from "./data_table/bootstrap";
 
-import addBaseColumnType from "../data_table/column_types/base";
-import addBulkColumnType from "../data_table/column_types/bulk";
+import addBaseColumnType from "./data_table/column_types/base";
+import addBulkColumnType from "./data_table/column_types/bulk";
 
-import initializeColReorderPlugin from "../data_table/dataTables.colReorder";
+import initializeColReorderPlugin from "./data_table/dataTables.colReorder";
 
 Plugin.factory("DataTable", plugin => {
 

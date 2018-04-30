@@ -1,4 +1,4 @@
-import Plugin from "./plugin";
+import Plugin from "../plugin";
 
 import View from "../view";
 import Collection from "../collection";

@@ -1,6 +1,6 @@
 import Router from "../src/router";
 import View from "../src/view";
-import {default as Backdraft} from "../src/legacy/entry";
+import {default as Backdraft} from "../src/entry";
 
 describe("Router", function() {
   it("is exported", function() {

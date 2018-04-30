@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../../src/legacy/entry";
+import { default as Backdraft } from "../../src/entry";
 
 function inDom(element, block) {
   $("body").append(element);

@@ -1,7 +1,7 @@
 import Backbone from "backbone";
 import _ from "underscore";
 
-import Class from "./utils/class";
+import Class from "./legacy/utils/class";
 import Plugin from "./plugin";
 
 var App = (function() {

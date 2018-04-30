@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../../../src/legacy/entry";
+import { default as Backdraft } from "../../../src/entry";
 
 describe("Backdraft.Utils.Class", function() {
   it("should define a generic reusable class", function() {

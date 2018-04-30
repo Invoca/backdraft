@@ -1,5 +1,5 @@
-import { default as Backdraft } from "../../src/legacy/entry";
-import { pluginRegistry } from "../../src/legacy/plugin";
+import { default as Backdraft } from "../src/entry";
+import { pluginRegistry } from "../src/plugin";
 
 describe("Plugin", function() {
   beforeEach(function() {

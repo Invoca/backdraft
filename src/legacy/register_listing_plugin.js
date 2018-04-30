@@ -1,4 +1,4 @@
-import Plugin from "./plugin";
+import Plugin from "../plugin";
 
 import List from "../listing/list";
 import Item from "../listing/item";
