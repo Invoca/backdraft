@@ -1,6 +1,7 @@
 import Class from "./legacy/utils/class";
 import { toCSSClass, toColumnCSSClass, extractColumnCSSClass } from "./utils/css";
 
+import App from "./app";
 import Plugin from "./plugin";
 import createRegistry from "./app_registry";
 
@@ -27,6 +28,8 @@ const Namespace = {
     toColumnCSSClass,
     extractColumnCSSClass
   },
+
+  App,
 
   View,
   Collection,
