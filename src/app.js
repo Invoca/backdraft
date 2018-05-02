@@ -4,12 +4,11 @@ import _ from "underscore";
 import Plugin from "./plugin";
 
 class App {
-  constructor() {
-    // list of plugins by name this app should load, defaulting to none.
-    // apps should either override this property or append to it in their #initialize method
-    if (!this.plugins) this.plugins = [];
+  constructor(plugins) {
+    // list of plugins by name this app should load.
+    this.plugins = plugins || this.plugins || [];
 
-    // ensure that the Base plugin as always loaded
+    // ensure that the Base plugin is always loaded
     if (!_.include(this.plugins, "Base")) this.plugins.unshift("Base");
 
     // load plugins for this application

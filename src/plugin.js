@@ -29,11 +29,7 @@ class Plugin {
     });
   }
 
-  constructor(...args) {
-    this.initialize(...args);
-  }
-
-  initialize(name) {
+  constructor(name) {
     this.name = name;
     this.initializers = [];
     this.exportedData = {};

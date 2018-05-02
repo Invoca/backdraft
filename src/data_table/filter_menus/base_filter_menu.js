@@ -3,7 +3,9 @@ import _ from "underscore";
 
 class BaseFilterMenu extends View {
 
-  initialize(options) {
+  constructor(options) {
+    super(options);
+
     this.filter = options.column.filter;
     this.attr = options.column.attr;
     this.title = options.column.title;

@@ -88,7 +88,9 @@ Backdraft.app("ListingExample", function(app) {
       "click .add-item": "_onAddItem"
     },
 
-    initialize: function() {
+    constructor: function() {
+      app.Views.Index.__super___.constructor.apply(this, arguments);
+
       this.collection = new app.Collections.Books();
       var data = [];
 

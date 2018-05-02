@@ -8,7 +8,9 @@ import NumericFilterMenu from "./filter_menus/numeric_filter_menu";
 import ListFilterMenu from "./filter_menus/list_filter_menu";
 
 class FilterView extends View {
-  initialize(options) {
+  constructor(options) {
+    super(options);
+
     this.filter = options.column.filter;
     this.attr = options.column.attr;
     this.title = options.column.title;

@@ -9,10 +9,6 @@ function getKey(key) {
 class Cache {
 
   constructor(...args) {
-    this.initialize(...args);
-  }
-
-  initialize() {
     this.reset();
   }
 

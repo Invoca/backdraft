@@ -2,22 +2,20 @@ import View from "../view";
 import Cache from "../cache";
 
 class List extends View {
-  constructor(...args) {
-    super(...args);
+  constructor(options) {
+    super(options);
 
     if (!this.itemClass) {
       throw new Error("itemClass must be defined");
     }
 
+    this.options = options || {};
+    this.cache = new Cache();
+
     if (!this.collection) throw new Error("A collection must be provided");
     this.listenTo(this.collection, "add", this._onAdd);
     this.listenTo(this.collection, "remove", this._onRemove);
     this.listenTo(this.collection, "reset", this._onReset);
-  }
-
-  initialize(options) {
-    this.options = options || {};
-    this.cache = new Cache();
   }
 
   _onAdd(model) {
