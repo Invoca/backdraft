@@ -1,6 +1,7 @@
 import _ from "underscore";
 
 import App from "./app";
+import Backbone from "backbone";
 
 const AppRegistryMixin = {
   get instances() {
@@ -40,8 +41,8 @@ export default function createRegistry() {
         throw new Error(`App ${name} is already defined`);
       }
 
-      class AppClass extends App { }
-      _.extend(AppClass.prototype, obj, {name});
+      const proto = _.extend(obj, {name});
+      const AppClass = Backbone.Model.extend.call(App, proto);
 
       const newApp = new AppClass();
       registry.instances[name] = newApp;

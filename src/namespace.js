@@ -1,5 +1,3 @@
-import Backbone from "backbone";
-
 import { toCSSClass, toColumnCSSClass, extractColumnCSSClass } from "./utils/css";
 
 import App from "./app";
@@ -24,10 +22,6 @@ import "./register_data_table_plugin";
 
 const Namespace = {
   Utils: {
-    Class: {
-      extend: Backbone.Model.extend
-    },
-
     toCSSClass,
     toColumnCSSClass,
     extractColumnCSSClass
