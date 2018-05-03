@@ -13,7 +13,6 @@ export default function initializeBootstrap() {
     }
   });
 
-
   /* Default class modification */
   $.extend($.fn.dataTableExt.oStdClasses, {
     "sWrapper": "dataTables_wrapper",
@@ -25,17 +24,17 @@ export default function initializeBootstrap() {
   $.fn.dataTable.defaults.sPaginationType = 'bootstrap';
 
   /* API method to get paging information */
-  $.fn.dataTableExt.oApi.fnPagingInfo = function (oSettings) {
+  $.fn.dataTableExt.oApi.fnPagingInfo = function(oSettings) {
     return {
       "iStart":         oSettings._iDisplayStart,
       "iEnd":           oSettings.fnDisplayEnd(),
       "iLength":        oSettings._iDisplayLength,
       "iTotal":         oSettings.fnRecordsTotal(),
       "iFilteredTotal": oSettings.fnRecordsDisplay(),
-      "iPage":          oSettings._iDisplayLength === -1 ?
-        0 : Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength),
-      "iTotalPages":    oSettings._iDisplayLength === -1 ?
-        0 : Math.ceil(oSettings.fnRecordsDisplay() / oSettings._iDisplayLength)
+      "iPage":          oSettings._iDisplayLength === -1
+        ? 0 : Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength),
+      "iTotalPages":    oSettings._iDisplayLength === -1
+        ? 0 : Math.ceil(oSettings.fnRecordsDisplay() / oSettings._iDisplayLength)
     };
   };
 
@@ -43,8 +42,7 @@ export default function initializeBootstrap() {
   $.extend($.fn.dataTableExt.oPagination, {
     "bootstrap": {
       "fnInit": function(oSettings, nPaging, fnDraw) {
-        var oLang = oSettings.oLanguage.oPaginate;
-        var fnClickHandler = function (e) {
+        var fnClickHandler = function(e) {
           e.preventDefault();
           // prevent clicks on disabled links
           if ($(e.target).closest("li").is(".disabled")) {
@@ -66,11 +64,17 @@ export default function initializeBootstrap() {
         $(els[1]).bind('click.DT', { action: "next" }, fnClickHandler);
       },
 
-      "fnUpdate": function (oSettings, fnDraw) {
+      "fnUpdate": function(oSettings, fnDraw) {
         var iListLength = 5;
         var oPaging = oSettings.oInstance.fnPagingInfo();
         var an = oSettings.aanFeatures.p;
-        var i, ien, j, sClass, iStart, iEnd, iHalf = Math.floor(iListLength / 2);
+        var i;
+        var ien;
+        var j;
+        var sClass;
+        var iStart;
+        var iEnd;
+        var iHalf = Math.floor(iListLength / 2);
 
         if (oPaging.iTotalPages < iListLength) {
           iStart = 1;
@@ -86,19 +90,19 @@ export default function initializeBootstrap() {
           iEnd = iStart + iListLength - 1;
         }
 
-        for (i = 0, ien = an.length ; i < ien ; i++) {
+        for (i = 0, ien = an.length; i < ien; i++) {
           // Remove the middle elements
           $('li:gt(0)', an[i]).filter(':not(:last)').remove();
 
           // Add the new list items and their event handlers
-          for (j = iStart ; j <= iEnd ; j++) {
+          for (j = iStart; j <= iEnd; j++) {
             sClass = (j === oPaging.iPage + 1) ? 'class="active"' : '';
             $('<li ' + sClass + '><a href="#">' + j + '</a></li>')
               .insertBefore($('li:last', an[i])[0])
-              .bind('click', function (e) {
+              .bind('click', function(e) {
                 e.preventDefault();
                 // EUGE - patched to make sure the "page" event is fired when numbers are clicked
-                oSettings.oInstance.fnPageChange(parseInt($('a', this).text(),10) - 1);
+                oSettings.oInstance.fnPageChange(parseInt($('a', this).text(), 10) - 1);
               });
           }
 

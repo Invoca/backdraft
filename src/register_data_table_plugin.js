@@ -27,7 +27,6 @@ function finalizeServerSideTable(tableClass, app) {
 }
 
 Plugin.factory("DataTable", plugin => {
-
   plugin.exports({
     LocalDataTable,
     ServerSideDataTable,
@@ -35,7 +34,6 @@ Plugin.factory("DataTable", plugin => {
   });
 
   plugin.initializer(app => {
-
     initializeBootstrap();
     initializeColReorderPlugin();
 

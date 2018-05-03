@@ -2,7 +2,6 @@ import Backbone from "backbone";
 import _ from "underscore";
 
 class View extends Backbone.View {
-
   get children() {
     if (!this._children) {
       this._children = {};

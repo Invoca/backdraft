@@ -40,6 +40,7 @@ class List extends View {
   }
 
   _createNewItem(model) {
+    // eslint-disable-next-line new-cap
     const item = new this.itemClass({ model });
     this.cache.set(model, item);
     this.child(`child${item.cid}`, item);

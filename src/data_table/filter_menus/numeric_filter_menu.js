@@ -75,24 +75,24 @@ class NumericFilterMenu extends BaseFilterMenu {
 _.extend(NumericFilterMenu.prototype, {
   filterMenuClass: "filter-menu-numeric",
 
-  menuTemplate: _.template('\
-      <div class="filter-text">Show items with value that:</div> \
-      <div class="filter-menu-numeric-container"> \
-        <select class="filter-type form-control" data-filter-id="first-filter" data-previous-value="gt">\
-          <option selected value="gt">is greater than</option> \
-          <option value="lt">is less than</option> \
-          <option value="eq">is equal to</option> \
-        </select> \
-        <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> \
-        <div class="filter-text">and</div> \
-        <select class="filter-type form-control" data-filter-id="second-filter" data-previous-value="lt">\
-          <option value="gt">is greater than</option> \
-          <option selected value="lt">is less than</option> \
-          <option value="eq">is equal to</option> \
-        </select> \
-        <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> \
-      </div> \
-    ', null, BaseFilterMenu.DEFAULT_JST_DELIMS)
+  menuTemplate: _.template(`
+      <div class="filter-text">Show items with value that:</div> 
+      <div class="filter-menu-numeric-container"> 
+        <select class="filter-type form-control" data-filter-id="first-filter" data-previous-value="gt">
+          <option selected value="gt">is greater than</option> 
+          <option value="lt">is less than</option> 
+          <option value="eq">is equal to</option> 
+        </select> 
+        <input id="first-filter" class="filter-value form-control" type="text" data-filter-type="gt" /> 
+        <div class="filter-text">and</div> 
+        <select class="filter-type form-control" data-filter-id="second-filter" data-previous-value="lt">
+          <option value="gt">is greater than</option> 
+          <option selected value="lt">is less than</option> 
+          <option value="eq">is equal to</option> 
+        </select> 
+        <input id="second-filter" class="filter-value form-control" type="text" data-filter-type="lt" /> 
+      </div> 
+    `, null, BaseFilterMenu.DEFAULT_JST_DELIMS)
 });
 
 export default NumericFilterMenu;

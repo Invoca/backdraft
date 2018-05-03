@@ -1,7 +1,6 @@
 import Backbone from "backbone";
 
 class Model extends Backbone.Model {
-
   // notify change listeners, but with current values
   reTriggerChanges() {
     for (const attr in this.attributes) {

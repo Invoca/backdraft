@@ -21,15 +21,15 @@ class FilterView extends View {
     // decide which filter view based on type, here
     let filterMenu = null;
     switch (this.filter.type) {
-      case 'string':
-        filterMenu = new StringFilterMenu({column: options.column, parentView: this});
-        break;
-      case 'numeric':
-        filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
-        break;
-      case 'list':
-        filterMenu = new ListFilterMenu({column: options.column, parentView: this});
-        break;
+    case 'string':
+      filterMenu = new StringFilterMenu({column: options.column, parentView: this});
+      break;
+    case 'numeric':
+      filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
+      break;
+    case 'list':
+      filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+      break;
     }
 
     // add as a child (backdraft thing just to keep bookkeeping on subviews)
@@ -113,11 +113,11 @@ class FilterView extends View {
 }
 
 _.extend(FilterView.prototype, {
-  template: _.template('\
-        <div class="toggle-filter-button" data-toggle="filter-popover">\
-          <span class="<%= filterButtonClass %>"></span>\
-        </div>\
-      ', null, ListFilterMenu.DEFAULT_JST_DELIMS)
+  template: _.template(`
+        <div class="toggle-filter-button" data-toggle="filter-popover">
+          <span class="<%= filterButtonClass %>"></span>
+        </div>
+      `, null, ListFilterMenu.DEFAULT_JST_DELIMS)
 });
 
 export default FilterView;

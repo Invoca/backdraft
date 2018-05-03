@@ -25,7 +25,7 @@ class LocalDataTable extends View {
     // copy over certain properties from options to the table itself
     _.extend(this, _.pick(this.options, ["selectedIds", "paginate"]));
     _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-        "_onColumnVisibilityChange", "_onColumnReorder");
+      "_onColumnVisibilityChange", "_onColumnReorder");
 
     this.cache = new Cache();
     this.selectionManager = new SelectionManager();

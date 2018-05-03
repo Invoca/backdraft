@@ -12,7 +12,7 @@ class ListFilterMenu extends BaseFilterMenu {
       // if there are url params for this filter...
       if (matches[0]) {
         // go through each of those list values
-        matches[0].value.forEach( (element, index, array) => {
+        matches[0].value.forEach((element, index, array) => {
           // check it
           this.$el.find(`input[value="${element}"]`).prop("checked", true);
         });
@@ -47,9 +47,8 @@ class ListFilterMenu extends BaseFilterMenu {
       this.filter.value = this.filter.value || [];
       this.filter.value.push(filterInput.value);
       this.parentView._toggleIcon(true);
-    }
-    // remove filter from column manager if it is defined
-    else if (this.filter.value) {
+    } else if (this.filter.value) {
+      // remove filter from column manager if it is defined
       const index = this.filter.value.indexOf(filterInput.value);
       if (index > -1) {
         this.filter.value.splice(index, 1);
@@ -76,20 +75,20 @@ class ListFilterMenu extends BaseFilterMenu {
 _.extend(ListFilterMenu.prototype, {
   filterMenuClass: "filter-menu-list",
 
-  menuTemplate: _.template('\
-      <div class="filter-text">Show:</div>\
-      <a class="select-all" href="javascript:;">Select all</a>\
-      <ul class="filter-menu-list-container">\
-        <% _.each(filter.options, function(element, index) { %>\
-          <li>\
-            <label>\
-              <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%- element %>" /> \
-              <%= element %>\
-            </label>\
-          </li>\
-        <% }) %>\
-      </ul>\
-      ', null, BaseFilterMenu.DEFAULT_JST_DELIMS)
+  menuTemplate: _.template(`
+    <div class="filter-text">Show:</div>
+    <a class="select-all" href="javascript:;">Select all</a>
+    <ul class="filter-menu-list-container">
+      <% _.each(filter.options, function(element, index) { %>
+        <li>
+          <label>
+            <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%- element %>" /> 
+            <%= element %>
+          </label>
+        </li>
+      <% }) %>
+    </ul>`
+    , null, BaseFilterMenu.DEFAULT_JST_DELIMS)
 });
 
 export default ListFilterMenu;

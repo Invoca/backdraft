@@ -73,7 +73,7 @@ class ColumnManager {
     const summary = { visible: [], hidden: [] };
     _.each(this.visibility.attributes, (state, id) => {
       if (state) summary.visible.push(id);
-      else       summary.hidden.push(id);
+      else summary.hidden.push(id);
     });
     return summary;
   }

@@ -28,7 +28,6 @@ function createNameHelper(name, route) {
 }
 
 class Router extends Backbone.Router {
-
   constructor(options) {
     super(options);
 

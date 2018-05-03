@@ -42,12 +42,12 @@ class StringFilterMenu extends BaseFilterMenu {
 _.extend(StringFilterMenu.prototype, {
   filterMenuClass: "filter-menu-string",
 
-  menuTemplate: _.template('\
-      <div class="filter-text">Show:</div>\
-      <div class="filter-menu-string-container">\
-        <input class="filter-string form-control input-sm" type="text" name="filter-string" />\
-      </div>\
-      ', null, BaseFilterMenu.DEFAULT_JST_DELIMS)
+  menuTemplate: _.template(`
+      <div class="filter-text">Show:</div>
+      <div class="filter-menu-string-container">
+        <input class="filter-string form-control input-sm" type="text" name="filter-string" />
+      </div>
+      `, null, BaseFilterMenu.DEFAULT_JST_DELIMS)
 });
 
 export default StringFilterMenu;

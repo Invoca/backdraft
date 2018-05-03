@@ -27,10 +27,10 @@ class ColumnConfigGenerator {
 
   _getUrlFilterParams() {
     const urlParamString = window.location.href.split("?")[1];
-    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json) ) {
+    if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json)) {
       return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
     } else {
-      return []
+      return [];
     }
   }
 
@@ -114,8 +114,6 @@ class ColumnConfigGenerator {
 
   _determineColumnTypes() {
     // match our table's columns to available column types
-    let columnType;
-
     const availableColumnTypes = this.table.availableColumnTypes();
     return _.map(this.columnsConfig, (config, index) => {
       const columnType = _.find(availableColumnTypes, type => type.configMatcher()(config));

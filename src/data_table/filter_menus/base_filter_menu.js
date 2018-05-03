@@ -2,7 +2,6 @@ import View from "../../view";
 import _ from "underscore";
 
 class BaseFilterMenu extends View {
-
   constructor(options) {
     super(options);
 
@@ -39,7 +38,7 @@ class BaseFilterMenu extends View {
       this.$('.filter-menu').keyup(_.bind(function(event) {
         const key = event.keyCode || event.which;
         if (key === 13) {
-          this.parentView._onFilterClick.call(this.parentView);
+          this.parentView._onFilterClick();
         }
       }, this));
     }
@@ -70,7 +69,7 @@ class BaseFilterMenu extends View {
 
   _updateFilterUrlParams() {
     // get url parameters into an array
-    let params=[];
+    let params = [];
     // if there are already parameters there, get them
     const urlArray = window.location.href.split("?");
     if (urlArray[1]) {
@@ -80,11 +79,10 @@ class BaseFilterMenu extends View {
     const filteringSettings = this.parent.table._getFilteringSettings();
 
     // if there are active filters, put them in the filter_json param
-    if (JSON.parse(filteringSettings).length>0) {
+    if (JSON.parse(filteringSettings).length > 0) {
       params.filter_json = filteringSettings;
-    }
-    // otherwise delete the filter_json param to keep a clean uri
-    else {
+    } else {
+      // otherwise delete the filter_json param to keep a clean uri
       delete params.filter_json;
     }
     // Delete ext_filter_json from the url, we're deprecating it
@@ -116,21 +114,21 @@ _.extend(BaseFilterMenu.prototype, {
   filterMenuClass: "",
 
   menuTemplate: _.template(''), // to be overridden by subclasses
-  parentMenuTemplate: _.template('\
-     <div class="filter-menu <%= filterMenuClass %>"> \
-       <% if (enabled) { %> \
-         <%= menuTemplate %> \
-         <div class="filter-menu-footer"> \
-           <button class="btn btn-primary btn-filter" name="button" type="submit" title="">Apply</button> \
-           <button class="btn btn-secondary btn-clear" name="button" type="submit" title="">Clear</button> \
-         </div> \
-       <% } else { %> \
-         <span data-mount="error-message"> \
-           <%= errorMessage %>\
-         </span> \
-       <% } %> \
-     </div> \
-      ', null, BaseFilterMenu.DEFAULT_JST_DELIMS),
+  parentMenuTemplate: _.template(`
+     <div class="filter-menu <%= filterMenuClass %>">
+       <% if (enabled) { %>
+         <%= menuTemplate %>
+         <div class="filter-menu-footer">
+           <button class="btn btn-primary btn-filter" name="button" type="submit" title="">Apply</button>
+           <button class="btn btn-secondary btn-clear" name="button" type="submit" title="">Clear</button>
+         </div>
+       <% } else { %>
+         <span data-mount="error-message">
+           <%= errorMessage %>
+         </span>
+       <% } %> 
+     </div>
+      `, null, BaseFilterMenu.DEFAULT_JST_DELIMS),
 
   events: {
     "click input": "_onInputClick",

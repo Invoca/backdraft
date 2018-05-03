@@ -7,7 +7,6 @@ import LocalDataTable from "./local_data_table";
 import cidMap from "./cid_map";
 
 class ServerSideDataTable extends LocalDataTable {
-
   constructor(options) {
     // force pagination
     super(_.extend({paginate: true}, options));
@@ -104,10 +103,10 @@ class ServerSideDataTable extends LocalDataTable {
       // clear out existing array (but keeping reference to existing object)
       aoData.splice(0, aoData.length);
 
-      this._addDataTableParamIfExists(aoData, "sort_by",    sortBy);
-      this._addDataTableParamIfExists(aoData, "sort_dir",   sortDir);
-      this._addDataTableParamIfExists(aoData, "limit",      limit);
-      this._addDataTableParamIfExists(aoData, "start",      start);
+      this._addDataTableParamIfExists(aoData, "sort_by", sortBy);
+      this._addDataTableParamIfExists(aoData, "sort_dir", sortDir);
+      this._addDataTableParamIfExists(aoData, "limit", limit);
+      this._addDataTableParamIfExists(aoData, "start", start);
       this._addDataTableParamIfExists(aoData, "request_id", requestId);
     } else {
       // add column attribute mappings as a parameter
@@ -116,19 +115,19 @@ class ServerSideDataTable extends LocalDataTable {
       });
     }
 
-      // add additional static params specified for this table
-      for (const key in this._serverParams) {
-        // handle array values here because dataTables request does not
-        const paramValue = this._serverParams[key];
-        if (_.isArray(paramValue)) {
-          paramValue.forEach(function(val) {
-            aoData.push({ name: key + "[]", value: val });
-          });
-        } else {
-          aoData.push({ name: key, value: paramValue });
-        }
+    // add additional static params specified for this table
+    for (const key in this._serverParams) {
+      // handle array values here because dataTables request does not
+      const paramValue = this._serverParams[key];
+      if (_.isArray(paramValue)) {
+        paramValue.forEach(function(val) {
+          aoData.push({ name: key + "[]", value: val });
+        });
+      } else {
+        aoData.push({ name: key, value: paramValue });
       }
     }
+  }
 
   _getDataTableParamIfExists(data, key) {
     const obj = data[_.findIndex(data, { name: key })];
@@ -157,8 +156,8 @@ class ServerSideDataTable extends LocalDataTable {
 
   exportData(sUrl) {
     const oSettings = this.dataTable.fnSettings;
-    const aoData = this.dataTable._fnAjaxParameters( oSettings );
-    this._addServerParams( aoData );
+    const aoData = this.dataTable._fnAjaxParameters(oSettings);
+    this._addServerParams(aoData);
     this._fetchCSV(sUrl);
   }
 
@@ -168,8 +167,7 @@ class ServerSideDataTable extends LocalDataTable {
       filterJson.name = "ext_filter_json";
       filterJson.value = this._getFilteringSettings();
       this._goToWindowLocation(`${sUrl}&backdraft_request=1&ext_filter_json=${encodeURIComponent(filterJson.value)}`);
-    }
-    else {
+    } else {
       throw new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called");
     }
   }
@@ -177,8 +175,7 @@ class ServerSideDataTable extends LocalDataTable {
   _goToWindowLocation(sUrl) {
     if (sUrl) {
       window.location = sUrl;
-    }
-    else {
+    } else {
       throw new Error("sUrl must be defined when _goToWindowLocation is called");
     }
   }
@@ -186,24 +183,24 @@ class ServerSideDataTable extends LocalDataTable {
   _fetchServerData(sUrl, aoData, fnCallback, oSettings) {
     const self = this;
     if (this.serverSideFiltering) {
-      aoData.push( { name: "ext_filter_json", value: this._getFilteringSettings() } );
+      aoData.push({ name: "ext_filter_json", value: this._getFilteringSettings() });
     }
     oSettings.jqXHR = $.ajax({
-      url : sUrl,
-      data : aoData,
-      dataType : "json",
-      cache : false,
-      type : this.ajaxMethod || "GET",
+      url: sUrl,
+      data: aoData,
+      dataType: "json",
+      cache: false,
+      type: this.ajaxMethod || "GET",
       beforeSend(xhr) {
         xhr.setRequestHeader('X-Backdraft', "1");
         self._triggerGlobalEvent("ajax-start.backdraft", [xhr, self]);
       },
       success(json) {
-        json.sEcho                = json.requestId || json.draw || json.sEcho;
-        json.aaData               = json.data      || json.aaData;
-        json.iTotalRecords        = json.hasOwnProperty('recordsTotal') ? json.recordsTotal : json.iTotalRecords;
-        json.iTotalDisplayRecords = json.hasOwnProperty('recordsFiltered') ? json.recordsFiltered :
-            (json.hasOwnProperty('iTotalDisplayRecords') ? json.iTotalDisplayRecords : json.iTotalRecords);
+        json.sEcho = json.requestId || json.draw || json.sEcho;
+        json.aaData = json.data || json.aaData;
+        json.iTotalRecords = json.hasOwnProperty('recordsTotal') ? json.recordsTotal : json.iTotalRecords;
+        json.iTotalDisplayRecords = json.hasOwnProperty('recordsFiltered') ? json.recordsFiltered
+          : (json.hasOwnProperty('iTotalDisplayRecords') ? json.iTotalDisplayRecords : json.iTotalRecords);
 
         // ensure we ignore old Ajax responses
         // this piece of logic was taken from the _fnAjaxUpdateDraw method of dataTables, which is
@@ -212,9 +209,9 @@ class ServerSideDataTable extends LocalDataTable {
         if (_.isUndefined(json.sEcho)) return;
         if (json.sEcho * 1 < oSettings.iDraw) return;
         if (json.total) {
+          // eslint-disable-next-line new-cap
           self.totalsRow = new self.rowClass({ model: new Backbone.Model(json.total), totals: true });
         }
-
 
         self.collection.reset(json.aaData, {
           addData(data) {
@@ -245,7 +242,7 @@ class ServerSideDataTable extends LocalDataTable {
       comparison: mval
     };
     if (isFloat) {
-      filterObj.value = parseFloat(col.filter[mval])
+      filterObj.value = parseFloat(col.filter[mval]);
     } else {
       filterObj.value = col.filter[mval];
     }
@@ -263,14 +260,10 @@ class ServerSideDataTable extends LocalDataTable {
       const col = cg.columnsConfig[i];
 
       if (col.filter) {
-        if (col.filter.value)
-          result.push(table._makeFilterObj(col, "value", false));
-        if (col.filter.eq)
-          result.push(table._makeFilterObj(col, "eq", true));
-        if (col.filter.lt)
-          result.push(table._makeFilterObj(col, "lt", true));
-        if (col.filter.gt)
-          result.push(table._makeFilterObj(col, "gt", true));
+        if (col.filter.value) { result.push(table._makeFilterObj(col, "value", false)); }
+        if (col.filter.eq) { result.push(table._makeFilterObj(col, "eq", true)); }
+        if (col.filter.lt) { result.push(table._makeFilterObj(col, "lt", true)); }
+        if (col.filter.gt) { result.push(table._makeFilterObj(col, "gt", true)); }
       }
     }
 
@@ -281,12 +274,12 @@ class ServerSideDataTable extends LocalDataTable {
     const config = super._dataTableConfig(...args);
     // add server side related options
     return $.extend(true, config, {
-      bProcessing : true,
-      bServerSide : true,
-      sAjaxSource : _.result(this.collection, "url"),
-      fnServerData : this._fetchServerData,
-      fnServerParams : this._addServerParams,
-      fnDrawCallback : this._onDraw,
+      bProcessing: true,
+      bServerSide: true,
+      sAjaxSource: _.result(this.collection, "url"),
+      fnServerData: this._fetchServerData,
+      fnServerParams: this._addServerParams,
+      fnDrawCallback: this._onDraw,
       oLanguage: {
         sProcessing: this.processingText
       }
@@ -310,7 +303,7 @@ class ServerSideDataTable extends LocalDataTable {
 
   _visibleRowsOnCurrentPage() {
     // serverSide dataTables have a bug finding rows when the "page" param is provided on pages other than the first one
-    const visibleRowsCurrentPageArgs = { filter : "applied" };
+    const visibleRowsCurrentPageArgs = { filter: "applied" };
     return this.dataTable.$("tr", visibleRowsCurrentPageArgs).map((index, node) => $(node).data("row"));
   }
 

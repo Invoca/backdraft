@@ -7,7 +7,6 @@ function getKey(key) {
 }
 
 class Cache {
-
   constructor(...args) {
     this.reset();
   }

@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * File:        ColReorderWithResize-1.1.0-dev2.js
  *
