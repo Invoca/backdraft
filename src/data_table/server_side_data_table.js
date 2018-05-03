@@ -9,7 +9,8 @@ import cidMap from "./cid_map";
 class ServerSideDataTable extends LocalDataTable {
 
   constructor(options) {
-    super(options);
+    // force pagination
+    super(_.extend({paginate: true}, options));
 
     if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
     if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
@@ -19,13 +20,6 @@ class ServerSideDataTable extends LocalDataTable {
     this.serverParams({});
     this.selectAllMatching(false);
     this.appName = options.appName || this.appName;
-  }
-
-  initialize(...args) {
-    // force pagination
-    this.paginate = true;
-
-    super.initialize(...args);
   }
 
   selectAllMatching(val) {

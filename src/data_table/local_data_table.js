@@ -17,20 +17,16 @@ import cidMap from "./cid_map";
 import Config from "./config";
 
 class LocalDataTable extends View {
-  constructor(...args) {
-    super(...args);
+  constructor(options) {
+    super(options);
 
-    this.listenTo(this.collection, "add", this._onAdd);
-    this.listenTo(this.collection, "remove", this._onRemove);
-    this.listenTo(this.collection, "reset", this._onReset);
-  }
-
-  initialize(options) {
     this.options = options || {};
+
     // copy over certain properties from options to the table itself
-    _.extend(this, _.pick(this.options, [ "selectedIds" ]));
+    _.extend(this, _.pick(this.options, ["selectedIds", "paginate"]));
     _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
-      "_onColumnVisibilityChange", "_onColumnReorder");
+        "_onColumnVisibilityChange", "_onColumnReorder");
+
     this.cache = new Cache();
     this.selectionManager = new SelectionManager();
     this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -38,6 +34,10 @@ class LocalDataTable extends View {
     this._applyDefaults();
     this._columnManager = new ColumnManager(this);
     this._lockManager = new LockManager(this);
+
+    this.listenTo(this.collection, "add", this._onAdd);
+    this.listenTo(this.collection, "remove", this._onRemove);
+    this.listenTo(this.collection, "reset", this._onReset);
   }
 
   availableColumnTypes() {

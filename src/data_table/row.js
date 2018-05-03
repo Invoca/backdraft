@@ -3,7 +3,9 @@ import _ from "underscore";
 import View from "../view";
 
 class Row extends View {
-  initialize(options) {
+  constructor(options) {
+    super(options);
+
     this.columnsConfig = options.columnsConfig;
     this.isTotals = options.totals;
     this.hasUniques = this._hasUniqueValues();
