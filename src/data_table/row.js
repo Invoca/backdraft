@@ -72,7 +72,5 @@ class Row extends View {
 }
 
 Row.prototype.renderers = {};
-Row.finalize = function(name, rowClass) {
-};
 
 export default Row;

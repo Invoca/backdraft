@@ -692,13 +692,4 @@ _.extend(LocalDataTable.prototype, {
   }
 });
 
-LocalDataTable.finalize = function(name, tableClass, views, pluginConfig, appName) {
-  if (tableClass.prototype.rowClassName) {
-    // method for late resolution of row class, removes dependency on needing access to the entire app
-    tableClass.prototype._resolveRowClass = function() { return views[tableClass.prototype.rowClassName]; };
-  }
-
-  tableClass.prototype._configFromPlugin = function() { return pluginConfig; };
-};
-
 export default LocalDataTable;

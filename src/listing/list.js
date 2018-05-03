@@ -52,18 +52,4 @@ class List extends View {
   }
 }
 
-List.finalize = function(name, listClass, views) {
-  const descriptor = Object.create(null);
-  descriptor.get = function() {
-    return views[this.itemClassName];
-  };
-
-  Object.defineProperty(listClass.prototype, 'itemClass', descriptor);
-
-  // maintain backwards compatibility
-  listClass.prototype.getItemClass = function() {
-    return this.itemClass;
-  };
-};
-
 export default List;

@@ -13,6 +13,19 @@ import Config from "./data_table/config";
 
 import initializeColReorderPlugin from "./data_table/dataTables.colReorder";
 
+function finalizeLocalTable(tableClass, app) {
+  if (tableClass.prototype.rowClassName) {
+    // method for late resolution of row class, removes dependency on needing access to the entire app
+    tableClass.prototype._resolveRowClass = function() { return app.Views[tableClass.prototype.rowClassName]; };
+  }
+
+  tableClass.prototype._configFromPlugin = function() { return app.view.dataTable.config; };
+}
+
+function finalizeServerSideTable(tableClass, app) {
+  tableClass.prototype.appName = app.name;
+}
+
 Plugin.factory("DataTable", plugin => {
 
   plugin.exports({
@@ -35,8 +48,13 @@ Plugin.factory("DataTable", plugin => {
         baseClass = app.Views[baseClassName];
       }
 
-      app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views, app.view.dataTable.config, app.name);
+      const tableClass = baseClass.extend(properties);
+      finalizeLocalTable(tableClass, app);
+      if (properties.serverSide) {
+        finalizeServerSideTable(tableClass, app);
+      }
+
+      app.Views[name] = tableClass;
     };
 
     app.view.dataTable.row = function(name, baseClassName, properties) {
@@ -51,7 +69,6 @@ Plugin.factory("DataTable", plugin => {
       properties.renderers = _.extend({}, baseClass.prototype.renderers, properties.renderers || {});
 
       app.Views[name] = baseClass.extend(properties);
-      baseClass.finalize(name, app.Views[name], app.Views);
     };
 
     // storage for app wide configuration of the plugin

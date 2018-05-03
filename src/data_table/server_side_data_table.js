@@ -337,10 +337,4 @@ _.extend(ServerSideDataTable.prototype, {
   _bulkCheckboxAdjust: $.noop
 });
 
-ServerSideDataTable.finalize = function(name, tableClass, views, pluginConfig, appName) {
-  LocalDataTable.finalize(name, tableClass, views, pluginConfig, appName);
-
-  tableClass.prototype.appName = appName;
-};
-
 export default ServerSideDataTable;

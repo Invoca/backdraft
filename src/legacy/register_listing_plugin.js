@@ -6,6 +6,20 @@ import Item from "../listing/item";
 // The Listing plugin is deprecated. Access to the List and Item classes is available through Backdraft.Listing.ListView and
 // Backdraft.Listing.ItemView, respectively.
 
+function finalizeList(name, listClass, views) {
+  const descriptor = Object.create(null);
+  descriptor.get = function() {
+    return views[this.itemClassName];
+  };
+
+  Object.defineProperty(listClass.prototype, 'itemClass', descriptor);
+
+  // maintain backwards compatibility
+  listClass.prototype.getItemClass = function() {
+    return this.itemClass;
+  };
+}
+
 Plugin.factory("Listing", (plugin) => {
   plugin.exports({
     List,
@@ -15,7 +29,7 @@ Plugin.factory("Listing", (plugin) => {
   plugin.initializer(app => {
     app.view.listing = function(name, properties) {
       app.Views[name] = List.extend(properties);
-      List.finalize(name, app.Views[name], app.Views);
+      finalizeList(name, app.Views[name], app.Views);
     };
 
     app.view.listing.item = function(name, properties) {
