@@ -18,7 +18,7 @@ describe("DataTable Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins: [ "DataTable" ]
+      plugins: ["DataTable"]
     });
     app.model("M", {});
     app.collection("Col", {
@@ -50,7 +50,7 @@ describe("DataTable Plugin", function() {
 
       describe("collection is reset", function() {
         beforeEach(function() {
-          collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
+          collection.reset([{ name: "Bob" }, { name: "Joe" }]);
         });
 
         it("should render a view for every single model in the collection", function() {
@@ -102,7 +102,7 @@ describe("DataTable Plugin", function() {
 
       describe("collection is removed from", function() {
         beforeEach(function() {
-          collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
+          collection.reset([{ name: "Bob" }, { name: "Joe" }]);
           collection.remove(collection.models[0]);
         });
 
@@ -230,14 +230,14 @@ describe("DataTable Plugin", function() {
       });
 
       it("should allow a list of pre-selected model ids to be provided and select the correct rows", function() {
-        var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45 ];
+        var selectedIds = [1, 2, 3, 10, 11, 90, 76, 45];
         table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
         table.render();
         expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
       });
 
       it("should not throw exceptions when provided pre-selected model ids that don't exist", function() {
-        var selectedIds = [ 1, 2, 3, -1 ];
+        var selectedIds = [1, 2, 3, -1];
         expect(function() {
           table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
           table.render();
@@ -315,14 +315,14 @@ describe("DataTable Plugin", function() {
 
       describe("selectedIds", function() {
         it("should allow a list of model ids to be provided and select the correct models", function() {
-          var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45 ];
+          var selectedIds = [1, 2, 3, 10, 11, 90, 76, 45];
           table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
           table.render();
           expect(_.pluck(table.selectedModels(), "id")).toEqual(selectedIds);
         });
 
         it("should make the correct rows appear selected as some my not be rendered initially due to deferred rendering", function() {
-          var selectedIds = [ 1, 2, 3, 10, 11, 90, 76, 45, 72, 97, 33, 5, 13 ];
+          var selectedIds = [1, 2, 3, 10, 11, 90, 76, 45, 72, 97, 33, 5, 13];
           table = new app.Views.T({ collection: collection, selectedIds: selectedIds });
           table.render();
           table.$(".dataTables_length select").val(100).change();
@@ -511,8 +511,8 @@ describe("DataTable Plugin", function() {
           app.view.dataTable.row("R", {
             columns: columns(),
             columnGroupDefinitions: [
-              {"headerName": "Financial", "colspan": 1, headerGroupDataIndex: "financial"},
-              {"headerName": "User Info", "colspan": 2, headerGroupDataIndex: "user"}
+              { "headerName": "Financial", "colspan": 1, headerGroupDataIndex: "financial" },
+              { "headerName": "User Info", "colspan": 2, headerGroupDataIndex: "user" }
             ]
           });
 
@@ -568,7 +568,7 @@ describe("DataTable Plugin", function() {
           });
 
           buildTableAndExpectMismatchedColumn();
-          expect(getHeaderGroupText(table)).toEqual([ 'Financial', '', 'User Info' ]);
+          expect(getHeaderGroupText(table)).toEqual(['Financial', '', 'User Info']);
         });
 
         it("should gracefully render the column title when headerGroupDataIndex is not matched in columns", function() {
@@ -586,7 +586,7 @@ describe("DataTable Plugin", function() {
           });
 
           buildTableAndExpectMismatchedColumn();
-          expect(getHeaderGroupText(table)).toEqual([ 'Financial', '', '' ]);
+          expect(getHeaderGroupText(table)).toEqual(['Financial', '', '']);
         });
       });
     });

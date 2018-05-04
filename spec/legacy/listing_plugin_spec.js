@@ -8,7 +8,7 @@ describe("Listing Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins: [ "Listing" ]
+      plugins: ["Listing"]
     });
     app.model("M", {});
     app.collection("Col", {
@@ -40,7 +40,7 @@ describe("Listing Plugin", function() {
   describe("factories", function() {
     it("should expose #listing", function() {
       app.view.listing.item("AbcItem", {});
-      app.view.listing("Abc", {itemClassName: "AbcItem"});
+      app.view.listing("Abc", { itemClassName: "AbcItem" });
       expect(new app.Views.Abc({ collection })).toEqual(jasmine.any(baseExports.View));
     });
 
@@ -52,7 +52,7 @@ describe("Listing Plugin", function() {
     it("requires that a collection be provided", function() {
       expect(() => {
         app.view.listing.item("AbcItem", {});
-        app.view.listing("Abc", {itemClassName: "AbcItem"});
+        app.view.listing("Abc", { itemClassName: "AbcItem" });
         // eslint-disable-next-line no-new
         new app.Views.Abc();
       }).toThrowError("A collection must be provided");

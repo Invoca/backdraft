@@ -132,7 +132,7 @@ describe("DataTable Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins: [ "DataTable" ]
+      plugins: ["DataTable"]
     });
     app.model("M", {});
     app.collection("Col", {
@@ -615,7 +615,7 @@ describe("DataTable Plugin", function() {
         serverSide: true
       });
 
-      table = new app.Views.AjaxMethodTestTable({collection: collection});
+      table = new app.Views.AjaxMethodTestTable({ collection: collection });
       table.render();
 
       expect(jasmine.Ajax.requests.mostRecent().method).toEqual("GET");
@@ -733,10 +733,10 @@ describe("DataTable Plugin", function() {
 
     describe("when in simple_params mode", function() {
       it("should pass simpler paging and sort param names", function() {
-        table = new app.Views.TSimple({collection: collection});
+        table = new app.Views.TSimple({ collection: collection });
         table.render();
 
-        table.serverParams({monkey: "chicken"});
+        table.serverParams({ monkey: "chicken" });
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
@@ -747,20 +747,20 @@ describe("DataTable Plugin", function() {
       });
 
       it("should handle no sort param and not pass sort dir either", function() {
-        table = new app.Views.TSimple({collection: collection});
+        table = new app.Views.TSimple({ collection: collection });
 
         var originalAddServerParams = table._addServerParams;
 
         spyOn(table, '_addServerParams').and.callFake(function(aoData) {
           // pass in same array object but emptied out, to simulate no existing sort params
           aoData.splice(0, aoData.length);
-          aoData.push({name: "sEcho", value: "3"});
+          aoData.push({ name: "sEcho", value: "3" });
           originalAddServerParams.call(this, aoData);
         });
 
         table.render();
 
-        table.serverParams({monkey: "chicken"});
+        table.serverParams({ monkey: "chicken" });
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
@@ -771,21 +771,21 @@ describe("DataTable Plugin", function() {
       });
 
       it("should handle when no sort param is found but sort dir did exist (and not send either param)", function() {
-        table = new app.Views.TSimple({collection: collection});
+        table = new app.Views.TSimple({ collection: collection });
 
         var originalAddServerParams = table._addServerParams;
 
         spyOn(table, '_addServerParams').and.callFake(function(aoData) {
           // pass in same array object but emptied out, to simulate no existing sort params
           aoData.splice(0, aoData.length);
-          aoData.push({name: "sEcho", value: "3"});
-          aoData.push({name: "sSortDir_0", value: "desc"});
+          aoData.push({ name: "sEcho", value: "3" });
+          aoData.push({ name: "sSortDir_0", value: "desc" });
           originalAddServerParams.call(this, aoData);
         });
 
         table.render();
 
-        table.serverParams({monkey: "chicken"});
+        table.serverParams({ monkey: "chicken" });
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
@@ -796,7 +796,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should handle when sort param is index 0 and not treat as false", function() {
-        table = new app.Views.TSimple({collection: collection});
+        table = new app.Views.TSimple({ collection: collection });
 
         var originalAddServerParams = table._addServerParams;
 
@@ -811,7 +811,7 @@ describe("DataTable Plugin", function() {
 
         table.render();
 
-        table.serverParams({monkey: "chicken"});
+        table.serverParams({ monkey: "chicken" });
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("iSortCol_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sSortDir_0");
         expect(jasmine.Ajax.requests.mostRecent().url).not.toMatch("sEcho");
@@ -874,7 +874,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should clear on sorting", function() {
-        table.sort([ [1, 'asc'] ]);
+        table.sort([[1, 'asc']]);
         jasmine.Ajax.requests.mostRecent().response(mockResponse.get());
 
         expect(table.selectAllMatching()).toEqual(null);
@@ -1044,7 +1044,7 @@ describe("DataTable Plugin", function() {
       // Create a brand new table with duplicate titles
       Backdraft.app.destroyAll();
       app = Backdraft.app("myapp", {
-        plugins: [ "DataTable" ]
+        plugins: ["DataTable"]
       });
 
       app.model("M", {});
@@ -1146,7 +1146,7 @@ describe("DataTable Plugin", function() {
               expect(col.filter.value).toEqual("Scott");
               // verify ajax
               $(".btn-filter").trigger("click");
-              expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
+              expectedFilterObj = [{ type: "string", attr: col.attr, comparison: "value", value: "Scott" }];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
@@ -1167,7 +1167,7 @@ describe("DataTable Plugin", function() {
               expect(col.filter.eq).toEqual("0.5");
               // verify ajax
               $(".btn-filter").trigger("click");
-              expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
+              expectedFilterObj = [{ type: "numeric", attr: col.attr, comparison: "eq", value: 0.5 }];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
@@ -1187,7 +1187,7 @@ describe("DataTable Plugin", function() {
               expect(col.filter.value).toEqual(["Basic", "Advanced"]);
               // verify ajax
               $(".btn-filter").trigger("click");
-              expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
+              expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
@@ -1404,7 +1404,7 @@ describe("DataTable Plugin", function() {
 
               // verify ajax
               $(".btn-filter").trigger("click");
-              expectedFilterObj = [{type: "string", attr: col.attr, comparison: "value", value: "Scott"}];
+              expectedFilterObj = [{ type: "string", attr: col.attr, comparison: "value", value: "Scott" }];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
@@ -1430,7 +1430,7 @@ describe("DataTable Plugin", function() {
 
               // verify ajax
               $(".btn-filter").trigger("click");
-              expectedFilterObj = [{type: "numeric", attr: col.attr, comparison: "eq", value: 0.5}];
+              expectedFilterObj = [{ type: "numeric", attr: col.attr, comparison: "eq", value: 0.5 }];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
@@ -1455,7 +1455,7 @@ describe("DataTable Plugin", function() {
 
               // verify ajax
               $(".btn-filter").trigger("click");
-              expectedFilterObj = [{type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"]}];
+              expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
               verifyFilterAjax(expectedFilterObj);
               verifyUrlParams(expectedFilterObj);
 
@@ -1567,10 +1567,10 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
       $(".popover #first-filter").val("3").trigger("change");
 
-      expect(col.filter).toEqual({type: "numeric", gt: "3"});
+      expect(col.filter).toEqual({ type: "numeric", gt: "3" });
 
       $(".popover select[data-filter-id=first-filter]").val("lt").trigger("change");
-      expect(col.filter).toEqual({type: "numeric", lt: "3"});
+      expect(col.filter).toEqual({ type: "numeric", lt: "3" });
     });
 
     describe("_fetchCSV", function() {
@@ -1580,7 +1580,7 @@ describe("DataTable Plugin", function() {
         // Set one column filter value so that the request contains filtering settings
         var cg = table._columnManager._configGenerator;
         var col = cg.columnsConfig[0];
-        col.filter = {value: "filter_by_this_value"};
+        col.filter = { value: "filter_by_this_value" };
 
         // Set dummy URL
         var csvUrl = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";

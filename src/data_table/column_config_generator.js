@@ -2,7 +2,7 @@ import Backbone from "backbone";
 import _ from "underscore";
 import $ from "jquery";
 
-import {toCSSClass} from "../utils/css";
+import { toCSSClass } from "../utils/css";
 
 class ColumnConfigGenerator {
   constructor(table) {
@@ -51,7 +51,7 @@ class ColumnConfigGenerator {
     this.columnsConfig = _.sortBy(this.columnsConfig, columnConfig => !columnConfig.bulk);
 
     this._getUrlFilterParams().forEach((element, index, array) => {
-      const columnConfigIndex = _.findIndex(this.columnsConfig, {attr: element.attr});
+      const columnConfigIndex = _.findIndex(this.columnsConfig, { attr: element.attr });
       if (columnConfigIndex >= 0) {
         this.columnsConfig[columnConfigIndex].filter[element.comparison] = element.value;
       }
@@ -97,7 +97,7 @@ class ColumnConfigGenerator {
         columnIndex = foundColumnIndex;
       }
 
-      return [ columnIndex, direction ];
+      return [columnIndex, direction];
     }, this);
   }
 

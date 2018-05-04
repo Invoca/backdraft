@@ -7,7 +7,7 @@ class StringFilterMenu extends BaseFilterMenu {
     // if there are filters in url, enable in UI
     if (filterArray.length > 0) {
       // find the filters that match this filter instance
-      const matches = _.where(filterArray, {type: "string", attr: this.attr});
+      const matches = _.where(filterArray, { type: "string", attr: this.attr });
       // if there are filter params for this filter, add them to the markup
       if (matches[0]) {
         this.$el.find("input.filter-string").val(matches[0][matches[0].comparison]);

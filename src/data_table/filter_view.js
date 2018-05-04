@@ -22,13 +22,13 @@ class FilterView extends View {
     let filterMenu = null;
     switch (this.filter.type) {
     case 'string':
-      filterMenu = new StringFilterMenu({column: options.column, parentView: this});
+      filterMenu = new StringFilterMenu({ column: options.column, parentView: this });
       break;
     case 'numeric':
-      filterMenu = new NumericFilterMenu({column: options.column, parentView: this});
+      filterMenu = new NumericFilterMenu({ column: options.column, parentView: this });
       break;
     case 'list':
-      filterMenu = new ListFilterMenu({column: options.column, parentView: this});
+      filterMenu = new ListFilterMenu({ column: options.column, parentView: this });
       break;
     }
 

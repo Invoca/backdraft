@@ -7,7 +7,7 @@ class ListFilterMenu extends BaseFilterMenu {
     // if there are filters in the url...
     if (filterArray.length > 0) {
       // find the filters that match this filter instance
-      const matches = _.where(filterArray, {type: "list", attr: this.attr});
+      const matches = _.where(filterArray, { type: "list", attr: this.attr });
 
       // if there are url params for this filter...
       if (matches[0]) {

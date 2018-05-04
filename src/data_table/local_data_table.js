@@ -11,7 +11,7 @@ import LockManager from "./lock_manager";
 
 import FilterView from "./filter_view";
 
-import {extractColumnCSSClass, toColumnCSSClass} from "../utils/css";
+import { extractColumnCSSClass, toColumnCSSClass } from "../utils/css";
 
 import cidMap from "./cid_map";
 import Config from "./config";
@@ -162,7 +162,7 @@ class LocalDataTable extends View {
 
   restoreColumnOrder() {
     if (this._reorderableColumnsEnabled()) {
-      this._changeColumnOrder({reset: true});
+      this._changeColumnOrder({ reset: true });
     }
   }
 
@@ -381,7 +381,7 @@ class LocalDataTable extends View {
 
   _applyDefaults() {
     _.defaults(this, {
-      sorting: [ [ 0, this.paginate ? "desc" : "asc" ] ]
+      sorting: [[0, this.paginate ? "desc" : "asc"]]
     });
 
     if (!this.objectName.plural) {
@@ -678,7 +678,7 @@ _.extend(LocalDataTable.prototype, {
   ROWS_SELECTOR: "tbody tr",
   template: '<table cellpadding="0" class="table"></table>',
   paginate: true,
-  paginateLengthMenu: [ 10, 25, 50, 100 ],
+  paginateLengthMenu: [10, 25, 50, 100],
   paginateLength: 10,
   selectedIds: [],
   filteringEnabled: false,

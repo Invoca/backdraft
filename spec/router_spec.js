@@ -1,6 +1,6 @@
 import Router from "../src/router";
 import View from "../src/view";
-import {default as Backdraft} from "../src/entry";
+import { default as Backdraft } from "../src/entry";
 
 describe("Router", function() {
   it("is exported", function() {
@@ -10,7 +10,7 @@ describe("Router", function() {
   it("should trigger events on views when swapping", function() {
     const router = new Router({ $el: $("<div>") });
     const view = new View();
-    const spy = jasmine.createSpyObj("eventSpy", [ "beforeSwap", "afterSwap" ]);
+    const spy = jasmine.createSpyObj("eventSpy", ["beforeSwap", "afterSwap"]);
 
     view.on({
       beforeSwap: spy.beforeSwap,
@@ -55,7 +55,7 @@ describe("Router", function() {
         get routes() {
           return {
             "files": "index",
-            "": [ "index", "legacyIndex" ]
+            "": ["index", "legacyIndex"]
           };
         }
       }

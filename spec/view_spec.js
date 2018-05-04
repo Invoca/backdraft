@@ -8,7 +8,7 @@ describe("View", function() {
 
   it("should trigger events before and after it is closed", function() {
     const view = new View();
-    const spy = jasmine.createSpyObj("eventSpy", [ "beforeClose", "afterClose" ]);
+    const spy = jasmine.createSpyObj("eventSpy", ["beforeClose", "afterClose"]);
 
     view.on({
       beforeClose: spy.beforeClose,
@@ -68,7 +68,7 @@ describe("View", function() {
   describe("#close", function() {
     it("should unbind all events from the view", function() {
       const view = new View();
-      const spy = jasmine.createSpyObj("eventSpy", [ "abc", "xyz" ]);
+      const spy = jasmine.createSpyObj("eventSpy", ["abc", "xyz"]);
 
       view.on({
         abc: spy.abc,

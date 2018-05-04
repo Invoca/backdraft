@@ -9,7 +9,7 @@ import cidMap from "./cid_map";
 class ServerSideDataTable extends LocalDataTable {
   constructor(options) {
     // force pagination
-    super(_.extend({paginate: true}, options));
+    super(_.extend({ paginate: true }, options));
 
     if (this.collection.length !== 0) throw new Error("Server side dataTables requires an empty collection");
     if (!this.collection.url) throw new Error("Server side dataTables require the collection to define a url");
@@ -111,7 +111,7 @@ class ServerSideDataTable extends LocalDataTable {
     } else {
       // add column attribute mappings as a parameter
       _.each(this._columnManager.columnAttrs(), attr => {
-        aoData.push({name: "column_attrs[]", value: attr});
+        aoData.push({ name: "column_attrs[]", value: attr });
       });
     }
 

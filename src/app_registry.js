@@ -41,7 +41,7 @@ export default function createRegistry() {
         throw new Error(`App ${name} is already defined`);
       }
 
-      const proto = _.extend(obj, {name});
+      const proto = _.extend(obj, { name });
       const AppClass = Backbone.Model.extend.call(App, proto);
 
       const newApp = new AppClass();

@@ -57,7 +57,7 @@ describe("Listing", function() {
         }
 
         expect(new ChildItem()).toEqual(jasmine.any(Item));
-        expect(new ChildList({collection})).toEqual(jasmine.any(List));
+        expect(new ChildList({ collection })).toEqual(jasmine.any(List));
       });
 
       it("requires itemClass to be defined", function() {
@@ -66,7 +66,7 @@ describe("Listing", function() {
 
         expect(() => {
           // eslint-disable-next-line no-new
-          new ChildList({collection});
+          new ChildList({ collection });
         }).toThrowError("itemClass must be defined");
       });
     });
@@ -82,7 +82,7 @@ describe("Listing", function() {
 
     describe("collection is reset", function() {
       beforeEach(function() {
-        collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
+        collection.reset([{ name: "Bob" }, { name: "Joe" }]);
       });
 
       it("should render a view for every model in the collection", function() {
@@ -145,7 +145,7 @@ describe("Listing", function() {
 
     describe("collection is removed from", function() {
       beforeEach(function() {
-        collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
+        collection.reset([{ name: "Bob" }, { name: "Joe" }]);
         collection.remove(collection.models[0]);
       });
 
@@ -154,7 +154,7 @@ describe("Listing", function() {
 
     describe("#closeItem helper", function() {
       beforeEach(function() {
-        collection.reset([ { name: "Bob" }, { name: "Joe" } ]);
+        collection.reset([{ name: "Bob" }, { name: "Joe" }]);
         const model = collection.models[0];
         const view = listing.cache.get(model);
         view.closeItem();

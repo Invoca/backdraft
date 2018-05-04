@@ -35,7 +35,7 @@ class NumericFilterMenu extends BaseFilterMenu {
     // if there are filters in the url...
     if (filterArray.length > 0) {
       // find the filters that match this filter instance
-      const matches = _.where(filterArray, {type: "numeric", attr: this.attr});
+      const matches = _.where(filterArray, { type: "numeric", attr: this.attr });
       // if there are url params for this filter...
       if (matches[0]) {
         // change the comparison type on the select dropdown

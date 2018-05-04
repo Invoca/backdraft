@@ -1,5 +1,5 @@
 import ColumnType from "../column_type";
-import {toColumnCSSClass} from "../../utils/css";
+import { toColumnCSSClass } from "../../utils/css";
 
 export default function createBaseColumnType() {
   const columnType = new ColumnType();

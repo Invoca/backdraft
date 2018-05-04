@@ -15,7 +15,7 @@ describe("DataTable Plugin", function() {
   beforeEach(function() {
     Backdraft.app.destroyAll();
     app = Backdraft.app("myapp", {
-      plugins: [ "DataTable" ]
+      plugins: ["DataTable"]
     });
     app.model("M", {});
     app.collection("Col", {
@@ -1164,7 +1164,7 @@ describe("DataTable Plugin", function() {
       });
       app.view.dataTable("T", {
         rowClassName: "R",
-        sorting: [ [ "attr1", "asc" ] ]
+        sorting: [["attr1", "asc"]]
       });
 
       collection.add([
@@ -1333,7 +1333,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("ByIndex2", {
         rowClassName: "R",
         // zip ascending
-        sorting: [ [ 2, "asc" ] ]
+        sorting: [[2, "asc"]]
       });
 
       table = new app.Views.ByIndex2({ collection }).render();
@@ -1342,7 +1342,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("ByIndex1", {
         rowClassName: "R",
         // age descending
-        sorting: [ [ 1, "desc" ] ]
+        sorting: [[1, "desc"]]
       });
 
       table = new app.Views.ByIndex1({ collection }).render();
@@ -1353,7 +1353,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("ByZip", {
         rowClassName: "R",
         // zip ascending
-        sorting: [ [ "zip", "asc" ] ]
+        sorting: [["zip", "asc"]]
       });
 
       table = new app.Views.ByZip({ collection }).render();
@@ -1362,7 +1362,7 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("ByAge", {
         rowClassName: "R",
         // age descending
-        sorting: [ [ "age", "desc" ] ]
+        sorting: [["age", "desc"]]
       });
 
       table = new app.Views.ByAge({ collection }).render();
@@ -1373,7 +1373,7 @@ describe("DataTable Plugin", function() {
       it("should allow to change sorting before table is rendered", function() {
         app.view.dataTable("ByIndex2", {
           rowClassName: "R",
-          sorting: [ [ 2, "asc" ] ]
+          sorting: [[2, "asc"]]
         });
 
         table = new app.Views.ByIndex2({ collection });
@@ -1385,7 +1385,7 @@ describe("DataTable Plugin", function() {
       it("should allow to change sorting after table is rendered", function() {
         app.view.dataTable("ByIndex2", {
           rowClassName: "R",
-          sorting: [ [ 2, "asc" ] ]
+          sorting: [[2, "asc"]]
         });
 
         table = new app.Views.ByIndex2({ collection }).render();
@@ -1399,13 +1399,13 @@ describe("DataTable Plugin", function() {
       it("should not re-sort table when sorting is unchanged", function() {
         app.view.dataTable("ByIndex2", {
           rowClassName: "R",
-          sorting: [ [ 2, "asc" ] ]
+          sorting: [[2, "asc"]]
         });
 
         table = new app.Views.ByIndex2({ collection }).render();
         expect(cellsByIndex(table, 1)).toEqual(["10", "8", "1"]);
         spyOn(table.dataTable, 'fnSort').and.callThrough();
-        table.changeSorting([ [ 2, "asc" ] ]);
+        table.changeSorting([[2, "asc"]]);
         expect(table.dataTable.fnSort).not.toHaveBeenCalled();
       });
     });
@@ -1423,7 +1423,7 @@ describe("DataTable Plugin", function() {
         rowClassName: "R",
         sorting: [[1, "desc"]]
       });
-      collection.add([ { name: "A" }, { name: "B" }, { name: "C" } ]);
+      collection.add([{ name: "A" }, { name: "B" }, { name: "C" }]);
       table = new app.Views.LockUnlock({ collection }).render();
     });
 
@@ -1468,12 +1468,12 @@ describe("DataTable Plugin", function() {
     it("should work for sorting api", function() {
       table.lock("sort", true);
       expect(() => {
-        table.sort([ [0, "asc"] ]);
+        table.sort([[0, "asc"]]);
       }).toThrowError(/sorting is locked/);
 
       table.lock("sort", false);
       expect(() => {
-        table.sort([ [0, "asc"] ]);
+        table.sort([[0, "asc"]]);
       }).not.toThrow();
     });
 
