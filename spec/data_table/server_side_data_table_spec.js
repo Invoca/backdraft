@@ -1,4 +1,5 @@
 import { default as Backdraft } from "../../src/entry";
+import { inDom } from "../support/spec_helpers";
 
 describe("DataTable Plugin", function() {
   var app;
@@ -895,9 +896,10 @@ describe("DataTable Plugin", function() {
 
       it("should clear when a row becomes unchecked", function() {
         // need to actually insert into the DOM to have #click work correctly
-        $("body").append(table.$el);
-        table.$("td.bulk :checkbox:first").click();
-        expect(table.selectAllMatching()).toEqual(null);
+        inDom(table.$el, () => {
+          table.$("td.bulk :checkbox:first").click();
+          expect(table.selectAllMatching()).toEqual(null);
+        });
       });
 
       it("should clear when #serverParams is called", function() {

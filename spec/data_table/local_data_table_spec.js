@@ -1,14 +1,5 @@
 import { default as Backdraft } from "../../src/entry";
-
-function inDom(element, block) {
-  $("body").append(element);
-
-  try {
-    block();
-  } finally {
-    element.remove();
-  }
-}
+import { inDom } from "../support/spec_helpers";
 
 describe("DataTable Plugin", function() {
   var app;
@@ -458,20 +449,24 @@ describe("DataTable Plugin", function() {
       it("should toggle the 'backdraft-selected' class on the row when a row's checkbox is toggled", function() {
         table = new app.Views.T({ collection: collection });
         // need to append to body in order to do clicks on checkboxes
-        $("body").append(table.render().$el);
+        inDom(table.render().$el, () => {
+          expect(table.$(".backdraft-selected").length).toEqual(0);
+          table.selectAllVisible(true);
+          expect(table.$(".backdraft-selected").length).toEqual(data.length);
 
-        expect(table.$(".backdraft-selected").length).toEqual(0);
-        table.selectAllVisible(true);
-        expect(table.$(".backdraft-selected").length).toEqual(data.length);
-
-        // uncheck a single row checkbox
-        table.$("td.bulk :checkbox:first").click();
-        expect(table.$(".backdraft-selected").length).toEqual(data.length - 1);
+          // uncheck a single row checkbox
+          table.$("td.bulk :checkbox:first").click();
+          expect(table.$(".backdraft-selected").length).toEqual(data.length - 1);
+        });
       });
     });
   });
 
   describe("header group", function() {
+    function unappendTable() {
+      table.$el.remove();
+    }
+
     var buildAndAppendTable = function() {
       if (table) { table.close(); };
 
@@ -519,6 +514,10 @@ describe("DataTable Plugin", function() {
           buildAndAppendTable();
         });
 
+        afterEach(function() {
+          unappendTable();
+        });
+
         it("should build a single header group row when columnGroupDefinitions is supplied, using headerGroupDataIndex to match up between columns and columnGroupDefinitions", function() {
           expect(table.$(".header-groups-row").length).toEqual(1);
           expect(getHeaderGroupText(table)).toEqual(['Financial', 'User Info']);
@@ -545,6 +544,10 @@ describe("DataTable Plugin", function() {
       describe("no match for headerGroupDataIndex", function() {
         beforeEach(function() {
           console.log = jasmine.createSpy("log");
+        });
+
+        afterEach(function() {
+          unappendTable();
         });
 
         var buildTableAndExpectMismatchedColumn = function() {
@@ -598,6 +601,10 @@ describe("DataTable Plugin", function() {
         });
 
         buildAndAppendTable();
+      });
+
+      afterEach(function() {
+        unappendTable();
       });
 
       it("should allow column sorting (_colReorder) when not using a header group", function() {
