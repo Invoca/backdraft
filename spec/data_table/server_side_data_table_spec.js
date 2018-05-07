@@ -973,25 +973,16 @@ describe("DataTable Plugin", function() {
   });
 
   describe("filtering", function() {
-    var cg;
-    beforeEach(function() {
-      this.table = new TestDataTable({ collection: this.collection });
-      this.table.render();
-      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
-      Backbone.history.navigate("?", { trigger: false, replace: true });
-      cg = this.table.configGenerator();
-    });
-
-    function getColumnConfigByCSS(element) {
+    function getColumnConfigByCSS(element, table) {
       var id = extractColumnCSSClass(element.className).replace("column-", "");
-      return cg.columnConfigById.attributes[id];
+      return table.configGenerator().columnConfigById.attributes[id];
     }
 
     function clearFilters(table) {
       table.dataTable.find("thead th").not(".bulk").each(function(index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(this);
+          var col = getColumnConfigByCSS(this, table);
           if (col && col.filter) {
             switch (col.filter.type) {
             case "string":
@@ -1017,7 +1008,7 @@ describe("DataTable Plugin", function() {
       table.dataTable.find("thead th").not(".bulk").each(function(index) {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(this);
+          var col = getColumnConfigByCSS(this, table);
           if (col && col.filter) {
             switch (col.filter.type) {
             case "string":
@@ -1054,6 +1045,25 @@ describe("DataTable Plugin", function() {
       expect(uri).toMatch(expectedFilterJson);
     }
 
+    function setupTable(rowClass, mockResponse) {
+      const TestDataTable = createServerSideDataTableClass({
+        rowClass
+      }, {
+        sorting: [['name', 'desc']],
+        filteringEnabled: true,
+        serverSideFiltering: true
+      });
+
+      const collection = new TestCollection();
+
+      const table = new TestDataTable({ collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(mockResponse);
+      Backbone.history.navigate("?", { trigger: false, replace: true });
+
+      return table;
+    }
+
     it("should not duplicate filter view when there are duplicate title names", function() {
       const TestRow = createRowClass({
         columns: [
@@ -1071,15 +1081,7 @@ describe("DataTable Plugin", function() {
         }
       });
 
-      const TestDataTable = createServerSideDataTableClass({
-        rowClass: TestRow
-      }, {
-        sorting: [['name', 'desc']],
-        filteringEnabled: true,
-        serverSideFiltering: true
-      });
-
-      const mockResponse = {
+      const table = setupTable(TestRow, {
         status: 200,
         responseText: JSON.stringify({
           sEcho: 'custom1',
@@ -1089,15 +1091,8 @@ describe("DataTable Plugin", function() {
             { name: '1 - hey hey 1', cost: 'c', cost2: 'c2', type: '' }
           ]
         })
-      };
+      });
 
-      const collection = new TestCollection();
-
-      jasmine.Ajax.install();
-
-      const table = new TestDataTable({ collection: collection });
-      table.render();
-      jasmine.Ajax.requests.mostRecent().response(mockResponse);
       expect(table.children["filter-name"]).toBeDefined();
       expect(table.children["filter-cost"]).toBeDefined();
       expect(table.children["filter-cost2"]).toBeDefined();
@@ -1105,196 +1100,16 @@ describe("DataTable Plugin", function() {
       expect(table).toBeDefined();
     });
 
-    it("should have an object for each filterable column in the column manager " +
-        "which describes the filter to be applied", function() {
-      var cg = this.table._columnManager._configGenerator;
-      // should be 4 columns
-      expect(cg.columnsConfig.length).toEqual(5);
-      // filter should be undefined for unfilterable columns, not undefined for
-      // filterable ones
-      expect(cg.columnsConfig[0].filter).toEqual(undefined);
-      expect(cg.columnsConfig[1].filter).not.toEqual(undefined);
-      expect(cg.columnsConfig[2].filter).not.toEqual(undefined);
-      expect(cg.columnsConfig[3].filter).not.toEqual(undefined);
-      expect(cg.columnsConfig[4].filter).toEqual(undefined);
-      // expect filter type to be string for column 1 and numeric for column 2
-      // see global beforeEach ~line 46
-      expect(cg.columnsConfig[1].filter.type).toEqual("string");
-      expect(cg.columnsConfig[2].filter.type).toEqual("numeric");
-      expect(cg.columnsConfig[3].filter.type).toEqual("list");
-      expect(cg.columnsConfig[3].filter.options).toEqual(["Basic", "Advanced"]);
-    });
-
-    it("shouldn't create filter inputs for unfilterable columns", function() {
-      var hasFilter = [];
-      this.table.dataTable.find("thead th").each(function(index) {
-        hasFilter.push(this.getElementsByClassName('DataTables_filter_wrapper').length > 0);
-      });
-      expect(hasFilter).toEqual([false, true, true, true, false]);
-    });
-
-    it("should track filtering in column manager and in ext_filter_json parameter", function() {
-      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-
-      var expectedFilterObj = [];
-      this.table.dataTable.find("thead th").not(".bulk").each(function(index) {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          if (col && col.filter) {
-            if (col.filter.type === "string") {
-              // test assignment
-              $(".toggle-filter-button", this).click();
-              $('.filter-menu input').val("Scott").trigger("change");
-              expect(col.filter.value).toEqual("Scott");
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [{ type: "string", attr: col.attr, comparison: "value", value: "Scott" }];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // test unassignment
-              $(".toggle-filter-button", this).click();
-              $('.filter-menu input').val("").trigger("change");
-              expect(col.filter.value).toEqual(null);
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-            } else if (col.filter.type === "numeric") {
-              // test assignment
-              $(".toggle-filter-button", this).click();
-              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
-              $('input#first-filter').val("0.5").trigger("change");
-              expect(col.filter.eq).toEqual("0.5");
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [{ type: "numeric", attr: col.attr, comparison: "eq", value: 0.5 }];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // test unassignment
-              $(".toggle-filter-button", this).click();
-              $("input#first-filter").val("").trigger("change");
-              expect(col.filter.eq).toEqual(null);
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-            } else if (col.filter.type === "list") {
-              // test assignment
-              $(".toggle-filter-button", this).click();
-              $('.filter-menu input').prop("checked", true).trigger("change");
-              expect(col.filter.value).toEqual(["Basic", "Advanced"]);
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // test unassignment
-              $(".toggle-filter-button", this).click();
-              $('.filter-menu input').prop("checked", false).trigger("change");
-              expect(col.filter.value).toEqual(null);
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-            }
-          }
-        }
-      });
-    });
-
-    it("should load filters from url params", function() {
-      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-      // populate url with filters
-      populateFilters(this.table);
-      // get url
-      var oldFilterSettings = this.table._getFilteringSettings();
-      var populatedURL = window.location.search;
-      // remove filters
-      clearFilters(this.table);
-      // push the populatedURL
-      Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
-      // Since we can't do a refresh, we just call the method that fires at that moment
-      cg._computeColumnConfig();
-      // get new filtering settings
-      var newFilterSettings = this.table._getFilteringSettings();
-      // They should be the same
-      expect(oldFilterSettings).toEqual(newFilterSettings);
-      Backbone.history.navigate("?", { trigger: false, replace: true });
-    });
-
-    it("should load filters from url params with old uri param", function() {
-      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-      populateFilters(this.table);
-      var oldFilterSettings = this.table._getFilteringSettings();
-      var populatedURL = window.location.search;
-      populatedURL = populatedURL.replace("filter_json", "ext_filter_json");
-      clearFilters(this.table);
-      Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
-      cg._computeColumnConfig();
-      var newFilterSettings = this.table._getFilteringSettings();
-      expect(oldFilterSettings).toEqual(newFilterSettings);
-    });
-
-    it("should populate filter markup from url params", function() {
-      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-
-      // populate url with filters
-      populateFilters(this.table);
-
-      var populatedURL = window.location.search;
-
-      // remove filters
-      clearFilters(this.table);
-
-      // push the new url
-      Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
-
-      // Since we can't do a refresh, we just call the methods that fires at that moment
-      cg._computeColumnConfig();
-      cg.table.children["filter-name"].children["filter-menu"].afterRender();
-      cg.table.children["filter-cost"].children["filter-menu"].afterRender();
-      cg.table.children["filter-type"].children["filter-menu"].afterRender();
-
-      // Check the filters are there
-      this.table.dataTable.find("thead th").not(".bulk").each(function(index) {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          if (col && col.filter) {
-            switch (col.filter.type) {
-            case "string":
-              expect($('.filter-menu input').val()).toEqual("Scott");
-              break;
-            case "numeric":
-              expect($('select[data-filter-id=first-filter]').val()).toEqual("eq");
-              expect($('input#first-filter').val()).toEqual("0.5");
-              break;
-            case "list":
-              expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
-              break;
-            }
-          }
-        }
-      });
-
-      Backbone.history.navigate("?", { trigger: false, replace: true });
-
-      // remove filters again so that other tests don't fail
-      clearFilters(this.table);
-    });
-
     it("should enable the filterActive icon when filters are set, disable when cleared", function() {
-      this.table.dataTable.find("thead th").not(".bulk").each(function() {
+      const collection = new TestCollection();
+      const table = new TestDataTable({ collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+
+      table.dataTable.find("thead th").not(".bulk").each(function() {
         var wrapper = $(".DataTables_sort_wrapper", this);
         if (wrapper) {
-          var col = getColumnConfigByCSS(this);
+          var col = getColumnConfigByCSS(this, table);
           if (col && col.filter) {
             $(".toggle-filter-button", this).click();
             if (col.filter.type === "string") {
@@ -1318,291 +1133,507 @@ describe("DataTable Plugin", function() {
       });
     });
 
-    it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
-      this.table.dataTable.find("thead th").not(".bulk").each(function() {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          if (col && col.filter) {
-            // todo: the below are not asserting anything! (and currently not returning 'true')
-            expect($(".filter-menu", this).is(":hidden"));
-            $("span", this).trigger("click");
-            expect($(".filter-menu", this).is(":visible"));
-            $("span", this).trigger("click");
-            expect($(".filter-menu", this).is(":hidden"));
-          }
-        }
-      });
-
-      expect(true).toBe(true, "Fix the above expect statements to be valid tests");
-    });
-
-    it("should close the activeFilterMenu when the user clicks out of it", function() {
-      this.table.dataTable.find("thead th").not(".bulk").each(function() {
-        const wrapper = $(".DataTables_sort_wrapper", this);
-        expect(wrapper).toBeDefined();
-
-        const col = getColumnConfigByCSS(this);
-
-        if (col && col.filter) {
-          expect($(".popover .filter-menu").length).toEqual(0);
-
-          // open the menu
-          const toggleButton = $(".toggle-filter-button", this);
-          toggleButton.click();
-          expect($(".popover .filter-menu").length).toEqual(1);
-
-          // click away
-          $("div:first-child", this).trigger("click");
-          expect($(".popover .filter-menu").length).toEqual(0);
-
-          // catch the timeout for dataTable's _fnSortAttachListener()
-          jasmine.clock().tick(1000);
-        }
-      });
-    });
-
-    it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
-      var lastFilterMenu;
-      var currentFilterMenu;
-      this.table.dataTable.find("thead th").not(".bulk").each(function() {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          if (col && col.filter) {
-            if (currentFilterMenu) {
-              lastFilterMenu = currentFilterMenu;
-            }
-            currentFilterMenu = $(".filter-menu", this);
-
-            // todo: the below are not asserting anything! (and currently not returning 'true')
-            expect(currentFilterMenu.is(":hidden"));
-            $("span", this).trigger("click");
-            expect(currentFilterMenu.is(":visible"));
-            if (lastFilterMenu) {
-              expect(lastFilterMenu.is(":hidden"));
+    describe("common functionality", function() {
+      beforeEach(function() {
+        const TestRow = createRowClass({
+          columns: [
+            { bulk: true },
+            { attr: "name", title: "Name", filter: { type: "string" } },
+            { attr: "cost", title: "Cost", filter: { type: "numeric" } },
+            { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
+            { title: "Non attr column" }
+          ],
+          renderers: {
+            "non attr column": function(node, config) {
+              node.html("Non attr column");
             }
           }
-        }
-      });
-
-      expect(true).toBe(true, "Fix the above expect statements to be valid tests");
-    });
-
-    it("should clear the filters when the clear button is clicked", function() {
-      Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-
-      var expectedFilterObj = [];
-      this.table.dataTable.find("thead th").not(".bulk").each(function() {
-        var wrapper = $(".DataTables_sort_wrapper", this);
-        if (wrapper) {
-          var col = getColumnConfigByCSS(this);
-          var toggleButton = $(".toggle-filter-button", this);
-          if (col && col.filter) {
-            if (col.filter.type === "string") {
-              // test assignment
-              toggleButton.click();
-              $('.filter-menu input').val("Scott").trigger("change");
-              expect(col.filter.value).toEqual("Scott");
-
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [{ type: "string", attr: col.attr, comparison: "value", value: "Scott" }];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // test clear button & filter value
-              toggleButton.click();
-              $(".btn-clear").trigger("click");
-              expect(col.filter.value).toEqual(null);
-
-              // verify ajax
-              expectedFilterObj = [];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // verify assignment
-              toggleButton.click();
-              expect($(".filter-menu input").val()).toEqual("");
-            } else if (col.filter.type === "numeric") {
-              // test equal assignment
-              toggleButton.click();
-              $('select[data-filter-id=first-filter]').val("eq").trigger("change");
-              $('input#first-filter').val("0.5").trigger("change");
-              expect(col.filter.eq).toEqual("0.5");
-
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [{ type: "numeric", attr: col.attr, comparison: "eq", value: 0.5 }];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // test clear button & filter value
-              toggleButton.click();
-              $(".btn-clear").trigger("click");
-              expect(col.filter.eq).toBeUndefined();
-
-              // verify ajax
-              expectedFilterObj = [];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // verify assignment
-              toggleButton.click();
-              expect($("input#first-filter").val()).toEqual("");
-            } else if (col.filter.type === "list") {
-              // test assignment
-              toggleButton.click();
-              $('.filter-menu input').prop("checked", true).trigger("change");
-              expect(col.filter.value).toEqual(["Basic", "Advanced"]);
-
-              // verify ajax
-              $(".btn-filter").trigger("click");
-              expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // test clear button & filter value
-              toggleButton.click();
-              $(".btn-clear").trigger("click");
-              expect(col.filter.value).toEqual(null);
-
-              // verify ajax
-              expectedFilterObj = [];
-              verifyFilterAjax(expectedFilterObj);
-              verifyUrlParams(expectedFilterObj);
-
-              // verify assignment
-              toggleButton.click();
-              expect($(".filter-menu input").prop("checked")).toEqual(false);
-            }
-          }
-        }
-      });
-    });
-
-    describe("filterView", function() {
-      describe("clear() should null filter values and update url even when not enabled", function() {
-        it("for stringFilterMenu", function() {
-          Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-
-          var stringFilterMenu = this.table.configGenerator().table.children["filter-name"].children["filter-menu"];
-
-          stringFilterMenu.enabled = false;
-          stringFilterMenu.filter.value = "scott";
-          expect(stringFilterMenu.filter.value).toEqual("scott");
-
-          stringFilterMenu.clear();
-          expect(stringFilterMenu.filter.value).toEqual(null);
-          verifyUrlParams([]);
         });
 
-        it("for numericFilterMenu", function() {
-          Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-
-          var numericFilterMenu = this.table.configGenerator().table.children["filter-cost"].children["filter-menu"];
-
-          numericFilterMenu.enabled = false;
-          numericFilterMenu.filter.lt = 0.1;
-          numericFilterMenu.filter.gt = 0.2;
-          numericFilterMenu.filter.eq = 0.3;
-
-          expect(numericFilterMenu.filter.lt).toEqual(0.1);
-          expect(numericFilterMenu.filter.gt).toEqual(0.2);
-          expect(numericFilterMenu.filter.eq).toEqual(0.3);
-          numericFilterMenu.clear();
-          expect(numericFilterMenu.filter.lt).toEqual(null);
-          expect(numericFilterMenu.filter.gt).toEqual(null);
-          expect(numericFilterMenu.filter.eq).toEqual(null);
-
-          verifyUrlParams([]);
-        });
-
-        it("for listFilterMenu", function() {
-          Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
-
-          var listFilterMenu = this.table.configGenerator().table.children["filter-type"].children["filter-menu"];
-
-          listFilterMenu.enabled = false;
-          listFilterMenu.filter.value = ["Basic", "Advanced"];
-
-          expect(listFilterMenu.filter.value).toEqual(["Basic", "Advanced"]);
-          listFilterMenu.clear();
-          expect(listFilterMenu.filter.value).toEqual(null);
-
-          verifyUrlParams([]);
-        });
+        this.table = setupTable(TestRow, this.mockResponse.get());
       });
-    });
 
-    it("should disable filter menus and display error message, and remove error message when enabled", function() {
-      this.table.disableFilters("Test error message");
-      var columns = this.table.columnsConfig();
-      var currentFilterMenu;
-
-      for (let c in columns) {
-        if (!columns[c].filter) continue;
-        let renderedFilterMenu = this.table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
-
-        expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(1, "error-message length");
-        expect(renderedFilterMenu.find("[data-mount=error-message]").text()).toMatch(/Test error message/);
-        expect(renderedFilterMenu.find(".filter-menu .btn").length).toEqual(0, "no buttons");
-
-        $("span", currentFilterMenu).trigger("click");
-      }
-
-      this.table.enableFilters();
-      for (let c in columns) {
-        if (!columns[c].filter) continue;
-        let renderedFilterMenu = this.table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
-
-        expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(0, 'no error message');
-        expect(renderedFilterMenu.find(".filter-menu .btn-filter").last().prop('disabled')).toEqual(false);
-        expect(renderedFilterMenu.find(".filter-menu .btn-clear").last().prop('disabled')).toEqual(false);
-
-        $("span", currentFilterMenu).trigger("click");
-      }
-    });
-
-    it("should overwrite existing numeric filter when filter type is changed", function() {
-      var cg = this.table.configGenerator();
-      var col = cg.columnConfigById.attributes["cost"];
-      this.table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
-      $(".popover #first-filter").val("3").trigger("change");
-
-      expect(col.filter).toEqual({ type: "numeric", gt: "3" });
-
-      $(".popover select[data-filter-id=first-filter]").val("lt").trigger("change");
-      expect(col.filter).toEqual({ type: "numeric", lt: "3" });
-    });
-
-    describe("_fetchCSV", function() {
-      it("should append current filter parameters to the URL when requesting a CSV export", function() {
-        expect(this.table.serverSideFiltering).toEqual(true);
-
-        // Set one column filter value so that the request contains filtering settings
+      it("should have an object for each filterable column in the column manager which describes the filter to be applied", function() {
         var cg = this.table._columnManager._configGenerator;
-        var col = cg.columnsConfig[0];
-        col.filter = { value: "filter_by_this_value" };
-
-        // Set dummy URL
-        var csvUrl = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
-
-        spyOn(this.table, "_goToWindowLocation").and.callFake(function() {});
-        this.table._fetchCSV(csvUrl);
-        expect(this.table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
+        // should be 4 columns
+        expect(cg.columnsConfig.length).toEqual(5);
+        // filter should be undefined for unfilterable columns, not undefined for
+        // filterable ones
+        expect(cg.columnsConfig[0].filter).toEqual(undefined);
+        expect(cg.columnsConfig[1].filter).not.toEqual(undefined);
+        expect(cg.columnsConfig[2].filter).not.toEqual(undefined);
+        expect(cg.columnsConfig[3].filter).not.toEqual(undefined);
+        expect(cg.columnsConfig[4].filter).toEqual(undefined);
+        // expect filter type to be string for column 1 and numeric for column 2
+        // see global beforeEach ~line 46
+        expect(cg.columnsConfig[1].filter.type).toEqual("string");
+        expect(cg.columnsConfig[2].filter.type).toEqual("numeric");
+        expect(cg.columnsConfig[3].filter.type).toEqual("list");
+        expect(cg.columnsConfig[3].filter.options).toEqual(["Basic", "Advanced"]);
       });
 
-      it("should throw error when serverSideFiltering is not enabled", function() {
-        this.table.serverSideFiltering = false;
-        expect(this.table.serverSideFiltering).toEqual(false);
-        expect(() => { this.table._fetchCSV("/fake_url"); }).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
+      it("shouldn't create filter inputs for unfilterable columns", function() {
+        var hasFilter = [];
+        this.table.dataTable.find("thead th").each(function(index) {
+          hasFilter.push(this.getElementsByClassName('DataTables_filter_wrapper').length > 0);
+        });
+        expect(hasFilter).toEqual([false, true, true, true, false]);
       });
-    });
 
-    describe("_goToWindowLocation", function() {
-      it("should throw error when sUrl is not defined", function() {
-        expect(() => { this.table._goToWindowLocation(); }).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
+      it("should track filtering in column manager and in ext_filter_json parameter", function() {
+        Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+        var expectedFilterObj = [];
+        const darTable = this.table;
+        this.table.dataTable.find("thead th").not(".bulk").each(function(index) {
+          var wrapper = $(".DataTables_sort_wrapper", this);
+          if (wrapper) {
+            var col = getColumnConfigByCSS(this, darTable);
+            if (col && col.filter) {
+              if (col.filter.type === "string") {
+                // test assignment
+                $(".toggle-filter-button", this).click();
+                $('.filter-menu input').val("Scott").trigger("change");
+                expect(col.filter.value).toEqual("Scott");
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [{ type: "string", attr: col.attr, comparison: "value", value: "Scott" }];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // test unassignment
+                $(".toggle-filter-button", this).click();
+                $('.filter-menu input').val("").trigger("change");
+                expect(col.filter.value).toEqual(null);
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+              } else if (col.filter.type === "numeric") {
+                // test assignment
+                $(".toggle-filter-button", this).click();
+                $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+                $('input#first-filter').val("0.5").trigger("change");
+                expect(col.filter.eq).toEqual("0.5");
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [{ type: "numeric", attr: col.attr, comparison: "eq", value: 0.5 }];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // test unassignment
+                $(".toggle-filter-button", this).click();
+                $("input#first-filter").val("").trigger("change");
+                expect(col.filter.eq).toEqual(null);
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+              } else if (col.filter.type === "list") {
+                // test assignment
+                $(".toggle-filter-button", this).click();
+                $('.filter-menu input').prop("checked", true).trigger("change");
+                expect(col.filter.value).toEqual(["Basic", "Advanced"]);
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // test unassignment
+                $(".toggle-filter-button", this).click();
+                $('.filter-menu input').prop("checked", false).trigger("change");
+                expect(col.filter.value).toEqual(null);
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+              }
+            }
+          }
+        });
+      });
+
+      it("should load filters from url params", function() {
+        Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+        // populate url with filters
+        populateFilters(this.table);
+        // get url
+        var oldFilterSettings = this.table._getFilteringSettings();
+        var populatedURL = window.location.search;
+        // remove filters
+        clearFilters(this.table);
+        // push the populatedURL
+        Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
+
+        const cg = this.table.configGenerator();
+        // Since we can't do a refresh, we just call the method that fires at that moment
+        cg._computeColumnConfig();
+        // get new filtering settings
+        var newFilterSettings = this.table._getFilteringSettings();
+        // They should be the same
+        expect(oldFilterSettings).toEqual(newFilterSettings);
+        Backbone.history.navigate("?", { trigger: false, replace: true });
+      });
+
+      it("should load filters from url params with old uri param", function() {
+        Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+        populateFilters(this.table);
+        var oldFilterSettings = this.table._getFilteringSettings();
+        var populatedURL = window.location.search;
+        populatedURL = populatedURL.replace("filter_json", "ext_filter_json");
+        clearFilters(this.table);
+        Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
+        const cg = this.table.configGenerator();
+        cg._computeColumnConfig();
+        var newFilterSettings = this.table._getFilteringSettings();
+        expect(oldFilterSettings).toEqual(newFilterSettings);
+      });
+
+      it("should populate filter markup from url params", function() {
+        Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+        // populate url with filters
+        populateFilters(this.table);
+
+        var populatedURL = window.location.search;
+
+        // remove filters
+        clearFilters(this.table);
+
+        // push the new url
+        Backbone.history.navigate(populatedURL, { trigger: false, replace: true });
+
+        // Since we can't do a refresh, we just call the methods that fires at that moment
+        const cg = this.table.configGenerator();
+        cg._computeColumnConfig();
+        cg.table.children["filter-name"].children["filter-menu"].afterRender();
+        cg.table.children["filter-cost"].children["filter-menu"].afterRender();
+        cg.table.children["filter-type"].children["filter-menu"].afterRender();
+
+        // Check the filters are there
+        const darTable = this.table;
+        this.table.dataTable.find("thead th").not(".bulk").each(function(index) {
+          var wrapper = $(".DataTables_sort_wrapper", this);
+          if (wrapper) {
+            var col = getColumnConfigByCSS(this, darTable);
+            if (col && col.filter) {
+              switch (col.filter.type) {
+              case "string":
+                expect($('.filter-menu input').val()).toEqual("Scott");
+                break;
+              case "numeric":
+                expect($('select[data-filter-id=first-filter]').val()).toEqual("eq");
+                expect($('input#first-filter').val()).toEqual("0.5");
+                break;
+              case "list":
+                expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
+                break;
+              }
+            }
+          }
+        });
+
+        Backbone.history.navigate("?", { trigger: false, replace: true });
+
+        // remove filters again so that other tests don't fail
+        clearFilters(this.table);
+      });
+
+      it("should open the filterMenu when the filter toggle is clicked, and close if clicked again", function() {
+        const darTable = this.table;
+        this.table.dataTable.find("thead th").not(".bulk").each(function() {
+          var wrapper = $(".DataTables_sort_wrapper", this);
+          if (wrapper) {
+            var col = getColumnConfigByCSS(this, darTable);
+            if (col && col.filter) {
+              // todo: the below are not asserting anything! (and currently not returning 'true')
+              expect($(".filter-menu", this).is(":hidden"));
+              $("span", this).trigger("click");
+              expect($(".filter-menu", this).is(":visible"));
+              $("span", this).trigger("click");
+              expect($(".filter-menu", this).is(":hidden"));
+            }
+          }
+        });
+
+        expect(true).toBe(true, "Fix the above expect statements to be valid tests");
+      });
+
+      it("should close the activeFilterMenu when the user clicks out of it", function() {
+        const darTable = this.table;
+
+        this.table.dataTable.find("thead th").not(".bulk").each(function() {
+          const wrapper = $(".DataTables_sort_wrapper", this);
+          expect(wrapper).toBeDefined();
+
+          const col = getColumnConfigByCSS(this, darTable);
+
+          if (col && col.filter) {
+            expect($(".popover .filter-menu").length).toEqual(0);
+
+            // open the menu
+            const toggleButton = $(".toggle-filter-button", this);
+            toggleButton.click();
+            expect($(".popover .filter-menu").length).toEqual(1);
+
+            // click away
+            $("div:first-child", this).trigger("click");
+            expect($(".popover .filter-menu").length).toEqual(0);
+
+            // catch the timeout for dataTable's _fnSortAttachListener()
+            jasmine.clock().tick(1000);
+          }
+        });
+      });
+
+      it("should close the activeFilterMenu when the user clicks to open another menu, and then open the new menu", function() {
+        var lastFilterMenu;
+        var currentFilterMenu;
+        const darTable = this.table;
+
+        this.table.dataTable.find("thead th").not(".bulk").each(function() {
+          var wrapper = $(".DataTables_sort_wrapper", this);
+          if (wrapper) {
+            var col = getColumnConfigByCSS(this, darTable);
+            if (col && col.filter) {
+              if (currentFilterMenu) {
+                lastFilterMenu = currentFilterMenu;
+              }
+              currentFilterMenu = $(".filter-menu", this);
+
+              // todo: the below are not asserting anything! (and currently not returning 'true')
+              expect(currentFilterMenu.is(":hidden"));
+              $("span", this).trigger("click");
+              expect(currentFilterMenu.is(":visible"));
+              if (lastFilterMenu) {
+                expect(lastFilterMenu.is(":hidden"));
+              }
+            }
+          }
+        });
+
+        expect(true).toBe(true, "Fix the above expect statements to be valid tests");
+      });
+
+      it("should clear the filters when the clear button is clicked", function() {
+        Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+        var expectedFilterObj = [];
+        const darTable = this.table;
+
+        this.table.dataTable.find("thead th").not(".bulk").each(function() {
+          var wrapper = $(".DataTables_sort_wrapper", this);
+          if (wrapper) {
+            var col = getColumnConfigByCSS(this, darTable);
+            var toggleButton = $(".toggle-filter-button", this);
+            if (col && col.filter) {
+              if (col.filter.type === "string") {
+                // test assignment
+                toggleButton.click();
+                $('.filter-menu input').val("Scott").trigger("change");
+                expect(col.filter.value).toEqual("Scott");
+
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [{ type: "string", attr: col.attr, comparison: "value", value: "Scott" }];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // test clear button & filter value
+                toggleButton.click();
+                $(".btn-clear").trigger("click");
+                expect(col.filter.value).toEqual(null);
+
+                // verify ajax
+                expectedFilterObj = [];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // verify assignment
+                toggleButton.click();
+                expect($(".filter-menu input").val()).toEqual("");
+              } else if (col.filter.type === "numeric") {
+                // test equal assignment
+                toggleButton.click();
+                $('select[data-filter-id=first-filter]').val("eq").trigger("change");
+                $('input#first-filter').val("0.5").trigger("change");
+                expect(col.filter.eq).toEqual("0.5");
+
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [{ type: "numeric", attr: col.attr, comparison: "eq", value: 0.5 }];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // test clear button & filter value
+                toggleButton.click();
+                $(".btn-clear").trigger("click");
+                expect(col.filter.eq).toBeUndefined();
+
+                // verify ajax
+                expectedFilterObj = [];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // verify assignment
+                toggleButton.click();
+                expect($("input#first-filter").val()).toEqual("");
+              } else if (col.filter.type === "list") {
+                // test assignment
+                toggleButton.click();
+                $('.filter-menu input').prop("checked", true).trigger("change");
+                expect(col.filter.value).toEqual(["Basic", "Advanced"]);
+
+                // verify ajax
+                $(".btn-filter").trigger("click");
+                expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // test clear button & filter value
+                toggleButton.click();
+                $(".btn-clear").trigger("click");
+                expect(col.filter.value).toEqual(null);
+
+                // verify ajax
+                expectedFilterObj = [];
+                verifyFilterAjax(expectedFilterObj);
+                verifyUrlParams(expectedFilterObj);
+
+                // verify assignment
+                toggleButton.click();
+                expect($(".filter-menu input").prop("checked")).toEqual(false);
+              }
+            }
+          }
+        });
+      });
+
+      describe("filterView", function() {
+        describe("clear() should null filter values and update url even when not enabled", function() {
+          it("for stringFilterMenu", function() {
+            Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+            var stringFilterMenu = this.table.configGenerator().table.children["filter-name"].children["filter-menu"];
+
+            stringFilterMenu.enabled = false;
+            stringFilterMenu.filter.value = "scott";
+            expect(stringFilterMenu.filter.value).toEqual("scott");
+
+            stringFilterMenu.clear();
+            expect(stringFilterMenu.filter.value).toEqual(null);
+            verifyUrlParams([]);
+          });
+
+          it("for numericFilterMenu", function() {
+            Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+            var numericFilterMenu = this.table.configGenerator().table.children["filter-cost"].children["filter-menu"];
+
+            numericFilterMenu.enabled = false;
+            numericFilterMenu.filter.lt = 0.1;
+            numericFilterMenu.filter.gt = 0.2;
+            numericFilterMenu.filter.eq = 0.3;
+
+            expect(numericFilterMenu.filter.lt).toEqual(0.1);
+            expect(numericFilterMenu.filter.gt).toEqual(0.2);
+            expect(numericFilterMenu.filter.eq).toEqual(0.3);
+            numericFilterMenu.clear();
+            expect(numericFilterMenu.filter.lt).toEqual(null);
+            expect(numericFilterMenu.filter.gt).toEqual(null);
+            expect(numericFilterMenu.filter.eq).toEqual(null);
+
+            verifyUrlParams([]);
+          });
+
+          it("for listFilterMenu", function() {
+            Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
+
+            var listFilterMenu = this.table.configGenerator().table.children["filter-type"].children["filter-menu"];
+
+            listFilterMenu.enabled = false;
+            listFilterMenu.filter.value = ["Basic", "Advanced"];
+
+            expect(listFilterMenu.filter.value).toEqual(["Basic", "Advanced"]);
+            listFilterMenu.clear();
+            expect(listFilterMenu.filter.value).toEqual(null);
+
+            verifyUrlParams([]);
+          });
+        });
+      });
+
+      it("should disable filter menus and display error message, and remove error message when enabled", function() {
+        this.table.disableFilters("Test error message");
+        var columns = this.table.columnsConfig();
+        var currentFilterMenu;
+
+        for (let c in columns) {
+          if (!columns[c].filter) continue;
+          let renderedFilterMenu = this.table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
+
+          expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(1, "error-message length");
+          expect(renderedFilterMenu.find("[data-mount=error-message]").text()).toMatch(/Test error message/);
+          expect(renderedFilterMenu.find(".filter-menu .btn").length).toEqual(0, "no buttons");
+
+          $("span", currentFilterMenu).trigger("click");
+        }
+
+        this.table.enableFilters();
+        for (let c in columns) {
+          if (!columns[c].filter) continue;
+          let renderedFilterMenu = this.table.child(('filter-' + columns[c].attr)).child('filter-menu').render().$el;
+
+          expect(renderedFilterMenu.find("[data-mount=error-message]").length).toEqual(0, 'no error message');
+          expect(renderedFilterMenu.find(".filter-menu .btn-filter").last().prop('disabled')).toEqual(false);
+          expect(renderedFilterMenu.find(".filter-menu .btn-clear").last().prop('disabled')).toEqual(false);
+
+          $("span", currentFilterMenu).trigger("click");
+        }
+      });
+
+      it("should overwrite existing numeric filter when filter type is changed", function() {
+        var cg = this.table.configGenerator();
+        var col = cg.columnConfigById.attributes["cost"];
+        this.table.dataTable.find("th.column-cost .toggle-filter-button").trigger("click");
+        $(".popover #first-filter").val("3").trigger("change");
+
+        expect(col.filter).toEqual({ type: "numeric", gt: "3" });
+
+        $(".popover select[data-filter-id=first-filter]").val("lt").trigger("change");
+        expect(col.filter).toEqual({ type: "numeric", lt: "3" });
+      });
+
+      describe("_fetchCSV", function() {
+        it("should append current filter parameters to the URL when requesting a CSV export", function() {
+          // Set one column filter value so that the request contains filtering settings
+          var cg = this.table._columnManager._configGenerator;
+          var col = cg.columnsConfig[0];
+          col.filter = { value: "filter_by_this_value" };
+
+          // Set dummy URL
+          var csvUrl = "/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count";
+
+          spyOn(this.table, "_goToWindowLocation").and.callFake(function() {});
+          this.table._fetchCSV(csvUrl);
+          expect(this.table._goToWindowLocation).toHaveBeenCalledWith("/networks/transaction_reports/4.csv?ajax=1&backdraft=ui&chart=transaction&transaction_type=transaction_count&backdraft_request=1&ext_filter_json=%5B%7B%22comparison%22%3A%22value%22%2C%22value%22%3A%22filter_by_this_value%22%7D%5D");
+        });
+
+        it("should throw error when serverSideFiltering is not enabled", function() {
+          this.table.serverSideFiltering = false;
+          expect(this.table.serverSideFiltering).toEqual(false);
+          expect(() => { this.table._fetchCSV("/fake_url"); }).toThrow(new Error("serverSideFiltering is expected to be enabled when _fetchCSV is called"));
+        });
+      });
+
+      describe("_goToWindowLocation", function() {
+        it("should throw error when sUrl is not defined", function() {
+          expect(() => { this.table._goToWindowLocation(); }).toThrow(new Error("sUrl must be defined when _goToWindowLocation is called"));
+        });
       });
     });
   });
