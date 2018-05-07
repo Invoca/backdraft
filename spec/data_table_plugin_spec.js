@@ -1,8 +1,8 @@
 import { default as Backdraft } from "../src/entry";
+import View from "../src/view";
 
 describe("DataTable Plugin", function() {
   let app;
-  let baseExports;
   let collection;
   let table;
 
@@ -22,7 +22,6 @@ describe("DataTable Plugin", function() {
       model: app.Models.M
     });
     collection = new app.Collections.Col();
-    baseExports = Backdraft.plugin("Base");
   });
 
   describe("factories and constructors", function() {
@@ -31,8 +30,8 @@ describe("DataTable Plugin", function() {
       app.view.dataTable("Def", {
         rowClassName: "Abc"
       });
-      expect(new app.Views.Abc({ columnsConfig: [] })).toEqual(jasmine.any(baseExports.View));
-      expect(new app.Views.Def({ collection })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.Abc({ columnsConfig: [] })).toEqual(jasmine.any(View));
+      expect(new app.Views.Def({ collection })).toEqual(jasmine.any(View));
     });
 
     it("should allow rows to be subclassed", function() {
