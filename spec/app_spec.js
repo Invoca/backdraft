@@ -1,62 +1,113 @@
-import { default as Backdraft } from "../src/entry";
+import App from "../src/app";
+import Plugin from "../src/plugin";
 
 describe("App", function() {
   beforeEach(function() {
-    Backdraft.app.destroyAll();
+    this.previouslyRegisteredPlugins = Object.keys(Plugin.registered);
   });
 
-  describe("create", function() {
-    it("should create an instance", function() {
-      var app = Backdraft.app("myapp", {});
-      expect(app).toBeDefined();
-    });
-
-    it("should require unique app names", function() {
-      expect(function() {
-        Backdraft.app("myapp", {});
-        Backdraft.app("myapp", {});
-      }).toThrow();
+  afterEach(function() {
+    Object.keys(Plugin.registered).forEach(pluginName => {
+      if (this.previouslyRegisteredPlugins.indexOf(pluginName) === -1) {
+        delete Plugin.registered[pluginName];
+      }
     });
   });
 
-  describe("get", function() {
-    it("should return from the defining function", function() {
-      expect(Backdraft.app("myapp", {})).toBeDefined();
-    });
-
-    it("should return with a callack", function(done) {
-      Backdraft.app("myapp", {});
-      Backdraft.app("myapp", function(app) {
-        expect(app).toBeDefined();
-        done();
+  describe("constructor", function() {
+    beforeEach(function() {
+      Plugin.factory("Plugin1", (plugin) => {
+        plugin.initializer((app) => {
+          app.plugin1Installed = "hey-o!";
+        });
       });
     });
 
-    it("should return without a callback", function() {
-      Backdraft.app("myapp", {});
-      expect(Backdraft.app("myapp")).toBeDefined();
+    describe("without plugins", function() {
+      it("does not install plugins", function() {
+        const app = new App();
+        expect(app.plugin1Installed).toEqual(undefined);
+        expect(app.plugins).toEqual([]);
+        expect(app.installedPlugins).toEqual([]);
+      });
+    });
+
+    describe("with plugins supplied through constructor", function() {
+      it("installs plugins", function() {
+        const app = new App(["Plugin1"]);
+        expect(app.plugin1Installed).toEqual("hey-o!");
+        expect(app.plugins).toEqual(["Plugin1"]);
+        expect(app.installedPlugins).toEqual(["Plugin1"]);
+      });
+    });
+
+    describe("with plugins supplied via prototype", function() {
+      it("installs plugins", function() {
+        class MyApp extends App {}
+        MyApp.prototype.plugins = ["Plugin1"];
+
+        const app = new MyApp();
+        expect(app.plugin1Installed).toEqual("hey-o!");
+        expect(app.plugins).toEqual(["Plugin1"]);
+        expect(app.installedPlugins).toEqual(["Plugin1"]);
+      });
     });
   });
 
-  describe("destroy", function() {
-    it("should call #destroy", function() {
-      var destroySpy = jasmine.createSpy();
-
-      Backdraft.app("myapp", {
-        destroy: function() {
-          destroySpy();
-        }
+  describe("installPlugin", function() {
+    beforeEach(function() {
+      Plugin.factory("Plugin1", (plugin) => {
+        plugin.initializer((app) => {
+          app.plugin1Installed = "hey-o!";
+        });
       });
 
-      Backdraft.app.destroy("myapp");
-      expect(destroySpy).toHaveBeenCalled();
+      Plugin.factory("Plugin2", (plugin) => {
+        plugin.initializer((app) => {
+          app.plugin2Installed = "yea!";
+        });
+      });
+    });
+
+    it("installs plugin", function() {
+      const app = new App();
+      expect(app.plugin1Installed).toEqual(undefined);
+      expect(app.plugins).toEqual([]);
+      expect(app.installedPlugins).toEqual([]);
+
+      app.installPlugin("Plugin1");
+
+      expect(app.plugins).toEqual([]);
+      expect(app.installedPlugins).toEqual(["Plugin1"]);
+    });
+
+    it("installs plugins only once", function() {
+      const app = new App();
+      expect(app.plugin1Installed).toEqual(undefined);
+      expect(app.plugins).toEqual([]);
+      expect(app.installedPlugins).toEqual([]);
+
+      app.installPlugin("Plugin1");
+
+      expect(app.plugins).toEqual([]);
+      expect(app.installedPlugins).toEqual(["Plugin1"]);
+
+      app.installPlugin("Plugin1");
+
+      expect(app.plugins).toEqual([]);
+      expect(app.installedPlugins).toEqual(["Plugin1"]);
+
+      app.installPlugin("Plugin2");
+
+      expect(app.plugins).toEqual([]);
+      expect(app.installedPlugins).toEqual(["Plugin1", "Plugin2"]);
     });
   });
 
   describe("activate", function() {
-    it("should require that apps implement #activate", function() {
+    it("is required", function() {
       expect(function() {
-        var app = Backdraft.app("myapp", {});
+        const app = new App();
         app.activate();
       }).toThrow();
     });
@@ -64,7 +115,7 @@ describe("App", function() {
 
   describe("events", function() {
     it("should have Backbone.Events mixed in", function() {
-      var app = Backdraft.app("myapp", {});
+      var app = new App();
       var eventSpy = jasmine.createSpy();
       app.on("something", eventSpy);
       app.trigger("something");
