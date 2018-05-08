@@ -1,19 +1,15 @@
 import { default as Backdraft } from "../../src/entry";
 import App from "../../src/app";
+import View from "../../src/view";
+import Collection from "../../src/collection";
 
 describe("Listing Plugin", function() {
   let app;
-  let baseExports;
   let collection;
 
   beforeEach(function() {
     app = new App(["Listing"]);
-    app.model("M", {});
-    app.collection("Col", {
-      model: app.Models.M
-    });
-    collection = new app.Collections.Col();
-    baseExports = Backdraft.plugin("Base");
+    collection = new Collection();
   });
 
   describe("exports", function() {
@@ -39,12 +35,12 @@ describe("Listing Plugin", function() {
     it("should expose #listing", function() {
       app.view.listing.item("AbcItem", {});
       app.view.listing("Abc", { itemClassName: "AbcItem" });
-      expect(new app.Views.Abc({ collection })).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.Abc({ collection })).toEqual(jasmine.any(View));
     });
 
     it("should expose #listing.item", function() {
       app.view.listing.item("Abc", {});
-      expect(new app.Views.Abc()).toEqual(jasmine.any(baseExports.View));
+      expect(new app.Views.Abc()).toEqual(jasmine.any(View));
     });
 
     it("requires that a collection be provided", function() {

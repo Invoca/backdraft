@@ -10,6 +10,8 @@ import Config from "./data_table/config";
 
 import setupEnvironment from "./data_table/setup_environment";
 
+import "./legacy/register_base_plugin";
+
 function finalizeLocalTable(tableClass, app) {
   if (tableClass.prototype.rowClassName) {
     // method for late resolution of row class, removes dependency on needing access to the entire app
@@ -32,6 +34,8 @@ Plugin.factory("DataTable", plugin => {
 
   plugin.initializer(app => {
     setupEnvironment();
+
+    app.installPlugin("Base");
 
     app.view.dataTable = function(name, baseClassName, properties) {
       let baseClass;

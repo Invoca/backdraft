@@ -20,12 +20,14 @@ class Plugin {
     }
   }
 
-  static load(pluginNames, app) {
-    // load plugins the app has specified
-    _.each(pluginNames, name => {
-      if (!Plugin.registered[name]) throw new Error(`Plugin ${name} has not been registered`);
-      Plugin.registered[name].runInitializers(app);
-    });
+  static ensurePlugin(name) {
+    const plugin = Plugin.registered[name];
+
+    if (!plugin) {
+      throw new Error(`Plugin ${name} has not been registered`);
+    }
+
+    return plugin;
   }
 
   constructor(name) {
@@ -47,10 +49,8 @@ class Plugin {
   }
 
   // call all initializers, providing Backdraft app instance to each
-  runInitializers(app) {
-    _.each(this.initializers, fn => {
-      fn(app);
-    });
+  install(app) {
+    this.initializers.forEach(fn => fn(app));
   }
 }
 

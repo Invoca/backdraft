@@ -42,6 +42,14 @@ export default function createRegistry() {
       }
 
       const proto = _.extend(obj, { name });
+
+      // ensure that the Base plugin is always loaded
+      if (_.isEmpty(proto.plugins)) {
+        proto.plugins = ["Base"];
+      } else if (!_.include(proto.plugins, "Base")) {
+        proto.plugins.unshift("Base");
+      }
+
       const AppClass = Backbone.Model.extend.call(App, proto);
 
       const newApp = new AppClass();

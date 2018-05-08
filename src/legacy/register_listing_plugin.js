@@ -3,6 +3,8 @@ import Plugin from "../plugin";
 import List from "../listing/list";
 import Item from "../listing/item";
 
+import "./register_base_plugin";
+
 // The Listing plugin is deprecated. Access to the List and Item classes is available through Backdraft.Listing.ListView and
 // Backdraft.Listing.ItemView, respectively.
 
@@ -27,6 +29,8 @@ Plugin.factory("Listing", (plugin) => {
   });
 
   plugin.initializer(app => {
+    app.installPlugin("Base");
+
     app.view.listing = function(name, properties) {
       app.Views[name] = List.extend(properties);
       finalizeList(name, app.Views[name], app.Views);

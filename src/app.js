@@ -8,11 +8,18 @@ class App {
     // list of plugins by name this app should load.
     this.plugins = plugins || this.plugins || [];
 
-    // ensure that the Base plugin is always loaded
-    if (!_.include(this.plugins, "Base")) this.plugins.unshift("Base");
+    this.installedPlugins = [];
 
-    // load plugins for this application
-    Plugin.load(this.plugins, this);
+    this.plugins.forEach(name => this.installPlugin(name));
+  }
+
+  installPlugin(name) {
+    const plugin = Plugin.ensurePlugin(name);
+
+    if (this.installedPlugins.indexOf(plugin.name) === -1) {
+      plugin.install(this);
+      this.installedPlugins.push(name);
+    }
   }
 
   activate() {
