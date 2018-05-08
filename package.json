@@ -1,6 +1,6 @@
 {
   "name": "backdraft-app",
-  "version": "0.6.0-beta.5",
+  "version": "0.6.0-beta.6",
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "main": "src/app.js",
   "files": [
