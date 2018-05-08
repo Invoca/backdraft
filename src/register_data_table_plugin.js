@@ -25,7 +25,7 @@ function finalizeServerSideTable(tableClass, app) {
   tableClass.prototype.appName = app.name;
 }
 
-Plugin.factory("DataTable", plugin => {
+Plugin.create("DataTable", plugin => {
   plugin.exports({
     LocalDataTable,
     ServerSideDataTable,

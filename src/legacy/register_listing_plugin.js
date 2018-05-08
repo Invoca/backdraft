@@ -22,7 +22,7 @@ function finalizeList(name, listClass, views) {
   };
 }
 
-Plugin.factory("Listing", (plugin) => {
+Plugin.create("Listing", (plugin) => {
   plugin.exports({
     List,
     Item

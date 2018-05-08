@@ -16,7 +16,7 @@ describe("App", function() {
 
   describe("constructor", function() {
     beforeEach(function() {
-      Plugin.factory("Plugin1", (plugin) => {
+      Plugin.create("Plugin1", (plugin) => {
         plugin.initializer((app) => {
           app.plugin1Installed = "hey-o!";
         });
@@ -56,13 +56,13 @@ describe("App", function() {
 
   describe("installPlugin", function() {
     beforeEach(function() {
-      Plugin.factory("Plugin1", (plugin) => {
+      Plugin.create("Plugin1", (plugin) => {
         plugin.initializer((app) => {
           app.plugin1Installed = "hey-o!";
         });
       });
 
-      Plugin.factory("Plugin2", (plugin) => {
+      Plugin.create("Plugin2", (plugin) => {
         plugin.initializer((app) => {
           app.plugin2Installed = "yea!";
         });

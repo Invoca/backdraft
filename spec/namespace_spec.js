@@ -10,7 +10,7 @@ describe("Backdraft Namespace", function() {
 
   describe("plugin", function() {
     it("is plugin factory", function() {
-      expect(Backdraft.plugin).toEqual(Plugin.factory);
+      expect(Backdraft.plugin).toEqual(Plugin.create);
     });
   });
 });

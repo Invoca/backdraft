@@ -1,5 +1,3 @@
-import { default as Backdraft } from "../src/entry";
-
 import App from "../src/app";
 import Plugin from "../src/plugin";
 
@@ -18,21 +16,21 @@ describe("Plugin", function() {
 
   describe("create", function() {
     it("should require unique plugin names", function() {
-      Backdraft.plugin("myplugin", function() { });
+      Plugin.create("myplugin", function() { });
 
       expect(function() {
-        Backdraft.plugin("myplugin", function() { });
+        Plugin.create("myplugin", function() { });
       }).toThrow();
     });
 
     it("should store and return exports", function() {
-      Backdraft.plugin("myplugin", function(plugin) {
+      Plugin.create("myplugin", function(plugin) {
         plugin.exports({
           xyz: 123
         });
       });
 
-      expect(Backdraft.plugin("myplugin").xyz).toEqual(123);
+      expect(Plugin.create("myplugin").xyz).toEqual(123);
     });
   });
 
@@ -50,12 +48,12 @@ describe("Plugin", function() {
       var notRunSpy1 = jasmine.createSpy();
       var notRunSpy2 = jasmine.createSpy();
 
-      Backdraft.plugin("p1", function(plugin) {
+      Plugin.create("p1", function(plugin) {
         plugin.initializer(runSpy1);
         plugin.initializer(runSpy2);
       });
 
-      Backdraft.plugin("p2", function(plugin) {
+      Plugin.create("p2", function(plugin) {
         plugin.initializer(notRunSpy1);
         plugin.initializer(notRunSpy2);
       });

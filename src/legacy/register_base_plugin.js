@@ -8,7 +8,7 @@ import Cache from "../cache";
 
 // The Base plugin is deprecated. The constituent classes can be accessed on the Backdraft object (e.g. Backdraft.View etc.)
 
-Plugin.factory("Base", plugin => {
+Plugin.create("Base", plugin => {
   plugin.exports({
     Router,
     View,

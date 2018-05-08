@@ -7,7 +7,7 @@ class Plugin {
     return pluginRegistry;
   }
 
-  static factory(name, fn) {
+  static create(name, fn) {
     if (!fn) {
       // return exports of plugin with provided name
       if (!Plugin.registered[name]) throw new Error(`Plugin ${name} has not been registered`);

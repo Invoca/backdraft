@@ -36,7 +36,7 @@ describe("App Registry", function() {
       });
 
       beforeEach(function() {
-        Plugin.factory("Plugin1", (plugin) => {});
+        Plugin.create("Plugin1", (plugin) => {});
       });
 
       it("installs all plugins", function() {

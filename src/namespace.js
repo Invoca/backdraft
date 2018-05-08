@@ -49,7 +49,7 @@ const Namespace = {
     ItemView
   },
 
-  plugin: Plugin.factory,
+  plugin: Plugin.create,
   app: createRegistry()
 };
 
