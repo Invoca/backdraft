@@ -1,7 +1,6 @@
 import _ from "underscore";
 
-// for tests
-export const pluginRegistry = {};
+const pluginRegistry = {};
 
 class Plugin {
   static get registered() {

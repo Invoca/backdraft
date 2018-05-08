@@ -1,4 +1,5 @@
 import { default as Backdraft } from "../../src/entry";
+import App from "../../src/app";
 
 describe("Listing Plugin", function() {
   let app;
@@ -6,10 +7,7 @@ describe("Listing Plugin", function() {
   let collection;
 
   beforeEach(function() {
-    Backdraft.app.destroyAll();
-    app = Backdraft.app("myapp", {
-      plugins: ["Listing"]
-    });
+    app = new App(["Listing"]);
     app.model("M", {});
     app.collection("Col", {
       model: app.Models.M

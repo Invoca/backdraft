@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../src/entry";
+import App from "../src/app";
 import View from "../src/view";
 
 describe("DataTable Plugin", function() {
@@ -13,10 +13,7 @@ describe("DataTable Plugin", function() {
   }
 
   beforeEach(function() {
-    Backdraft.app.destroyAll();
-    app = Backdraft.app("myapp", {
-      plugins: ["DataTable"]
-    });
+    app = new App(["DataTable"]);
     app.model("M", {});
     app.collection("Col", {
       model: app.Models.M

@@ -1,16 +1,22 @@
 import { default as Backdraft } from "../src/entry";
-import { pluginRegistry } from "../src/plugin";
+
+import App from "../src/app";
+import Plugin from "../src/plugin";
 
 describe("Plugin", function() {
   beforeEach(function() {
-    Backdraft.app.destroyAll();
+    this.previouslyRegisteredPlugins = Object.keys(Plugin.registered);
+  });
+
+  afterEach(function() {
+    Object.keys(Plugin.registered).forEach(pluginName => {
+      if (this.previouslyRegisteredPlugins.indexOf(pluginName) === -1) {
+        delete Plugin.registered[pluginName];
+      }
+    });
   });
 
   describe("create", function() {
-    beforeEach(function() {
-      delete pluginRegistry["myplugin"];
-    });
-
     it("should require unique plugin names", function() {
       Backdraft.plugin("myplugin", function() { });
 
@@ -33,9 +39,8 @@ describe("Plugin", function() {
   describe("apps", function() {
     it("should error when an app specifies an invalid plugin", function() {
       expect(function() {
-        Backdraft.app("myapp", {
-          plugins: ["invalid-one"]
-        });
+        // eslint-disable-next-line no-new
+        new App(["invalid-one"]);
       }).toThrow();
     });
 
@@ -55,9 +60,8 @@ describe("Plugin", function() {
         plugin.initializer(notRunSpy2);
       });
 
-      Backdraft.app("myapp", {
-        plugins: ["p1"]
-      });
+      // eslint-disable-next-line no-new
+      new App(["p1"]);
 
       expect(runSpy1).toHaveBeenCalled();
       expect(runSpy2).toHaveBeenCalled();

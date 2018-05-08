@@ -1,12 +1,12 @@
 import { default as Backdraft } from "../../src/entry";
+import App from "../../src/app";
 
 describe("Base Plugin", function() {
   describe("storage", function() {
     var app;
 
     beforeEach(function() {
-      Backdraft.app.destroyAll();
-      app = Backdraft.app("myapp", {});
+      app = new App();
     });
 
     it("should expose storage for classes", function() {
@@ -22,8 +22,7 @@ describe("Base Plugin", function() {
     var exports;
 
     beforeEach(function() {
-      Backdraft.app.destroyAll();
-      app = Backdraft.app("myapp", {});
+      app = new App();
       exports = Backdraft.plugin("Base");
     });
 
