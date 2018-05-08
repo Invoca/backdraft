@@ -5,12 +5,10 @@ import Plugin from "./plugin";
 
 class App {
   constructor(plugins) {
-    // list of plugins by name this app should load.
-    this.plugins = plugins || this.plugins || [];
-
     this.installedPlugins = [];
 
-    this.plugins.forEach(name => this.installPlugin(name));
+    plugins = plugins || this.plugins || [];
+    plugins.forEach(name => this.installPlugin(name));
   }
 
   installPlugin(name) {

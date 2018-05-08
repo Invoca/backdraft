@@ -27,7 +27,6 @@ describe("App", function() {
       it("does not install plugins", function() {
         const app = new App();
         expect(app.plugin1Installed).toEqual(undefined);
-        expect(app.plugins).toEqual([]);
         expect(app.installedPlugins).toEqual([]);
       });
     });
@@ -36,7 +35,6 @@ describe("App", function() {
       it("installs plugins", function() {
         const app = new App(["Plugin1"]);
         expect(app.plugin1Installed).toEqual("hey-o!");
-        expect(app.plugins).toEqual(["Plugin1"]);
         expect(app.installedPlugins).toEqual(["Plugin1"]);
       });
     });
@@ -48,7 +46,6 @@ describe("App", function() {
 
         const app = new MyApp();
         expect(app.plugin1Installed).toEqual("hey-o!");
-        expect(app.plugins).toEqual(["Plugin1"]);
         expect(app.installedPlugins).toEqual(["Plugin1"]);
       });
     });
@@ -72,34 +69,28 @@ describe("App", function() {
     it("installs plugin", function() {
       const app = new App();
       expect(app.plugin1Installed).toEqual(undefined);
-      expect(app.plugins).toEqual([]);
       expect(app.installedPlugins).toEqual([]);
 
       app.installPlugin("Plugin1");
 
-      expect(app.plugins).toEqual([]);
       expect(app.installedPlugins).toEqual(["Plugin1"]);
     });
 
     it("installs plugins only once", function() {
       const app = new App();
       expect(app.plugin1Installed).toEqual(undefined);
-      expect(app.plugins).toEqual([]);
       expect(app.installedPlugins).toEqual([]);
 
       app.installPlugin("Plugin1");
 
-      expect(app.plugins).toEqual([]);
       expect(app.installedPlugins).toEqual(["Plugin1"]);
 
       app.installPlugin("Plugin1");
 
-      expect(app.plugins).toEqual([]);
       expect(app.installedPlugins).toEqual(["Plugin1"]);
 
       app.installPlugin("Plugin2");
 
-      expect(app.plugins).toEqual([]);
       expect(app.installedPlugins).toEqual(["Plugin1", "Plugin2"]);
     });
   });
