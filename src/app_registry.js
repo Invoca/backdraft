@@ -8,16 +8,9 @@ class AppRegistry {
     this.instances = {};
   }
 
-  register(name, obj) {
-    if (!obj) {
-      return this.ensureInstance(name);
-    } else if (_.isFunction(obj)) {
-      obj(this.ensureInstance(name));
-    } else if (_.isObject(obj)) {
-      return this.createApp(name, obj);
-    } else {
-      throw new Error(`Invalid arguments: (${name}, ${JSON.stringify(obj)})`);
-    }
+  get(name) {
+    if (this.instances[name]) return this.instances[name];
+    throw new Error(`App ${name} does not exist`);
   }
 
   createApp(name, obj) {
@@ -43,7 +36,7 @@ class AppRegistry {
   }
 
   destroy(name) {
-    this.ensureInstance(name).destroy();
+    this.get(name).destroy();
     delete this.instances[name];
   }
 
@@ -51,11 +44,6 @@ class AppRegistry {
     Object.keys(this.instances).forEach(name => {
       this.destroy(name);
     });
-  }
-
-  ensureInstance(name) {
-    if (this.instances[name]) return this.instances[name];
-    throw new Error(`App ${name} does not exist`);
   }
 }
 

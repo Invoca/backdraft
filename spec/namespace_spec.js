@@ -13,15 +13,52 @@ describe("Backdraft Namespace", function() {
   });
 
   describe('app', function() {
-    it('is a registry', function() {
-      expect(Backdraft.app).toEqual(jasmine.any(Function));
+    describe('create', function() {
+      it('calls registry.createApp', function() {
+        expect(Backdraft.app).toEqual(jasmine.any(Function));
 
-      spyOn(Backdraft.app.registry, 'register').and.callThrough();
+        spyOn(Backdraft.app.registry, 'createApp').and.callThrough();
 
-      const app = Backdraft.app("myapp", {});
+        const app = Backdraft.app("myapp", {});
 
-      expect(Backdraft.app.registry.register).toHaveBeenCalledWith("myapp", {});
-      expect(app).toEqual(jasmine.any(App));
+        expect(Backdraft.app.registry.createApp).toHaveBeenCalledWith("myapp", {});
+        expect(app).toEqual(jasmine.any(App));
+      });
+    });
+
+    describe("get", function() {
+      beforeEach(function() {
+        this.app = Backdraft.app("myapp", {});
+      });
+
+      it("calls registry.get", function() {
+        spyOn(Backdraft.app.registry, 'get').and.callThrough();
+
+        expect(Backdraft.app("myapp")).toEqual(this.app);
+
+        expect(Backdraft.app.registry.get).toHaveBeenCalledWith("myapp");
+      });
+
+      describe("with callback", function() {
+        it("calls registry.get and calls callback", function() {
+          spyOn(Backdraft.app.registry, 'get').and.callThrough();
+
+          Backdraft.app("myapp", function(app) {
+            app.hello = "hola";
+          });
+
+          expect(Backdraft.app.registry.get).toHaveBeenCalledWith("myapp");
+          expect(this.app.hello).toEqual("hola");
+        });
+      });
+    });
+
+    describe('with invalid parameters', function() {
+      it("throws error", function() {
+        expect(() => {
+          Backdraft.app("invalid", "arguments");
+        }).toThrow(new Error('Invalid arguments: (invalid, "arguments")'));
+      });
     });
 
     describe('destroy', function() {

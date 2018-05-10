@@ -21,6 +21,7 @@ import ColumnType from "./data_table/column_type";
 import "./legacy/register_base_plugin";
 import "./legacy/register_listing_plugin";
 import "./register_data_table_plugin";
+import _ from "underscore";
 
 const globalAppRegistry = new AppRegistry();
 
@@ -52,8 +53,17 @@ const Namespace = {
   },
 
   plugin: Plugin.create,
+
   app(name, obj) {
-    return globalAppRegistry.register(name, obj);
+    if (!obj) {
+      return globalAppRegistry.get(name);
+    } else if (_.isFunction(obj)) {
+      obj(globalAppRegistry.get(name));
+    } else if (_.isObject(obj)) {
+      return globalAppRegistry.createApp(name, obj);
+    } else {
+      throw new Error(`Invalid arguments: (${name}, ${JSON.stringify(obj)})`);
+    }
   }
 };
 

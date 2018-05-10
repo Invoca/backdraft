@@ -9,16 +9,38 @@ describe("App Registry", function() {
 
   describe("createApp", function() {
     describe("default", function() {
-      it("should create an instance", function() {
-        const app = this.appRegistry.register("myapp", {});
-        expect(app).toBeDefined();
-        expect(app).toEqual(jasmine.any(App));
+      beforeEach(function() {
+        this.app = this.appRegistry.createApp("myapp", {});
+      });
+
+      it("sets name", function() {
+        expect(this.app.name).toEqual("myapp");
+      });
+
+      it("returns an instance", function() {
+        expect(this.app).toEqual(jasmine.any(App));
       });
 
       it("installs Base plugin", function() {
-        const app = this.appRegistry.register("myapp", {});
-        expect(app.installedPlugins).toEqual(["Base"]);
-        expect(app.plugins).toEqual(["Base"]);
+        expect(this.app.installedPlugins).toEqual(["Base"]);
+        expect(this.app.plugins).toEqual(["Base"]);
+      });
+    });
+
+    describe("with prototype", function() {
+      beforeEach(function() {
+        this.app = this.appRegistry.createApp("myapp", {
+          yo: "bro",
+
+          howsit() {
+            return `it's good ${this.yo}`;
+          }
+        });
+      });
+
+      it("maintains prototype", function() {
+        expect(this.app.yo).toEqual("bro");
+        expect(this.app.howsit()).toEqual("it's good bro");
       });
     });
 
@@ -40,7 +62,7 @@ describe("App Registry", function() {
       });
 
       it("installs all plugins", function() {
-        const app = this.appRegistry.register("myapp", {
+        const app = this.appRegistry.createApp("myapp", {
           plugins: ["Plugin1"]
         });
 
@@ -49,34 +71,27 @@ describe("App Registry", function() {
       });
     });
 
-    it("should require unique app names", function() {
-      expect(function() {
-        this.appRegistry.register("myapp", {});
-        this.appRegistry.register("myapp", {});
-      }).toThrow();
+    it("requires unique app names", function() {
+      this.appRegistry.createApp("myapp", {});
+
+      expect(() => {
+        this.appRegistry.createApp("myapp", {});
+      }).toThrow(new Error("App myapp is already defined"));
     });
   });
 
   describe("get", function() {
-    it("should return with a callack", function(done) {
-      this.appRegistry.register("myapp", {});
-      this.appRegistry.register("myapp", function(app) {
-        expect(app).toBeDefined();
-        done();
-      });
-    });
-
-    it("should return without a callback", function() {
-      this.appRegistry.register("myapp", {});
-      expect(this.appRegistry.register("myapp")).toBeDefined();
+    it("returns app", function() {
+      const app = this.appRegistry.createApp("myapp", { });
+      expect(this.appRegistry.get("myapp")).toEqual(app);
     });
   });
 
   describe("destroy", function() {
-    it("should call #destroy", function() {
+    it("calls app.destroy", function() {
       var destroySpy = jasmine.createSpy();
 
-      this.appRegistry.register("myapp", {
+      this.appRegistry.createApp("myapp", {
         destroy: function() {
           destroySpy();
         }
