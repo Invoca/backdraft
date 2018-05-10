@@ -8,66 +8,82 @@ describe("App Registry", function() {
   });
 
   describe("createApp", function() {
-    describe("default", function() {
-      beforeEach(function() {
-        this.app = this.appRegistry.createApp("myapp", {});
-      });
-
+    describe("with App instance", function() {
       it("sets name", function() {
-        expect(this.app.name).toEqual("myapp");
+        const app = this.appRegistry.createApp("myapp", new App());
+        expect(app.name).toEqual("myapp");
       });
 
-      it("returns an instance", function() {
-        expect(this.app).toEqual(jasmine.any(App));
+      it("returns input", function() {
+        const inputApp = new App();
+        const app = this.appRegistry.createApp("myapp", inputApp);
+        expect(app).toEqual(inputApp);
       });
 
-      it("installs Base plugin", function() {
-        expect(this.app.installedPlugins).toEqual(["Base"]);
-        expect(this.app.plugins).toEqual(["Base"]);
+      it("does not install Base plugin", function() {
+        const app = this.appRegistry.createApp("myapp", new App());
+        expect(app.installedPlugins).toEqual([]);
       });
     });
 
     describe("with prototype", function() {
-      beforeEach(function() {
-        this.app = this.appRegistry.createApp("myapp", {
+      describe("default", function() {
+        beforeEach(function() {
+          this.app = this.appRegistry.createApp("myapp", {});
+        });
+
+        it("sets name", function() {
+          expect(this.app.name).toEqual("myapp");
+        });
+
+        it("returns an instance", function() {
+          expect(this.app).toEqual(jasmine.any(App));
+        });
+
+        it("installs Base plugin", function() {
+          expect(this.app.installedPlugins).toEqual(["Base"]);
+          expect(this.app.plugins).toEqual(["Base"]);
+        });
+      });
+
+      it("maintains prototype", function() {
+        const app = this.appRegistry.createApp("myapp", {
           yo: "bro",
 
           howsit() {
             return `it's good ${this.yo}`;
           }
         });
+
+        expect(app.yo).toEqual("bro");
+        expect(app.howsit()).toEqual("it's good bro");
       });
 
-      it("maintains prototype", function() {
-        expect(this.app.yo).toEqual("bro");
-        expect(this.app.howsit()).toEqual("it's good bro");
-      });
-    });
-
-    describe("with plugins", function() {
-      beforeEach(function() {
-        this.previouslyRegisteredPlugins = Object.keys(Plugin.registered);
-      });
-
-      afterEach(function() {
-        Object.keys(Plugin.registered).forEach(pluginName => {
-          if (this.previouslyRegisteredPlugins.indexOf(pluginName) === -1) {
-            delete Plugin.registered[pluginName];
-          }
-        });
-      });
-
-      beforeEach(function() {
-        Plugin.create("Plugin1", (plugin) => {});
-      });
-
-      it("installs all plugins", function() {
-        const app = this.appRegistry.createApp("myapp", {
-          plugins: ["Plugin1"]
+      describe("with plugins", function() {
+        beforeEach(function() {
+          this.previouslyRegisteredPlugins = Object.keys(Plugin.registered);
         });
 
-        expect(app.installedPlugins).toEqual(["Base", "Plugin1"]);
-        expect(app.plugins).toEqual(["Base", "Plugin1"]);
+        afterEach(function() {
+          Object.keys(Plugin.registered).forEach(pluginName => {
+            if (this.previouslyRegisteredPlugins.indexOf(pluginName) === -1) {
+              delete Plugin.registered[pluginName];
+            }
+          });
+        });
+
+        beforeEach(function() {
+          Plugin.create("Plugin1", (plugin) => {});
+        });
+
+        it("installs all plugins", function() {
+          const app = this.appRegistry.createApp("myapp", {
+            plugins: ["Plugin1"]
+          });
+
+          expect(app.installedPlugins).toEqual(["Base", "Plugin1"]);
+          expect(app.plugins).toEqual(["Base", "Plugin1"]);
+        });
       });
     });
 

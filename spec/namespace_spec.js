@@ -14,15 +14,29 @@ describe("Backdraft Namespace", function() {
 
   describe('app', function() {
     describe('create', function() {
-      it('calls registry.createApp', function() {
-        expect(Backdraft.app).toEqual(jasmine.any(Function));
+      describe('with prototype', function() {
+        it('calls registry.createApp', function() {
+          expect(Backdraft.app).toEqual(jasmine.any(Function));
 
-        spyOn(Backdraft.app.registry, 'createApp').and.callThrough();
+          spyOn(Backdraft.app.registry, 'createApp').and.callThrough();
 
-        const app = Backdraft.app("myapp", {});
+          const app = Backdraft.app("myapp", {});
 
-        expect(Backdraft.app.registry.createApp).toHaveBeenCalledWith("myapp", {});
-        expect(app).toEqual(jasmine.any(App));
+          expect(Backdraft.app.registry.createApp).toHaveBeenCalledWith("myapp", {});
+          expect(app).toEqual(jasmine.any(App));
+        });
+      });
+
+      describe('with App instance', function() {
+        it('calls registry.createApp', function() {
+          spyOn(Backdraft.app.registry, 'createApp').and.callThrough();
+
+          const appInstance = new App();
+          const app = Backdraft.app("myapp", appInstance);
+
+          expect(Backdraft.app.registry.createApp).toHaveBeenCalledWith("myapp", appInstance);
+          expect(app).toEqual(appInstance);
+        });
       });
     });
 

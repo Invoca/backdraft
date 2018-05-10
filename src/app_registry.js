@@ -3,6 +3,19 @@ import _ from "underscore";
 import App from "./app";
 import Backbone from "backbone";
 
+function createAppClass(proto, name) {
+  proto = _.extend({}, proto);
+
+  // ensure that the Base plugin is always loaded
+  if (_.isEmpty(proto.plugins)) {
+    proto.plugins = ["Base"];
+  } else if (!_.include(proto.plugins, "Base")) {
+    proto.plugins.unshift("Base");
+  }
+
+  return Backbone.Model.extend.call(App, proto);
+}
+
 class AppRegistry {
   constructor() {
     this.instances = {};
@@ -13,26 +26,24 @@ class AppRegistry {
     throw new Error(`App ${name} does not exist`);
   }
 
-  createApp(name, obj) {
+  createApp(name, appInstanceOrPrototype) {
     if (this.instances[name]) {
       throw new Error(`App ${name} is already defined`);
     }
 
-    const proto = _.extend({}, obj, { name });
+    let appInstance = null;
 
-    // ensure that the Base plugin is always loaded
-    if (_.isEmpty(proto.plugins)) {
-      proto.plugins = ["Base"];
-    } else if (!_.include(proto.plugins, "Base")) {
-      proto.plugins.unshift("Base");
+    if (appInstanceOrPrototype instanceof App) {
+      appInstance = appInstanceOrPrototype;
+      appInstance.name = name;
+    } else {
+      const AppClass = createAppClass(_.extend({ name }, appInstanceOrPrototype));
+      appInstance = new AppClass();
     }
 
-    const AppClass = Backbone.Model.extend.call(App, proto);
+    this.instances[name] = appInstance;
 
-    const newApp = new AppClass();
-    this.instances[name] = newApp;
-
-    return newApp;
+    return appInstance;
   }
 
   destroy(name) {
