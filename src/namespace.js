@@ -2,7 +2,7 @@ import { toCSSClass, toColumnCSSClass, extractColumnCSSClass } from "./utils/css
 
 import App from "./app";
 import Plugin from "./plugin";
-import createRegistry from "./app_registry";
+import AppRegistry from "./app_registry";
 
 import View from "./view";
 import Collection from "./collection";
@@ -21,6 +21,8 @@ import ColumnType from "./data_table/column_type";
 import "./legacy/register_base_plugin";
 import "./legacy/register_listing_plugin";
 import "./register_data_table_plugin";
+
+const globalAppRegistry = new AppRegistry();
 
 const Namespace = {
   Utils: {
@@ -50,7 +52,13 @@ const Namespace = {
   },
 
   plugin: Plugin.create,
-  app: createRegistry()
+  app(name, obj) {
+    return globalAppRegistry.register(name, obj);
+  }
 };
+
+Namespace.app.registry = globalAppRegistry;
+Namespace.app.destroy = (name) => globalAppRegistry.destroy(name);
+Namespace.app.destroyAll = () => globalAppRegistry.destroyAll();
 
 export default Namespace;
