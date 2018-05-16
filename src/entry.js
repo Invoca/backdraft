@@ -1,10 +1,7 @@
 import _ from "underscore";
 
-import BackdraftNamespace from "./backdraft_namespace";
-
-import "./plugins/base/base";
-import "./plugins/listing/index";
-import "./plugins/data_table/index";
+import Namespace from "./namespace";
+const BackdraftNamespace = Namespace;
 
 // use squiggly braces for underscore templating so we don't conflict with ruby templating
 _.templateSettings = {

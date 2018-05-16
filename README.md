@@ -189,7 +189,11 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
 
 1. Update version: `yarn version --new-version <version>`
 
-1. A commit is made with a version bump, so `git push`
+1. A commit is made with a version bump as well as a new tag. Run the following to push to Github:
+    ```
+    git push
+    git push --tags
+    ```
 
 1. Publish to NPM registry: `yarn publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
 
@@ -197,4 +201,4 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
 
 License
 -------
-Backdraft is Copyright © 2014-2017 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.
+Backdraft is Copyright © 2014-2018 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.

@@ -5281,7 +5281,7 @@ strip-json-comments@~2.0.1:
 
 style-guide@Invoca/style-guide:
   version "1.0.0"
-  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/17c53cc91e5c745950a33b2c8203cd8f4753af30"
+  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/29fe558b0b67213f74f074dc420764af00a2a76b"
 
 subarg@^1.0.0:
   version "1.0.0"

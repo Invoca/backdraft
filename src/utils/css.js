@@ -1,6 +1,6 @@
 // create a valid CSS class name based on input
 export function toCSSClass(input) {
-  var cssClass = /[^a-zA-Z_0-9\-]/g;
+  var cssClass = /[^a-zA-Z_0-9-]/g;
   return input.replace(cssClass, "-").toLowerCase();
 };
 

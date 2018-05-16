@@ -4,10 +4,12 @@ const webpack = require('webpack');
 // File filter for targeting specific spec files.
 const defaultSpecFileFilter = "/_spec\\.js$/";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 module.exports = {
   entry: "./src/entry.js",
 
-  devtool: 'inline-source-map',
+  devtool: (isProduction ? 'source-map' : 'inline-source-map'),
 
   output: {
     path: path.resolve(__dirname, 'dist'),
