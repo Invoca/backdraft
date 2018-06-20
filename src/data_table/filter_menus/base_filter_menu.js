@@ -1,6 +1,9 @@
 import View from "../../view";
 import _ from "underscore";
 
+import Backbone from "backbone";
+import $ from "jquery";
+
 class BaseFilterMenu extends View {
   constructor(options) {
     super(options);

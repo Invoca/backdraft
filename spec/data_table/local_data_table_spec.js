@@ -5,6 +5,9 @@ import Collection from "../../src/collection";
 
 import { inDom, createRowClass, createLocalDataTableClass } from "../support/spec_helpers";
 
+import _ from "underscore";
+import $ from "jquery";
+
 function createDataTableClass(constructorOptions, protoProperties) {
   return createLocalDataTableClass(_.extend({ rowClass: TestRow }, constructorOptions), protoProperties);
 }

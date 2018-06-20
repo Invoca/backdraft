@@ -1,7 +1,7 @@
 const exampleServer = require("./lib/example_server");
 
 module.exports = function(grunt) {
-  const webpackConfig = require('./webpack.config.js');
+  const webpackConfig = require('./webpack/production.js');
 
   grunt.initConfig({
 

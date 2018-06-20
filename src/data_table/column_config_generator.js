@@ -2,6 +2,8 @@ import Backbone from "backbone";
 import _ from "underscore";
 import $ from "jquery";
 
+import "jquery-deparam";
+
 import { toCSSClass } from "../utils/css";
 
 class ColumnConfigGenerator {

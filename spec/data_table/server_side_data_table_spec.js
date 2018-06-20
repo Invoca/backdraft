@@ -6,6 +6,12 @@ import Collection from "../../src/collection";
 import { createRowClass, inDom, createServerSideDataTableClass } from "../support/spec_helpers";
 import setupEnvironment from "../../src/data_table/setup_environment";
 
+import _ from "underscore";
+import $ from "jquery";
+import Backbone from "backbone";
+
+import "../../vendor/mock-ajax";
+
 class TestModel extends Model {}
 
 class TestCollection extends Collection {

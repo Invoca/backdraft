@@ -1080,6 +1080,10 @@ boom@5.x.x:
   dependencies:
     hoek "4.x.x"
 
+bootstrap@3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-3.1.1.tgz#17e14ed261c0fcd9b52ea9aa6420f6d51cd5fa77"
+
 brace-expansion@^1.1.7:
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.8.tgz#c07b211c7c952ec1f8efd51a77ef0d1d3990a292"
@@ -3341,6 +3345,14 @@ isstream@~0.1.2:
 jasmine-core@^2.99.1:
   version "2.99.1"
   resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-2.99.1.tgz#e6400df1e6b56e130b61c4bcd093daa7f6e8ca15"
+
+jquery-deparam@0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/jquery-deparam/-/jquery-deparam-0.4.2.tgz#e4fdcfc2dad11af184250c6057b04b9363dcdcf4"
+
+jquery@jquery/jquery#1.10.2:
+  version "1.10.2"
+  resolved "https://codeload.github.com/jquery/jquery/tar.gz/16b079b164d62bd807c612806842a13bf9b04d17"
 
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"

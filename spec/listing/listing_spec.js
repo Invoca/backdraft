@@ -5,6 +5,8 @@ import Collection from "../../src/collection";
 
 import { default as Backdraft } from "../../src/entry";
 
+import _ from "underscore";
+
 class Sub extends Item {
   get tagName() { return "li"; }
 

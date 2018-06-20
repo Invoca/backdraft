@@ -2,6 +2,15 @@ import Row from "../../src/data_table/row";
 import LocalDataTable from "../../src/data_table/local_data_table";
 import ServerSideDataTable from "../../src/data_table/server_side_data_table";
 
+import _ from "underscore";
+
+import $ from "jquery";
+import "datatables.net";
+
+// set error mode to throw exceptions
+//  useful for specs where "alert" (the Datatable default) does nothing
+$.fn.dataTableExt.sErrMode = 'error';
+
 export function inDom(element, block) {
   $("body").append(element);
 

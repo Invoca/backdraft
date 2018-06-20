@@ -1,5 +1,7 @@
 import $ from "jquery";
 import _ from "underscore";
+import "datatables.net";
+import "bootstrap";
 
 import View from "../view";
 import Cache from "../cache";
