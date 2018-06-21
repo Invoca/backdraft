@@ -1,7 +1,16 @@
+const path = require('path');
 const exampleServer = require("./lib/example_server");
 
 module.exports = function(grunt) {
   const webpackConfig = require('./webpack/production.js');
+
+  webpackConfig.output = {
+    path: path.resolve(__dirname, 'dist'),
+    library: 'Backdraft',
+    libraryTarget: "var",
+    libraryExport: "default",
+    filename: 'backdraft.js'
+  };
 
   grunt.initConfig({
 

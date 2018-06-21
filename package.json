@@ -3,18 +3,15 @@
   "version": "0.6.0",
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "files": [
-    "dist/",
     "src/"
   ],
-  "main": "dist/backdraft",
   "scripts": {
     "eslint": "eslint-git-changes --jsx",
     "setup": "npm install -g grunt-cli",
     "specs": "yarn run eslint; karma start --single-run",
     "specs_without_eslint": "karma start --single-run",
     "dev": "yarn run eslint; karma start",
-    "examples": "grunt examples",
-    "prepublish": "NODE_ENV=production grunt build"
+    "examples": "grunt examples"
   },
   "author": "Invoca",
   "license": "MIT",
