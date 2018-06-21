@@ -2114,9 +2114,9 @@ eslint-module-utils@^2.2.0:
     debug "^2.6.8"
     pkg-dir "^1.0.0"
 
-eslint-plugin-import@^2.11.0:
-  version "2.11.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.11.0.tgz#15aeea37a67499d848e8e981806d4627b5503816"
+eslint-plugin-import@^2.12.0:
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.12.0.tgz#dad31781292d6664b25317fd049d2e2b2f02205d"
   dependencies:
     contains-path "^0.1.0"
     debug "^2.6.8"
@@ -2148,9 +2148,9 @@ eslint-plugin-promise@^3.7.0:
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-3.7.0.tgz#f4bde5c2c77cdd69557a8f69a24d1ad3cfc9e67e"
 
-eslint-plugin-standard@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-standard/-/eslint-plugin-standard-3.0.1.tgz#34d0c915b45edc6f010393c7eef3823b08565cf2"
+eslint-plugin-standard@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-standard/-/eslint-plugin-standard-3.1.0.tgz#2a9e21259ba4c47c02d53b2d0c9135d4b1022d47"
 
 eslint-scope@^3.7.1:
   version "3.7.1"
@@ -2163,7 +2163,7 @@ eslint-visitor-keys@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#3f3180fb2e291017716acb4c9d6d5b5c34a6a81d"
 
-eslint@^4.13.1, eslint@^4.19.1:
+"eslint@>= 4.19.1", eslint@^4.13.1, eslint@^4.19.1:
   version "4.19.1"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-4.19.1.tgz#32d1d653e1d90408854bfb296f076ec7e186a300"
   dependencies:
@@ -5293,7 +5293,14 @@ strip-json-comments@~2.0.1:
 
 style-guide@Invoca/style-guide:
   version "1.0.0"
-  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/29fe558b0b67213f74f074dc420764af00a2a76b"
+  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/cd650392d92a330c8de59687564ba5195ef37f6e"
+  dependencies:
+    eslint ">= 4.19.1"
+    eslint-config-standard "^11.0.0"
+    eslint-plugin-import "^2.12.0"
+    eslint-plugin-node "^6.0.1"
+    eslint-plugin-promise "^3.7.0"
+    eslint-plugin-standard "^3.1.0"
 
 subarg@^1.0.0:
   version "1.0.0"
