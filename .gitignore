@@ -2,7 +2,7 @@
 .grunt/
 .idea/
 node_modules
-dist/
+examples_server/js/bundle.js
 npm-debug.log
 yarn-error.log
 
