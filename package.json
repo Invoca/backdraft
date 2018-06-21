@@ -43,10 +43,11 @@
   },
   "dependencies": {
     "backbone": "1.1.2",
-    "bootstrap": ">=3.1.1",
+    "bootstrap": "4.0.0",
     "datatables.net": "^1.9.4",
     "jquery": "^1.10.2",
     "jquery-deparam": "^0.4.2",
+    "popper.js": "1.12.9",
     "underscore": "1.8.3"
   }
 }

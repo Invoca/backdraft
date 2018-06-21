@@ -2,6 +2,7 @@ import $ from "jquery";
 import _ from "underscore";
 import "datatables.net";
 import "bootstrap";
+import "jquery-deparam";
 
 import View from "../view";
 import Cache from "../cache";

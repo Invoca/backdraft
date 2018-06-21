@@ -4,6 +4,8 @@ import _ from "underscore";
 import Backbone from "backbone";
 import $ from "jquery";
 
+import "jquery-deparam";
+
 class BaseFilterMenu extends View {
   constructor(options) {
     super(options);
