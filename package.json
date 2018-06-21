@@ -22,8 +22,6 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-minify": "^0.3.0",
-    "backbone": "1.1.2",
-    "bootstrap": "3.1.1",
     "eslint": "^4.19.1",
     "eslint-git-changes": "^2.0.1",
     "express": "^4.16.2",
@@ -31,8 +29,6 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-webpack": "^3.0.2",
     "jasmine-core": "^2.99.1",
-    "jquery": "jquery/jquery#1.10.2",
-    "jquery-deparam": "0.4.2",
     "karma": "^2.0.0",
     "karma-cli": "^1.0.1",
     "karma-jasmine": "^1.1.1",
@@ -43,10 +39,9 @@
     "morgan": "^1.9.0",
     "serve-index": "^1.9.1",
     "style-guide": "Invoca/style-guide",
-    "underscore": "1.8.3",
     "webpack": "^3.10.0"
   },
-  "peerDependencies": {
+  "dependencies": {
     "backbone": "1.1.2",
     "bootstrap": ">=3.1.1",
     "datatables.net": "^1.9.4",
