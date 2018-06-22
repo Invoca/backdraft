@@ -4700,30 +4700,36 @@
 		 *  @param {string} sMesg error message
 		 *  @memberof DataTable#oApi
 		 */
-		function _fnLog( oSettings, iLevel, sMesg )
-		{
-			var sAlert = (oSettings===null) ?
-				"DataTables warning: "+sMesg :
-				"DataTables warning (table id = '"+oSettings.sTableId+"'): "+sMesg;
-			
-			if ( iLevel === 0 )
-			{
-				if ( DataTable.ext.sErrMode == 'alert' )
-				{
-					alert( sAlert );
-				}
-				else
-				{
-					throw new Error(sAlert);
-				}
-				return;
-			}
-			else if ( window.console && console.log )
-			{
-				console.log( sAlert );
-			}
-		}
-		
+    function _fnLog( oSettings, iLevel, sMesg )
+    {
+      var sAlert = (oSettings===null) ?
+          "DataTables warning: "+sMesg :
+          "DataTables warning (table id = '"+oSettings.sTableId+"'): "+sMesg;
+
+      if ( iLevel === 0 )
+      {
+        if ( DataTable.ext.sErrMode == 'alert' )
+        {
+          alert( sAlert );
+        }
+        // Invoca patch to support an error callback
+        else if ( typeof DataTable.ext.sErrMode === 'function' )
+        {
+          // making this match current version of DataTables in master to help with upgrading
+          // https://github.com/DataTables/DataTables/blob/09ff48a48621532977f7feeaadac7987f2bb3c6f/media/js/jquery.dataTables.js#L5094-L5096
+          DataTable.ext.sErrMode(oSettings, null, sAlert);
+        }
+        else
+        {
+          throw new Error(sAlert);
+        }
+        return;
+      }
+      else if ( window.console && console.log )
+      {
+        console.log( sAlert );
+      }
+    }
 		
 		/**
 		 * See if a property is defined on one object, if so assign it to the other object
