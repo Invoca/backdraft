@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../src/entry";
+import { default as Backdraft } from "../src/backdraft";
 
 import Plugin from "../src/plugin";
 import App from "../src/app";

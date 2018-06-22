@@ -1,5 +1,5 @@
 import View from "../src/view";
-import { default as Backdraft } from "../src/entry";
+import { default as Backdraft } from "../src/backdraft";
 
 describe("View", function() {
   it("is exported", function() {

@@ -3,7 +3,7 @@ import Item from "../../src/listing/item";
 
 import Collection from "../../src/collection";
 
-import { default as Backdraft } from "../../src/entry";
+import { default as Backdraft } from "../../src/backdraft";
 
 import _ from "underscore";
 

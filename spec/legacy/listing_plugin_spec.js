@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../../src/entry";
+import { default as Backdraft } from "../../src/backdraft";
 import App from "../../src/app";
 import View from "../../src/view";
 import Collection from "../../src/collection";

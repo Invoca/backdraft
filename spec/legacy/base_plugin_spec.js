@@ -1,4 +1,4 @@
-import { default as Backdraft } from "../../src/entry";
+import { default as Backdraft } from "../../src/backdraft";
 import App from "../../src/app";
 
 import Backbone from "backbone";
