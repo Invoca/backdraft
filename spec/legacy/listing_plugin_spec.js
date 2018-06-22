@@ -1,7 +1,9 @@
-import { default as Backdraft } from "../../src/backdraft";
+import "../../src/legacy/register_listing_plugin";
+
 import App from "../../src/app";
 import View from "../../src/view";
 import Collection from "../../src/collection";
+import Plugin from "../../src/plugin";
 
 describe("Listing Plugin", function() {
   let app;
@@ -13,11 +15,7 @@ describe("Listing Plugin", function() {
   });
 
   describe("exports", function() {
-    let Listing;
-
-    beforeEach(function() {
-      Listing = Backdraft.plugin("Listing");
-    });
+    const Listing = Plugin.get("Listing");
 
     it("should expose an Item", function() {
       app.view.listing.item("MyItem", {});

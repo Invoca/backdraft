@@ -7,21 +7,23 @@ class Plugin {
     return pluginRegistry;
   }
 
+  static get(name) {
+    return this.ensurePlugin(name).exportedData;
+  }
+
   static create(name, fn) {
     if (!fn) {
-      // return exports of plugin with provided name
-      if (!Plugin.registered[name]) throw new Error(`Plugin ${name} has not been registered`);
-      return Plugin.registered[name].exportedData;
+      return this.get(name);
     } else {
       // create and register new plugin. afterwards invoke callback with it
-      if (Plugin.registered[name]) throw new Error(`Plugin ${name} is already registered`);
-      Plugin.registered[name] = new Plugin(name);
-      fn(Plugin.registered[name]);
+      if (this.registered[name]) throw new Error(`Plugin ${name} is already registered`);
+      this.registered[name] = new Plugin(name);
+      fn(this.registered[name]);
     }
   }
 
   static ensurePlugin(name) {
-    const plugin = Plugin.registered[name];
+    const plugin = this.registered[name];
 
     if (!plugin) {
       throw new Error(`Plugin ${name} has not been registered`);

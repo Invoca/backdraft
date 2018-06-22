@@ -1,11 +1,6 @@
 import View from "../src/view";
-import { default as Backdraft } from "../src/backdraft";
 
 describe("View", function() {
-  it("is exported", function() {
-    expect(Backdraft.View).toEqual(View);
-  });
-
   it("should trigger events before and after it is closed", function() {
     const view = new View();
     const spy = jasmine.createSpyObj("eventSpy", ["beforeClose", "afterClose"]);
