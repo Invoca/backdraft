@@ -4,13 +4,12 @@ import Model from "../../src/model";
 import Collection from "../../src/collection";
 
 import { createRowClass, inDom, createServerSideDataTableClass } from "../support/spec_helpers";
-import setupEnvironment from "../../src/data_table/setup_environment";
 
 import _ from "underscore";
 import $ from "jquery";
 import Backbone from "backbone";
 
-import "../../vendor/mock-ajax";
+import "../support/mock-ajax";
 
 import "jquery-deparam";
 
@@ -190,8 +189,6 @@ describe("DataTable Plugin", function() {
   });
 
   beforeEach(function() {
-    setupEnvironment();
-
     this.collection = new TestCollection();
 
     jasmine.Ajax.install();

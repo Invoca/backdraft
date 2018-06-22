@@ -1,5 +1,3 @@
-import setupEnvironment from "../../src/data_table/setup_environment";
-
 import Model from "../../src/model";
 import Collection from "../../src/collection";
 
@@ -37,8 +35,6 @@ class TestCollection extends Collection {
 
 describe("DataTable Plugin", function() {
   beforeEach(function() {
-    setupEnvironment();
-
     this.collection = new TestCollection();
   });
 

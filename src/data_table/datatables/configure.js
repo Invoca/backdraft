@@ -1,4 +1,5 @@
 import $ from "jquery";
+import "../datatables";
 
 export default function initializeBootstrap() {
   /* Set the defaults for DataTables initialisation */

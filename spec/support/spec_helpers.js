@@ -5,7 +5,6 @@ import ServerSideDataTable from "../../src/data_table/server_side_data_table";
 import _ from "underscore";
 
 import $ from "jquery";
-import "datatables.net";
 
 // set error mode to throw exceptions
 //  useful for specs where "alert" (the Datatable default) does nothing

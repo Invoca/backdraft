@@ -1,9 +1,8 @@
 import $ from "jquery";
 import _ from "underscore";
-import "datatables.net";
 import "bootstrap";
 import "jquery-deparam";
-import "./dataTables.colReorder";
+import "./datatables";
 
 import View from "../view";
 import Cache from "../cache";

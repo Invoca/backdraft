@@ -3,7 +3,8 @@
   "version": "1.0.0-beta.1",
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "files": [
-    "src/"
+    "src/",
+    "vendor/"
   ],
   "scripts": {
     "eslint": "eslint-git-changes --jsx",
@@ -50,7 +51,6 @@
   "peerDependencies": {
     "backbone": "^1.1.2",
     "bootstrap": "^4.0.0",
-    "datatables.net": "^1.9.4",
     "jquery": "^1.10.2",
     "jquery-deparam": "^0.4.2",
     "popper.js": "^1.12.9",

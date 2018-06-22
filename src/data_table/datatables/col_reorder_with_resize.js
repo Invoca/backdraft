@@ -28,7 +28,8 @@
  */
 
 import jQuery from "jquery";
-import {absolutePointAtViewportEdge, DomVisibility} from "./utils/dom_visibility";
+import "../datatables";
+import {absolutePointAtViewportEdge, DomVisibility} from "../utils/dom_visibility";
 
 export default function initializeColReorderPlugin() {
 
@@ -676,8 +677,8 @@ export default function initializeColReorderPlugin() {
           var title = availableFields[i].sTitle;
           var mData = availableFields[i].mData;
           html += '<label class="' + tp + '">' +
-            '<input name="columns" type="checkbox" checked="' + (selected ? "checked" : "") + '" value="' + mData + '">' +
-            title + '</label>';
+              '<input name="columns" type="checkbox" checked="' + (selected ? "checked" : "") + '" value="' + mData + '">' +
+              title + '</label>';
         }
         html  += "</div>";
 
@@ -709,8 +710,8 @@ export default function initializeColReorderPlugin() {
 
         /* Columns discounted from reordering - counting right to left */
         this.s.fixedRight = this.s.init.iFixedColumnsRight ?
-          this.s.init.iFixedColumnsRight :
-          0;
+            this.s.init.iFixedColumnsRight :
+            0;
 
         /* Drop callback initialisation option */
         if (this.s.init.fnReorderCallback) {
@@ -788,14 +789,14 @@ export default function initializeColReorderPlugin() {
 
         /* State loading, overrides the column order given */
         if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColReorder !== 'undefined' &&
-          this.s.dt.oLoadedState.ColReorder.length === this.s.dt.aoColumns.length) {
+            this.s.dt.oLoadedState.ColReorder.length === this.s.dt.aoColumns.length) {
           aiOrder = this.s.dt.oLoadedState.ColReorder;
         }
 
         /* Load Column Sizes */
         var asSizes = null;
         if (this.s.dt.oLoadedState && typeof this.s.dt.oLoadedState.ColSizes !== 'undefined' &&
-          this.s.dt.oLoadedState.ColSizes.length === this.s.dt.aoColumns.length) {
+            this.s.dt.oLoadedState.ColSizes.length === this.s.dt.aoColumns.length) {
           asSizes = this.s.dt.oLoadedState.ColSizes;
         }
 
@@ -881,10 +882,10 @@ export default function initializeColReorderPlugin() {
               clearTimeout(timer);
             }
             timer = setTimeout(
-              function() {
-                overlay.remove();
-                myelm.remove();
-              },200);
+                function() {
+                  overlay.remove();
+                  myelm.remove();
+                },200);
           });
         }
 
@@ -916,7 +917,7 @@ export default function initializeColReorderPlugin() {
       "_fnOrderColumns": function (a) {
         if (a.length !== this.s.dt.aoColumns.length) {
           this.s.dt.oInstance.oApi._fnLog(this.s.dt, 1, "ColReorder - array reorder does not " +
-            "match known number of columns. Skipping.");
+              "match known number of columns. Skipping.");
           return;
         }
 
@@ -1131,7 +1132,7 @@ export default function initializeColReorderPlugin() {
             this.s.mouse.nextStartWidth = $(nTh).outerWidth();
             this.s.mouse.targetIndex = $('th', nTh.parentNode).index(nThPrev);
             this.s.mouse.fromIndex = this.s.dt.oInstance.oApi._fnVisibleToColumnIndex(this.s.dt, this.s.mouse.targetIndex);
-          // If we are at the right end of column, we expand the current column
+            // If we are at the right end of column, we expand the current column
           } else {
             this.s.mouse.startWidth = $(nTh).outerWidth();
             this.s.mouse.resizeElem = $(nTh);
@@ -1234,7 +1235,7 @@ export default function initializeColReorderPlugin() {
           if (scrollXEnabled && $('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length) {
             if ($('div.dataTables_scrollHead', this.s.dt.nTableWrapper).length > 0)
               $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).width(newTableWidth);
-              //browser fix
+            //browser fix
             $($('div.dataTables_scrollHead', this.s.dt.nTableWrapper)[0].childNodes[0].childNodes[0]).css('min-width',newTableWidth);
           }
 
@@ -1400,20 +1401,20 @@ export default function initializeColReorderPlugin() {
             moreToLeft = !visibilityChecker.leftEdgeInView();
           }
 
-        if (
-          absolutePointAtViewportEdge(
-            'right',
-            e.pageX,
-            this.s.autoScrollTargetWidth
-          ) && moreToRight) {
+          if (
+              absolutePointAtViewportEdge(
+                  'right',
+                  e.pageX,
+                  this.s.autoScrollTargetWidth
+              ) && moreToRight) {
 
-          scrollDelta = this.s.autoScrollIncrementSize;
-        } else if (
-          absolutePointAtViewportEdge(
-            'left',
-            e.pageX,
-            this.s.autoScrollTargetWidth
-          ) && moreToLeft) {
+            scrollDelta = this.s.autoScrollIncrementSize;
+          } else if (
+              absolutePointAtViewportEdge(
+                  'left',
+                  e.pageX,
+                  this.s.autoScrollTargetWidth
+              ) && moreToLeft) {
 
             scrollDelta = 0 - this.s.autoScrollIncrementSize;
           }
@@ -1604,35 +1605,35 @@ export default function initializeColReorderPlugin() {
         // fastest and least resource intensive way I could think of cloning
         // the table with just a single header cell in it.
         this.dom.drag = $(origTable.cloneNode(false))
-          .addClass('DTCR_clonedTable')
-          .append(
-            origThead.cloneNode(false).appendChild(
-              origTr.cloneNode(false).appendChild(
-                cloneCell[0]
-              )
+            .addClass('DTCR_clonedTable')
+            .append(
+                origThead.cloneNode(false).appendChild(
+                    origTr.cloneNode(false).appendChild(
+                        cloneCell[0]
+                    )
+                )
             )
-          )
-          .css({
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: $(origCell).outerWidth(),
-            height: $(origCell).outerHeight()
-          })
-          .appendTo('body');
+            .css({
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: $(origCell).outerWidth(),
+              height: $(origCell).outerHeight()
+            })
+            .appendTo('body');
 
         this.dom.pointer = $('<div></div>')
-          .addClass('DTCR_pointer')
-          .css({
-            position: 'absolute',
-            top: scrolling ?
-              $('div.dataTables_scroll', this.s.dt.nTableWrapper).offset().top :
-              $(this.s.dt.nTable).offset().top,
-            height: scrolling ?
-              $('div.dataTables_scroll', this.s.dt.nTableWrapper).height() :
-              $(this.s.dt.nTable).height()
-          })
-          .appendTo('body');
+            .addClass('DTCR_pointer')
+            .css({
+              position: 'absolute',
+              top: scrolling ?
+                  $('div.dataTables_scroll', this.s.dt.nTableWrapper).offset().top :
+                  $(this.s.dt.nTable).offset().top,
+              height: scrolling ?
+                  $('div.dataTables_scroll', this.s.dt.nTableWrapper).height() :
+                  $(this.s.dt.nTable).height()
+            })
+            .appendTo('body');
       },
 
       /**
@@ -1876,8 +1877,8 @@ export default function initializeColReorderPlugin() {
      * Register a new feature with DataTables
      */
     if (typeof $.fn.dataTable === "function" &&
-      typeof $.fn.dataTableExt.fnVersionCheck === "function" &&
-      $.fn.dataTableExt.fnVersionCheck('1.9.3')) {
+        typeof $.fn.dataTableExt.fnVersionCheck === "function" &&
+        $.fn.dataTableExt.fnVersionCheck('1.9.3')) {
       $.fn.dataTableExt.aoFeatures.push({
         "fnInit": function (settings) {
           var table = settings.oInstance;

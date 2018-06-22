@@ -5,7 +5,6 @@ module.exports = {
 
   resolve: {
     alias: {
-      "datatables.net": require.resolve('../vendor/jquery.dataTables-1.9.4.js'),
       "jquery": "jquery/jquery"
     }
   },
