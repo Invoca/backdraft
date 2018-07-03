@@ -18,6 +18,7 @@ import { extractColumnCSSClass, toColumnCSSClass } from "../utils/css";
 
 import cidMap from "./cid_map";
 import Config from "./config";
+import "jquery-deparam";
 
 class LocalDataTable extends View {
   constructor(options) {
@@ -78,6 +79,7 @@ class LocalDataTable extends View {
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
     this.trigger("render");
+    this._pageToSearchPage();
     return this;
   }
 
@@ -460,6 +462,59 @@ class LocalDataTable extends View {
 
   _initPaginationHandling() {
     this.dataTable.on("page", this._bulkCheckboxAdjust);
+    this.dataTable.on("page", function(e) {
+      history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage));
+      window.location.hash++;
+    }.bind(this));
+    // window.onhashchange = () => { this._pageToSearchPage(); };
+    // window.onpopstate = () => { debugger; this._pageToSearchPage(); };
+  }
+
+  _pageToSearchPage() {
+    if (this._parseQueryString(window.location.search) > 0) {
+      this.page(this._parseQueryString(window.location.search));
+    }
+  }
+
+  _createSearchString(pageNumber) {
+    var queryString = window.location.search;
+    var searchString = "?";
+    var pageString = "page=" + pageNumber;
+    if (queryString.startsWith("?")) {
+      queryString = queryString.substr(1);
+      let parameters = queryString.split("&");
+      var pageIndex = -1;
+      parameters.forEach(function(param, index, params) {
+        if (param === "page=") {
+          pageIndex = index;
+        }
+      });
+      if (pageIndex === -1) {
+        searchString += pageString;
+      } else {
+        parameters[pageIndex] = pageString;
+        parameters.forEach(function(param) {
+          searchString += param;
+        });
+      }
+    } else {
+      searchString += pageString;
+    }
+    return searchString;
+  }
+
+  _parseQueryString(search) {
+    var page = 0;
+    if (search.startsWith('?')) {
+      search = search.substr(1);
+    }
+    let parameters = search.split('&');
+    parameters.forEach(function(param) {
+      if (param.match(/page=/)) {
+        page = parseInt(param.substr(5));
+      }
+    });
+    return page;
   }
 
   _initBulkHandling() {
