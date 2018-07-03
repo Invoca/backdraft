@@ -76,6 +76,7 @@ class LocalDataTable extends View {
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
     this.trigger("render");
+    this._setupPaginationHistory();
     this._pageToSearchPage();
     return this;
   }
@@ -459,13 +460,18 @@ class LocalDataTable extends View {
 
   _initPaginationHandling() {
     this.dataTable.on("page", this._bulkCheckboxAdjust);
-    this.dataTable.on("page", function() {
+  }
+
+  _setupPaginationHistory() {
+    this.dataTable.on("page", function () {
       var page = this.dataTable.fnPagingInfo().iPage;
       if (page !== this._parseQueryString(window.location.search)) {
         history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage));
       }
     }.bind(this));
-    window.onpopstate = () => { this._pageToSearchPage(); };
+    window.onpopstate = () => {
+      this._pageToSearchPage();
+    };
   }
 
   _pageToSearchPage() {
@@ -484,7 +490,7 @@ class LocalDataTable extends View {
     var searchString = "?";
     pageNumber++;
     var pageString = "page=" + pageNumber;
-    if (queryString.startsWith("?")) {
+    if (queryString[0] === '?') {
       queryString = queryString.substr(1);
       var parameters = $.deparam(queryString);
       parameters.page = pageNumber;
@@ -496,11 +502,11 @@ class LocalDataTable extends View {
   }
 
   _parseQueryString(search) {
-    if (search.startsWith('?')) {
+    if (search[0] === '?') {
       search = search.substr(1);
     }
     let parameters = $.deparam(search);
-    let page = parseInt(parameters.page) - 1
+    let page = parseInt(parameters.page) - 1;
     if (isNaN(page)) { return 0; }
     return parseInt(parameters.page) - 1;
   }
