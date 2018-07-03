@@ -459,23 +459,30 @@ class LocalDataTable extends View {
 
   _initPaginationHandling() {
     this.dataTable.on("page", this._bulkCheckboxAdjust);
-    this.dataTable.on("page", function(e) {
-      history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage));
-      window.location.hash++;
+    this.dataTable.on("page", function() {
+      var page = this.dataTable.fnPagingInfo().iPage;
+      if (page !== this._parseQueryString(window.location.search)) {
+        history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage));
+      }
     }.bind(this));
-    // window.onhashchange = () => { this._pageToSearchPage(); };
-    // window.onpopstate = () => { debugger; this._pageToSearchPage(); };
+    window.onpopstate = () => { this._pageToSearchPage(); };
   }
 
   _pageToSearchPage() {
-    if (this._parseQueryString(window.location.search) > 0) {
-      this.page(this._parseQueryString(window.location.search));
+    let pageNumber = this._parseQueryString(window.location.search);
+    if (pageNumber >= 0) {
+      if (pageNumber >= this.dataTable.fnPagingInfo().iTotalPages) {
+        this.page(0);
+      } else {
+        this.page(this._parseQueryString(window.location.search));
+      }
     }
   }
 
   _createSearchString(pageNumber) {
     var queryString = window.location.search;
     var searchString = "?";
+    pageNumber++;
     var pageString = "page=" + pageNumber;
     if (queryString.startsWith("?")) {
       queryString = queryString.substr(1);
@@ -509,6 +516,7 @@ class LocalDataTable extends View {
     parameters.forEach(function(param) {
       if (param.match(/page=/)) {
         page = parseInt(param.substr(5));
+        page--;
       }
     });
     return page;
