@@ -486,21 +486,9 @@ class LocalDataTable extends View {
     var pageString = "page=" + pageNumber;
     if (queryString.startsWith("?")) {
       queryString = queryString.substr(1);
-      let parameters = queryString.split("&");
-      var pageIndex = -1;
-      parameters.forEach(function(param, index, params) {
-        if (param === "page=") {
-          pageIndex = index;
-        }
-      });
-      if (pageIndex === -1) {
-        searchString += pageString;
-      } else {
-        parameters[pageIndex] = pageString;
-        parameters.forEach(function(param) {
-          searchString += param;
-        });
-      }
+      var parameters = $.deparam(queryString);
+      parameters.page = pageNumber;
+      searchString += $.param(parameters);
     } else {
       searchString += pageString;
     }
@@ -508,18 +496,13 @@ class LocalDataTable extends View {
   }
 
   _parseQueryString(search) {
-    var page = 0;
     if (search.startsWith('?')) {
       search = search.substr(1);
     }
-    let parameters = search.split('&');
-    parameters.forEach(function(param) {
-      if (param.match(/page=/)) {
-        page = parseInt(param.substr(5));
-        page--;
-      }
-    });
-    return page;
+    let parameters = $.deparam(search);
+    let page = parseInt(parameters.page) - 1
+    if (isNaN(page)) { return 0; }
+    return parseInt(parameters.page) - 1;
   }
 
   _initBulkHandling() {
