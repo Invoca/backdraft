@@ -76,8 +76,8 @@ class LocalDataTable extends View {
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
     this.trigger("render");
-    this._setupPaginationHistory();
-    this._pageToSearchPage();
+    this.paginate && this._setupPaginationHistory();
+    this.paginate && this._pageToSearchPage();
     return this;
   }
 
@@ -463,7 +463,7 @@ class LocalDataTable extends View {
   }
 
   _setupPaginationHistory() {
-    this.dataTable.on("page", function () {
+    this.dataTable.on("page", function() {
       var page = this.dataTable.fnPagingInfo().iPage;
       if (page !== this._parseQueryString(window.location.search)) {
         history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage));
@@ -477,7 +477,7 @@ class LocalDataTable extends View {
   _pageToSearchPage() {
     let pageNumber = this._parseQueryString(window.location.search);
     if (pageNumber >= 0) {
-      if (pageNumber >= this.dataTable.fnPagingInfo().iTotalPages) {
+      if (pageNumber > this.dataTable.fnPagingInfo().iTotalPages) {
         this.page(0);
       } else {
         this.page(this._parseQueryString(window.location.search));
