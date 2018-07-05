@@ -33,6 +33,14 @@ class TestCollection extends Collection {
   }
 }
 
+function createBulkData() {
+  let data = [];
+  for (var iter = 0; iter < 100; ++iter) {
+    data.push({ id: iter + 1, name: "hi " + iter });
+  }
+  return data;
+}
+
 describe("DataTable Plugin", function() {
   beforeEach(function() {
     this.collection = new TestCollection();
@@ -144,6 +152,50 @@ describe("DataTable Plugin", function() {
       expect(table.$(".dataTables_paginate").length).toEqual(1);
     });
 
+    describe("local data table pagination history", function() {
+      let data;
+      let table;
+      beforeEach(function() {
+        data = createBulkData();
+        table = new TestDataTable({ collection: this.collection });
+        this.collection.reset(data);
+      });
+      afterAll(function() {
+        history.pushState({}, "pagination", "?");
+      });
+      it("should load correct page in table from url", function() {
+        history.pushState({}, "pagination", "?page=5");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/41 to 50/);
+      });
+      it("should store page in url", function() {
+        history.pushState({}, "pagination", "?page=1");
+        table.render();
+        table.page("next");
+        expect(window.location.search).toMatch(/page=2/);
+        table.page("previous");
+        expect(window.location.search).toMatch(/page=1/);
+        table.page(7);
+        expect(window.location.search).toMatch(/page=8/);
+      });
+      it("should load into page 1 if no page parameter exists", function() {
+        history.pushState({}, "pagination", "?");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+      });
+      it("should load into page 1 if page parameter is out of bounds", function() {
+        history.pushState({}, "pagination", "?page=500");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+        expect(window.location.search).toMatch(/page=1/);
+      });
+      it("shouldn't get tripped up by other query variables in the url", function() {
+        history.pushState({}, "pagination", "?something=awesome&page=3");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/21 to 30/);
+      });
+    });
+
     it("should allow pagination to be disabled", function() {
       const Table = createDataTableClass({}, {
         paginate: false
@@ -160,10 +212,7 @@ describe("DataTable Plugin", function() {
     var data;
 
     beforeEach(function() {
-      data = [];
-      for (var iter = 0; iter < 100; ++iter) {
-        data.push({ id: iter + 1, name: "hi " + iter });
-      }
+      data = createBulkData();
     });
 
     describe("without pagination", function() {
@@ -324,6 +373,7 @@ describe("DataTable Plugin", function() {
       });
 
       it("should trigger an event when #selectAllVisible is called", function() {
+        history.pushState({}, "pagination", "?page=3");
         var changeSelectSpy = jasmine.createSpy();
         const table = new this.TableClass({ collection: this.collection });
         table.render();
