@@ -93,6 +93,7 @@ Backdraft.app("TableExample", function(app) {
     render: function() {
       var collection  = new app.Collections.Books();
       var table = new app.Views.BookTable({ collection: collection });
+      this.child("table", table);
       this.$el.html(table.render().$el);
       return this;
     }
