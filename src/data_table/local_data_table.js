@@ -473,8 +473,15 @@ class LocalDataTable extends View {
       }
     }.bind(this));
     window.onpopstate = () => {
-      this._pageToSearchPage();
+      this._safePageToSearchPage();
     };
+  }
+
+  _safePageToSearchPage() {
+    let pageNumber = this._parseQueryString(window.location.search);
+    if (pageNumber >= 0) {
+      this.page(this._parseQueryString(window.location.search));
+    }
   }
 
   _pageToSearchPage() {
