@@ -319,7 +319,7 @@ class ServerSideDataTable extends LocalDataTable {
 _.extend(ServerSideDataTable.prototype, {
   // overridden and will be handled via the _onDraw callback
   _initPaginationHandling: $.noop,
-
+  _pageToSearchPage: $.noop,
   // overridden and will be handled via the _onDraw callback
   _bulkCheckboxAdjust: $.noop
 });
