@@ -6487,6 +6487,9 @@
 			_fnMap( oSettings, oInit, "oSearch", "oPreviousSearch" );
 			_fnMap( oSettings, oInit, "aoSearchCols", "aoPreSearchCols" );
 			_fnMap( oSettings, oInit, "iDisplayLength", "_iDisplayLength" );
+      _fnMap( oSettings, oInit, "iDisplayStart", "_iDisplayStart" );
+      _fnMap( oSettings, oInit, "iRecordsTotal", "_iRecordsTotal" );
+      _fnMap( oSettings, oInit, "iRecordsDisplay", "_iRecordsDisplay" );
 			_fnMap( oSettings, oInit, "bJQueryUI", "bJUI" );
 			_fnMap( oSettings, oInit, "fnCookieCallback" );
 			_fnMap( oSettings, oInit, "fnStateLoad" );
