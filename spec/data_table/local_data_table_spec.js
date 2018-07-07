@@ -167,6 +167,9 @@ describe("DataTable Plugin", function() {
         history.pushState({}, "pagination", "?page=5");
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/41 to 50/);
+        expect(jQuery.fn.dataTable.settings[0]._iDisplayStart).toEqual(10);
+        expect(jQuery.fn.dataTable.settings[0]._iRecordsTotal).toEqual(100);
+        expect(jQuery.fn.dataTable.settings[0]._iRecordsDisplay).toEqual(100);
       });
       it("should store page in url", function() {
         history.pushState({}, "pagination", "?page=1");
@@ -188,6 +191,7 @@ describe("DataTable Plugin", function() {
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
         expect(window.location.search).toMatch(/page=1/);
+
       });
       it("shouldn't get tripped up by other query variables in the url", function() {
         history.pushState({}, "pagination", "?something=awesome&page=3");

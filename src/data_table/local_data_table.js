@@ -480,11 +480,7 @@ class LocalDataTable extends View {
   _pageToSearchPage() {
     let pageNumber = this._parseQueryString(window.location.search);
     if (pageNumber >= 0) {
-      if (pageNumber > this.dataTable.fnPagingInfo().iTotalPages) {
-        this.page(0);
-      } else {
-        this.page(this._parseQueryString(window.location.search));
-      }
+      this.page(this._parseQueryString(window.location.search));
     }
   }
 
@@ -535,6 +531,8 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
+    let displayStart = this._parseQueryString(window.location.search) * this.paginateLength;
+    let recordTotal = displayStart + 10;
     return {
       sDom: this.layout,
       bDeferRender: true,
@@ -546,6 +544,9 @@ class LocalDataTable extends View {
       aoColumns: this._columnManager.dataTableColumnsConfig(),
       aaSorting: this._columnManager.dataTableSortingConfig(),
       fnDrawCallback: this._onDraw,
+      iDisplayStart: displayStart,
+      iRecordsTotal: recordTotal,
+      iRecordsDisplay: recordTotal,
       oLanguage: {
         sEmptyTable: this.emptyText
       }
@@ -582,6 +583,8 @@ class LocalDataTable extends View {
       $('.DataTables_sort_interceptor', this).on("click", event => {
         if (self.lock("sort")) {
           event.stopImmediatePropagation();
+        } else {
+          history.pushState({}, "pagination", self._createSearchString(0));
         }
       });
       // default sort handler for column with index
