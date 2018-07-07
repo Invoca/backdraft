@@ -179,6 +179,7 @@ describe("DataTable Plugin", function() {
 
   afterEach(function() {
     jasmine.clock().uninstall();
+    history.pushState({}, "pagination", "?");
   });
 
   beforeEach(function() {
@@ -201,6 +202,63 @@ describe("DataTable Plugin", function() {
     $('.popover').remove();
     Backbone.history.stop();
     jasmine.Ajax.uninstall();
+  });
+
+  describe("server side pagination history", function() {
+    afterEach(function() {
+      history.pushState({}, "pagination", "?");
+    });
+    it("should not ignore iDisplayStart setting on initialization", function() {
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(jQuery.fn.dataTable.settings[0]._iDisplayStart).toEqual(40);
+      expect(jQuery.fn.dataTable.settings[0]._iRecordsTotal).toEqual(100);
+      expect(jQuery.fn.dataTable.settings[0]._iRecordsDisplay).toEqual(100);
+    });
+    it("should load the correct page from url", function() {
+      history.pushState({}, "pagination", "?page=5");
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/41 to 50/);
+    });
+    it("should store page in url", function() {
+      history.pushState({}, "pagination", "?page=1");
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      table.page("next");
+      expect(window.location.search).toMatch(/page=2/);
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      table.page("previous");
+      expect(window.location.search).toMatch(/page=1/);
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      table.page(7);
+      expect(window.location.search).toMatch(/page=8/);
+    });
+    it("should load into page 1 if no page parameter exists", function() {
+      history.pushState({}, "pagination", "?");
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+    });
+    it("should load into empty table if page parameter is out of bounds", function() {
+      history.pushState({}, "pagination", "?page=500");
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/4,991 to 100/);
+      expect(window.location.search).toMatch(/page=500/);
+    });
+    it("shouldn't get tripped up by other query variables in the url", function() {
+      history.pushState({}, "pagination", "?something=awesome&page=3");
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/21 to 30/);
+    });
   });
 
   describe("server side restrictions", function() {
@@ -543,7 +601,7 @@ describe("DataTable Plugin", function() {
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       expect(jasmine.Ajax.requests.mostRecent().url).toMatch("/somewhere?");
       expect(table.$("tbody tr").length).toEqual(10);
-      expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1);
+      expect(table.$("div.dataTables_info:contains('Showing 1 to 10 of 100 entries')").length).toEqual(1, table.$("div.dataTables_info").text());
     });
 
     it("should work with a url that is a function", function() {
