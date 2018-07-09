@@ -387,7 +387,6 @@ describe("DataTable Plugin", function() {
       });
 
       it("should trigger an event when #selectAllVisible is called", function() {
-        history.pushState({}, "pagination", "?page=3");
         var changeSelectSpy = jasmine.createSpy();
         const table = new this.TableClass({ collection: this.collection });
         table.render();
