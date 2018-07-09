@@ -75,9 +75,8 @@ class LocalDataTable extends View {
     this._enableRowHighlight();
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
-    this.trigger("render");
     this.paginate && this._setupPaginationHistory();
-    this.paginate && this._pageToSearchPage();
+    this.trigger("render");
     return this;
   }
 
@@ -470,15 +469,13 @@ class LocalDataTable extends View {
       }
     }.bind(this));
     window.onpopstate = () => {
-      this._safePageToSearchPage();
+      this._pageToSearchPage();
     };
+    this.on("render", this._afterRender());
   }
 
-  _safePageToSearchPage() {
-    let pageNumber = this._parseQueryString(window.location.search);
-    if (pageNumber >= 0) {
-      this.page(this._parseQueryString(window.location.search));
-    }
+  _afterRender() {
+    this._pageToSearchPage();
   }
 
   _pageToSearchPage() {

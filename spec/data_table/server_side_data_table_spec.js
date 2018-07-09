@@ -208,13 +208,18 @@ describe("DataTable Plugin", function() {
     afterEach(function() {
       history.pushState({}, "pagination", "?");
     });
-    it("should not ignore iDisplayStart setting on initialization", function() {
+    it("should handling going back", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
-      expect(jQuery.fn.dataTable.settings[0]._iDisplayStart).toEqual(40);
-      expect(jQuery.fn.dataTable.settings[0]._iRecordsTotal).toEqual(100);
-      expect(jQuery.fn.dataTable.settings[0]._iRecordsDisplay).toEqual(100);
+      table.page("next");
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      table.page("next");
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      Backbone.history.navigate("?page=2", { trigger: false, replace: true });
+      $(window).trigger('popstate');
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/11 to 20/);
     });
     it("should load the correct page from url", function() {
       history.pushState({}, "pagination", "?page=5");
