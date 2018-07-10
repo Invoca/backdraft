@@ -488,14 +488,18 @@ class LocalDataTable extends View {
     }
   }
 
+  _urlParameters() {
+    return $.deparam(window.location.href.split("?")[1] || "");
+  }
+
   _createSearchString(pageNumber) {
-    let urlParameters = $.deparam(window.location.href.split("?")[1] || "");
+    let urlParameters = this._urlParameters();
     urlParameters.page = pageNumber;
     return "?" + $.param(urlParameters);
   }
 
   _parsePageNumberFromQueryString() {
-    let parameters = $.deparam(window.location.href.split("?")[1] || "");
+    let parameters = this._urlParameters();
     let page = parseInt(parameters.page) - 1;
     if (isNaN(page)) {
       return 0;
