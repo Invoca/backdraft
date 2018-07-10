@@ -77,6 +77,7 @@ class LocalDataTable extends View {
     this._triggerChangeSelection();
     this.paginate && this._setupPaginationHistory();
     this.trigger("render");
+    this.paginate && this._afterRender();
     return this;
   }
 
@@ -465,20 +466,19 @@ class LocalDataTable extends View {
     this.dataTable.on("page", () => {
       let page = this.dataTable.fnPagingInfo().iPage;
       if (page !== this._parsePageNumberFromQueryString()) {
-        history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage + 1));
+        history.pushState({}, "pagination", this._createQueryStringWithPageNumber(page + 1));
       }
     });
     window.onpopstate = () => {
-      this._pageToSearchPage();
+      this._goToPageFromQueryString();
     };
-    this.on("render", this._afterRender());
   }
 
   _afterRender() {
-    this._pageToSearchPage();
+    this._goToPageFromQueryString();
   }
 
-  _pageToSearchPage() {
+  _goToPageFromQueryString() {
     let pageNumber = this._parsePageNumberFromQueryString();
     if (pageNumber >= 0) {
       this.page(pageNumber);
@@ -489,7 +489,7 @@ class LocalDataTable extends View {
     return $.deparam(window.location.href.split("?")[1] || "");
   }
 
-  _createSearchString(pageNumber) {
+  _createQueryStringWithPageNumber(pageNumber) {
     let urlParameters = this._urlParameters();
     urlParameters.page = pageNumber;
     return "?" + $.param(urlParameters);
@@ -527,21 +527,21 @@ class LocalDataTable extends View {
 
   _dataTableConfig() {
     let displayStart = this._parsePageNumberFromQueryString() * this.paginateLength;
-    let recordTotal = displayStart + 10;
+    let recordTotal = displayStart + this.paginateLength;
     return {
       sDom: this.layout,
       bDeferRender: true,
       bPaginate: this.paginate,
       aLengthMenu: this.paginateLengthMenu,
       iDisplayLength: this.paginateLength,
+      iDisplayStart: displayStart,
+      iRecordsTotal: recordTotal,
+      iRecordsDisplay: recordTotal,
       bInfo: true,
       fnCreatedRow: this._onRowCreated,
       aoColumns: this._columnManager.dataTableColumnsConfig(),
       aaSorting: this._columnManager.dataTableSortingConfig(),
       fnDrawCallback: this._onDraw,
-      iDisplayStart: displayStart,
-      iRecordsTotal: recordTotal,
-      iRecordsDisplay: recordTotal,
       oLanguage: {
         sEmptyTable: this.emptyText
       }
@@ -579,7 +579,7 @@ class LocalDataTable extends View {
         if (self.lock("sort")) {
           event.stopImmediatePropagation();
         } else {
-          history.pushState({}, "pagination", self._createSearchString(1));
+          history.pushState({}, "pagination", self._createQueryStringWithPageNumber(1));
         }
       });
       // default sort handler for column with index

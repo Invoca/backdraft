@@ -209,14 +209,17 @@ describe("DataTable Plugin", function() {
       history.pushState({}, "pagination", "?");
     });
 
-    it("should handling going back", function() {
+    it("should handling going back in browser history", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
       table.page("next");
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/11 to 20/);
       table.page("next");
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/21 to 30/);
       Backbone.history.navigate("?page=2", { trigger: false, replace: true });
       $(window).trigger('popstate');
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
@@ -263,12 +266,21 @@ describe("DataTable Plugin", function() {
       expect(window.location.search).toMatch(/page=500/);
     });
 
-    it("shouldn't get tripped up by other query variables in the url", function() {
+    it("should load into page 1 if page parameter is not an integer", function() {
+      history.pushState({}, "pagination", "?page=three");
+      const table = new TestDataTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+    });
+
+    it("should load correctly with other variables in the url", function() {
       history.pushState({}, "pagination", "?something=awesome&page=3");
       const table = new TestDataTable({ collection: this.collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/21 to 30/);
+      expect(window.location.search).toEqual("?something=awesome&page=3");
     });
   });
 
