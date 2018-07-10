@@ -213,6 +213,7 @@ describe("DataTable Plugin", function() {
     afterEach(function() {
       history.pushState({}, "pagination", "?");
     });
+
     it("should handling going back", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.render();
@@ -226,6 +227,7 @@ describe("DataTable Plugin", function() {
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/11 to 20/);
     });
+
     it("should load the correct page from url", function() {
       history.pushState({}, "pagination", "?page=5");
       const table = new TestDataTable({ collection: this.collection });
@@ -233,6 +235,7 @@ describe("DataTable Plugin", function() {
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/41 to 50/);
     });
+
     it("should store page in url", function() {
       history.pushState({}, "pagination", "?page=1");
       const table = new TestDataTable({ collection: this.collection });
@@ -247,6 +250,7 @@ describe("DataTable Plugin", function() {
       table.page(7);
       expect(window.location.search).toMatch(/page=8/);
     });
+
     it("should load into page 1 if no page parameter exists", function() {
       history.pushState({}, "pagination", "?");
       const table = new TestDataTable({ collection: this.collection });
@@ -254,6 +258,7 @@ describe("DataTable Plugin", function() {
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
     });
+
     it("should load into empty table if page parameter is out of bounds", function() {
       history.pushState({}, "pagination", "?page=500");
       const table = new TestDataTable({ collection: this.collection });
@@ -262,6 +267,7 @@ describe("DataTable Plugin", function() {
       expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/4,991 to 100/);
       expect(window.location.search).toMatch(/page=500/);
     });
+
     it("shouldn't get tripped up by other query variables in the url", function() {
       history.pushState({}, "pagination", "?something=awesome&page=3");
       const table = new TestDataTable({ collection: this.collection });
