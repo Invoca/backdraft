@@ -462,12 +462,12 @@ class LocalDataTable extends View {
   }
 
   _setupPaginationHistory() {
-    this.dataTable.on("page", function() {
-      var page = this.dataTable.fnPagingInfo().iPage;
-      if (page !== this._parseQueryString(window.location.search)) {
-        history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage));
+    this.dataTable.on("page", () => {
+      let page = this.dataTable.fnPagingInfo().iPage;
+      if (page !== this._parsePageNumberFromQueryString()) {
+        history.pushState({}, "pagination", this._createSearchString(this.dataTable.fnPagingInfo().iPage + 1));
       }
-    }.bind(this));
+    });
     window.onpopstate = () => {
       this._pageToSearchPage();
     };
@@ -479,36 +479,26 @@ class LocalDataTable extends View {
   }
 
   _pageToSearchPage() {
-    let pageNumber = this._parseQueryString(window.location.search);
+    let pageNumber = this._parsePageNumberFromQueryString();
     if (pageNumber >= 0) {
-      this.page(this._parseQueryString(window.location.search));
+      this.page(pageNumber);
     }
   }
 
   _createSearchString(pageNumber) {
-    var queryString = window.location.search;
-    var searchString = "?";
-    pageNumber++;
-    var pageString = "page=" + pageNumber;
-    if (queryString[0] === '?') {
-      queryString = queryString.substr(1);
-      var parameters = $.deparam(queryString);
-      parameters.page = pageNumber;
-      searchString += $.param(parameters);
-    } else {
-      searchString += pageString;
-    }
-    return searchString;
+    let urlParameters = $.deparam(window.location.href.split("?")[1] || "");
+    urlParameters.page = pageNumber;
+    return "?" + $.param(urlParameters);
   }
 
-  _parseQueryString(search) {
-    if (search[0] === '?') {
-      search = search.substr(1);
-    }
-    let parameters = $.deparam(search);
+  _parsePageNumberFromQueryString() {
+    let parameters = $.deparam(window.location.href.split("?")[1] || "");
     let page = parseInt(parameters.page) - 1;
-    if (isNaN(page)) { return 0; }
-    return parseInt(parameters.page) - 1;
+    if (isNaN(page)) {
+      return 0;
+    } else {
+      return page;
+    }
   }
 
   _initBulkHandling() {
@@ -532,7 +522,7 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
-    let displayStart = this._parseQueryString(window.location.search) * this.paginateLength;
+    let displayStart = this._parsePageNumberFromQueryString() * this.paginateLength;
     let recordTotal = displayStart + 10;
     return {
       sDom: this.layout,
@@ -585,7 +575,7 @@ class LocalDataTable extends View {
         if (self.lock("sort")) {
           event.stopImmediatePropagation();
         } else {
-          history.pushState({}, "pagination", self._createSearchString(0));
+          history.pushState({}, "pagination", self._createSearchString(1));
         }
       });
       // default sort handler for column with index

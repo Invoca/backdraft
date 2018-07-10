@@ -154,8 +154,7 @@ describe("DataTable Plugin", function() {
     });
 
     describe("local data table pagination history", function() {
-      let data;
-      let table;
+      let data, table;
       beforeEach(function() {
         Backbone.history.start({
           pushState:  true,
@@ -166,10 +165,12 @@ describe("DataTable Plugin", function() {
         table = new TestDataTable({ collection: this.collection });
         this.collection.reset(data);
       });
+
       afterEach(function() {
         Backbone.history.stop();
         history.pushState({}, "pagination", "?");
       });
+
       it("should handle going back", function() {
         table.render();
         table.page("next");
@@ -178,11 +179,13 @@ describe("DataTable Plugin", function() {
         $(window).trigger('popstate');
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/11 to 20/);
       });
+
       it("should load correct page in table from url", function() {
         history.pushState({}, "pagination", "?page=5");
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/41 to 50/);
       });
+
       it("should store page in url", function() {
         history.pushState({}, "pagination", "?page=1");
         table.render();
@@ -193,17 +196,20 @@ describe("DataTable Plugin", function() {
         table.page(7);
         expect(window.location.search).toMatch(/page=8/);
       });
+
       it("should load into page 1 if no page parameter exists", function() {
         history.pushState({}, "pagination", "?");
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
       });
+
       it("should load into page 1 if page parameter is out of bounds", function() {
         history.pushState({}, "pagination", "?page=500");
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
         expect(window.location.search).toMatch(/page=1/);
       });
+
       it("shouldn't get tripped up by other query variables in the url", function() {
         history.pushState({}, "pagination", "?something=awesome&page=3");
         table.render();
