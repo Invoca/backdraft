@@ -77,7 +77,7 @@ class LocalDataTable extends View {
     this._triggerChangeSelection();
     this.paginate && this._setupPaginationHistory();
     this.trigger("render");
-    this.paginate && this._afterRender();
+    this._afterRender();
     return this;
   }
 
@@ -475,7 +475,9 @@ class LocalDataTable extends View {
   }
 
   _afterRender() {
-    this._goToPageFromQueryString();
+    if (this.paginate) {
+      this._goToPageFromQueryString();
+    }
   }
 
   _goToPageFromQueryString() {
