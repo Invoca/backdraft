@@ -468,7 +468,7 @@ class LocalDataTable extends View {
   _setupPaginationHistory() {
     this.dataTable.on("page", () => {
       let page = this.dataTable.fnPagingInfo().iPage;
-      if (page !== this._parsePageNumberFromQueryString()) {
+      if (page !== this._parsePageNumberFromQueryString() - 1) {
         history.pushState({}, "pagination", this._createQueryStringWithPageNumber(page + 1));
       }
     });
@@ -484,7 +484,7 @@ class LocalDataTable extends View {
   }
 
   _goToPageFromQueryString() {
-    let pageNumber = this._parsePageNumberFromQueryString();
+    let pageNumber = this._parsePageNumberFromQueryString() - 1;
     if (pageNumber >= 0) {
       this.page(pageNumber);
     }
@@ -502,9 +502,9 @@ class LocalDataTable extends View {
 
   _parsePageNumberFromQueryString() {
     let parameters = this._urlParameters();
-    let page = parseInt(parameters.page) - 1;
+    let page = parseInt(parameters.page);
     if (isNaN(page)) {
-      return 0;
+      return 1;
     } else {
       return page;
     }
@@ -531,7 +531,7 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
-    let displayStart = this._parsePageNumberFromQueryString() * this.paginateLength;
+    let displayStart = (this._parsePageNumberFromQueryString() - 1) * this.paginateLength;
     let recordTotal = displayStart + this.paginateLength;
     return {
       sDom: this.layout,
