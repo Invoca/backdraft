@@ -9,6 +9,147 @@ npm install backdraft-app
 ```
 
 ## Usage
+First, define a new Backdraft app:
+
+```javascript
+// app.js
+import MainRouter from "./main_router";
+
+import App from "backdraft-app/src/app";
+
+class TableExample extends App {
+  activate($el) {
+    this.mainRouter = new MainRouter({ $el });
+    Backbone.history.start({ });
+  }
+}
+```
+
+Define an entry point for creating your app:
+
+```javascript
+// main.js
+import TableExample from "./app";
+
+Backdraft.app("TableExample", new TableExample());
+```
+
+Define the various components of your app:
+
+```javascript
+// main_router.js
+import IndexView from "./views/index_view";
+
+import Router from "backdraft-app/src/router";
+
+export default class MainRouter extends Router {
+  get routes() {
+    return {
+      "" : "index"
+    };
+  }
+
+  index() {
+    const view = new IndexView();
+    this.swap(view);
+  }
+};
+
+// models/book.js
+import Model from "backdraft-app/src/model";
+
+export default class Book extends Model {
+};
+
+// collections/books.js
+import Book from "../models/book";
+
+import Collection from "backdraft-app/src/collection";
+
+export default class Books extends Collection {
+  get model() {
+    return Book;
+  }
+};
+
+// views/book_table_view.js
+import BookRowView from "./book_row_view";
+
+import LocalDataTable from "backdraft-app/src/data_table/local_data_table";
+
+export default class BookTableView extends LocalDataTable {
+  get rowClass() {
+    return BookRowView;
+  }
+  
+  get paginate() {
+    return false;
+  }
+};
+
+// views/book_row_view.js
+import Row from "backdraft-app/src/data_table/row";
+
+export default class BookRowView extends Row {
+  get columns() {
+    return [
+      { bulk : true },
+      { attr : "name", title : "Name" },
+      { attr : "created_at", title : "Created" }
+    ];
+  }
+};
+```
+
+Now create the view that pulls all the pieces together:
+
+```javascript
+// views/index_view.js
+import BookTableView from "./book_table_view";
+import Books from "../collections/books";
+
+import View from "backdraft-app/src/view";
+
+export default class IndexView extends View {
+  render() {
+    const collection  = new Books();
+    const data = [];
+  
+    // fake data
+    for (let iter = 0; iter < 10; ++iter) {
+      data.push({ name : `Book ${iter + 1}` });
+    }
+  
+    collection.add(data);
+    const table = new BookTableView({ collection });
+  
+    this.$el.html(table.render().$el);
+    return this;
+  }
+}
+```
+
+Finally, in an HTML page that loads the above scripts, activate the app at load time:
+
+```html
+<html>
+  <head>
+    ...
+  </head>
+  <body>
+    <div id="example-area"></div>
+
+    <script type="text/javascript">
+      Backdraft.app("TableExample").activate($("#example-area"));
+    </script>
+  </body>
+</html>
+```
+
+## Legacy Usage
+
+The legacy usage uses the `Backdraft` object to define the components of the application.
+ 
 First, define a new Backdraft app and what plugins it will use:
 
 ```javascript
@@ -116,9 +257,6 @@ Then activate the app at load time:
   </body>
 </html>
 ```
-
-### Important notes
-* We're using curly braces ``{{ }}`` for underscore templating instead of angle brackets ``<% %>`` to not conflict with other templating conventions.
 
 ### Examples
 If you run `yarn run examples`, a local server will be launched with live examples at [localhost:9888](http://localhost:9888).
