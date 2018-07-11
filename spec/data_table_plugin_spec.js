@@ -1272,6 +1272,7 @@ describe("DataTable Plugin", function() {
         stubResizeMode(table);
         triggerMouseMoveEvent(table, { mouseX: -10 });
         const endWidth = startWidth - 10;
+        //TODO: Fix this test so it doesn't break after the first time in yarn run dev
         expect(parseInt($('thead th .DataTables_sort_interceptor').css('max-width'))).toEqual(endWidth, "max-width equal to new width of column (startWidth - 10)");
       });
 
