@@ -528,7 +528,7 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
-    let displayStart = (this._parsePageNumberFromQueryString() - 1) * this.paginateLength;
+    let displayStart = this._getSafeDisplayStartFromPageNumber();
     let recordTotal = displayStart + this.paginateLength;
     return {
       sDom: this.layout,
@@ -548,6 +548,15 @@ class LocalDataTable extends View {
         sEmptyTable: this.emptyText
       }
     };
+  }
+
+  _getSafeDisplayStartFromPageNumber() {
+    let pageIndex = this._parsePageNumberFromQueryString() - 1;
+    if (pageIndex < 0) {
+      return 0;
+    } else {
+      return (this._parsePageNumberFromQueryString() - 1) * this.paginateLength;
+    }
   }
 
   _triggerChangeSelection(extraData) {
