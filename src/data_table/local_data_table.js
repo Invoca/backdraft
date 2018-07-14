@@ -558,7 +558,7 @@ class LocalDataTable extends View {
     if (pageIndex < 0) {
       return 0;
     } else {
-      return (this._parsePageNumberFromQueryString() - 1) * this.paginateLength;
+      return pageIndex * this.paginateLength;
     }
   }
 
