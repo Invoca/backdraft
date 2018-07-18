@@ -1,7 +1,11 @@
-import { default as Backdraft } from "../src/entry";
+import { default as Backdraft } from "../src/backdraft";
 
 import Plugin from "../src/plugin";
 import App from "../src/app";
+import Router from "../src/router";
+import View from "../src/view";
+import Item from "../src/listing/item";
+import List from "../src/listing/list";
 
 describe("Backdraft Namespace", function() {
   beforeEach(function() {
@@ -103,7 +107,28 @@ describe("Backdraft Namespace", function() {
 
   describe("plugin", function() {
     it("is plugin factory", function() {
-      expect(Backdraft.plugin).toEqual(Plugin.create);
+      spyOn(Plugin, "create").and.returnValue("howdy");
+
+      const result = Backdraft.plugin("hello", "bro");
+
+      expect(Plugin.create).toHaveBeenCalledWith("hello", "bro");
+
+      expect(result).toEqual("howdy");
+    });
+  });
+
+  describe("exports", function() {
+    it("includes Router", function() {
+      expect(Backdraft.Router).toEqual(Router);
+    });
+
+    it("includes View", function() {
+      expect(Backdraft.View).toEqual(View);
+    });
+
+    it("includes Listing classes", function() {
+      expect(Backdraft.Listing.ListView).toEqual(List);
+      expect(Backdraft.Listing.ItemView).toEqual(Item);
     });
   });
 });

@@ -8,8 +8,6 @@ import LocalDataTable from "./data_table/local_data_table";
 import ServerSideDataTable from "./data_table/server_side_data_table";
 import Config from "./data_table/config";
 
-import setupEnvironment from "./data_table/setup_environment";
-
 import "./legacy/register_base_plugin";
 
 function finalizeLocalTable(tableClass, app) {
@@ -33,8 +31,6 @@ Plugin.create("DataTable", plugin => {
   });
 
   plugin.initializer(app => {
-    setupEnvironment();
-
     app.installPlugin("Base");
 
     app.view.dataTable = function(name, baseClassName, properties) {

@@ -1,5 +1,6 @@
 import $ from "jquery";
 import _ from "underscore";
+import "bootstrap";
 
 import View from "../view";
 

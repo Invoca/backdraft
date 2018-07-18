@@ -13,18 +13,10 @@ module.exports = function(config) {
   config.set({
     frameworks: ['jasmine'],
     files: [
-      "vendor/jquery-1.10.2.js",
-      "vendor/jquery-deparam.js",
-      "node_modules/underscore/underscore.js",
-      "node_modules/backbone/backbone.js",
-      "vendor/mock-ajax.js",
-      "vendor/bootstrap-3.1.1-dist/js/bootstrap.js",
-      "vendor/jquery.dataTables-1.9.4.js",
-      "vendor/jquery.dataTables.errorMode.js",
       specFilesGlob
     ],
 
-    webpack: require('./webpack.config.js'),
+    webpack: require('./webpack/test.js'),
 
     // Webpack each spec we run to resolve imports and transpile on the fly
     preprocessors: {

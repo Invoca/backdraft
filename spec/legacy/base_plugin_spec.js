@@ -1,8 +1,13 @@
-import { default as Backdraft } from "../../src/entry";
+import "../../src/legacy/register_base_plugin";
+
 import App from "../../src/app";
+import Plugin from "../../src/plugin";
+
+import Backbone from "backbone";
+import $ from "jquery";
 
 describe("Base Plugin", function() {
-  const exports = Backdraft.plugin("Base");
+  const exports = Plugin.get("Base");
 
   describe("app usage", function() {
     var app;

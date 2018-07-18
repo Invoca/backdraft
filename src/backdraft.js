@@ -25,7 +25,7 @@ import _ from "underscore";
 
 const globalAppRegistry = new AppRegistry();
 
-const Namespace = {
+const Backdraft = {
   Utils: {
     toCSSClass,
     toColumnCSSClass,
@@ -52,7 +52,9 @@ const Namespace = {
     ItemView
   },
 
-  plugin: Plugin.create,
+  plugin(...args) {
+    return Plugin.create(...args);
+  },
 
   app(name, obj) {
     if (!obj) {
@@ -67,8 +69,8 @@ const Namespace = {
   }
 };
 
-Namespace.app.registry = globalAppRegistry;
-Namespace.app.destroy = (name) => globalAppRegistry.destroy(name);
-Namespace.app.destroyAll = () => globalAppRegistry.destroyAll();
+Backdraft.app.registry = globalAppRegistry;
+Backdraft.app.destroy = (name) => globalAppRegistry.destroy(name);
+Backdraft.app.destroyAll = () => globalAppRegistry.destroyAll();
 
-export default Namespace;
+export default Backdraft;

@@ -1,4 +1,6 @@
 import _ from "underscore";
+import $ from "jquery";
+
 import BaseFilterMenu from "./base_filter_menu";
 
 class NumericFilterMenu extends BaseFilterMenu {

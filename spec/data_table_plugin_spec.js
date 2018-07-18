@@ -1,6 +1,9 @@
 import App from "../src/app";
 import View from "../src/view";
 
+import _ from "underscore";
+import $ from "jquery";
+
 describe("DataTable Plugin", function() {
   let app;
   let collection;
@@ -894,7 +897,7 @@ describe("DataTable Plugin", function() {
       }
 
       function triggerMouseMoveEvent(table, options) {
-        const event = jQuery.Event("mousemove.ColReorder");
+        const event = $.Event("mousemove.ColReorder");
         event.pageX = options.mouseX;
 
         // the below didn't work, so just calling the mouse move callback directly
@@ -1222,7 +1225,7 @@ describe("DataTable Plugin", function() {
       }
 
       function triggerMouseMoveEvent(table, options) {
-        const event = jQuery.Event("mousemove.ColReorder");
+        const event = $.Event("mousemove.ColReorder");
         event.pageX = options.mouseX;
 
         // the below didn't work, so just calling the mouse move callback directly

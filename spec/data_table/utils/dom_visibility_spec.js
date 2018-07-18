@@ -1,5 +1,7 @@
 import { DomVisibility, absolutePointAtViewportEdge } from "../../../src/data_table/utils/dom_visibility";
 
+import $ from "jquery";
+
 const WIDTH_BEYOND_VIEWPORT = 9000;
 
 describe("DomVisibility", function() {

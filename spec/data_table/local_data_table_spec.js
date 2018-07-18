@@ -1,9 +1,10 @@
-import setupEnvironment from "../../src/data_table/setup_environment";
-
 import Model from "../../src/model";
 import Collection from "../../src/collection";
 
 import { inDom, createRowClass, createLocalDataTableClass } from "../support/spec_helpers";
+
+import _ from "underscore";
+import $ from "jquery";
 
 function createDataTableClass(constructorOptions, protoProperties) {
   return createLocalDataTableClass(_.extend({ rowClass: TestRow }, constructorOptions), protoProperties);
@@ -34,8 +35,6 @@ class TestCollection extends Collection {
 
 describe("DataTable Plugin", function() {
   beforeEach(function() {
-    setupEnvironment();
-
     this.collection = new TestCollection();
   });
 

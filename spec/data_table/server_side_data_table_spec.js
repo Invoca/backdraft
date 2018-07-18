@@ -4,7 +4,14 @@ import Model from "../../src/model";
 import Collection from "../../src/collection";
 
 import { createRowClass, inDom, createServerSideDataTableClass } from "../support/spec_helpers";
-import setupEnvironment from "../../src/data_table/setup_environment";
+
+import _ from "underscore";
+import $ from "jquery";
+import Backbone from "backbone";
+
+import "../support/mock-ajax";
+
+import "jquery-deparam";
 
 class TestModel extends Model {}
 
@@ -182,8 +189,6 @@ describe("DataTable Plugin", function() {
   });
 
   beforeEach(function() {
-    setupEnvironment();
-
     this.collection = new TestCollection();
 
     jasmine.Ajax.install();
@@ -1104,6 +1109,7 @@ describe("DataTable Plugin", function() {
       const collection = new TestCollection();
       const table = new TestDataTable({ collection });
       table.render();
+      $('body').append(table.$el);
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
 
       table.dataTable.find("thead th").not(".bulk").each(function() {
@@ -1151,6 +1157,11 @@ describe("DataTable Plugin", function() {
         });
 
         this.table = setupTable(TestRow, this.mockResponse.get());
+        $('body').append(this.table.$el);
+      });
+
+      afterEach(function() {
+        this.table.remove();
       });
 
       it("should have an object for each filterable column in the column manager which describes the filter to be applied", function() {
@@ -1323,13 +1334,16 @@ describe("DataTable Plugin", function() {
             if (col && col.filter) {
               switch (col.filter.type) {
               case "string":
+                $(".toggle-filter-button", this).click();
                 expect($('.filter-menu input').val()).toEqual("Scott");
                 break;
               case "numeric":
+                $(".toggle-filter-button", this).click();
                 expect($('select[data-filter-id=first-filter]').val()).toEqual("eq");
                 expect($('input#first-filter').val()).toEqual("0.5");
                 break;
               case "list":
+                $(".toggle-filter-button", this).click();
                 expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
                 break;
               }
@@ -1381,7 +1395,7 @@ describe("DataTable Plugin", function() {
             expect($(".popover .filter-menu").length).toEqual(1);
 
             // click away
-            $("div:first-child", this).trigger("click");
+            darTable.$el.trigger("click");
             expect($(".popover .filter-menu").length).toEqual(0);
 
             // catch the timeout for dataTable's _fnSortAttachListener()

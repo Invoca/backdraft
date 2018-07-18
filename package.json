@@ -1,20 +1,18 @@
 {
   "name": "backdraft-app",
-  "version": "0.6.0",
+  "version": "1.0.0-beta.2",
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "files": [
-    "dist/",
-    "src/"
+    "src/",
+    "vendor/"
   ],
-  "main": "dist/backdraft",
   "scripts": {
     "eslint": "eslint-git-changes --jsx",
     "setup": "npm install -g grunt-cli",
     "specs": "yarn run eslint; karma start --single-run",
     "specs_without_eslint": "karma start --single-run",
     "dev": "yarn run eslint; karma start",
-    "examples": "grunt examples",
-    "prepublish": "NODE_ENV=production grunt build"
+    "examples": "grunt examples"
   },
   "author": "Invoca",
   "license": "MIT",
@@ -26,18 +24,16 @@
     "babel-preset-env": "^1.6.1",
     "babel-preset-minify": "^0.3.0",
     "backbone": "1.1.2",
+    "bootstrap": "4.0.0",
     "eslint": "^4.19.1",
-    "eslint-config-standard": "^11.0.0",
     "eslint-git-changes": "^2.0.1",
-    "eslint-plugin-import": "^2.11.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.7.0",
-    "eslint-plugin-standard": "^3.0.1",
     "express": "^4.16.2",
     "grunt": "~0.4.4",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-webpack": "^3.0.2",
     "jasmine-core": "^2.99.1",
+    "jquery": "jquery/jquery#1.10.2",
+    "jquery-deparam": "0.4.2",
     "karma": "^2.0.0",
     "karma-cli": "^1.0.1",
     "karma-jasmine": "^1.1.1",
@@ -46,14 +42,18 @@
     "karma-spec-reporter": "^0.0.32",
     "karma-webpack": "^2.0.9",
     "morgan": "^1.9.0",
+    "popper.js": "1.12.9",
     "serve-index": "^1.9.1",
     "style-guide": "Invoca/style-guide",
     "underscore": "1.8.3",
     "webpack": "^3.10.0"
   },
   "peerDependencies": {
-    "backbone": "1.1.2",
+    "backbone": "^1.1.2",
+    "bootstrap": "^4.0.0",
     "jquery": "^1.10.2",
-    "underscore": "1.8.3"
+    "jquery-deparam": "^0.4.2",
+    "popper.js": "^1.12.9",
+    "underscore": "^1.8.3"
   }
 }
