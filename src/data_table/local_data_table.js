@@ -472,6 +472,9 @@ class LocalDataTable extends View {
         history.pushState({}, "pagination", this._createQueryStringWithPageNumber(page + 1));
       }
     });
+    this.dataTable.on("someTrigger", () => {
+      console.log("Hey it worked!");
+    });
     window.onpopstate = () => {
       this._goToPageFromQueryString();
     };
