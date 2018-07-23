@@ -5297,11 +5297,7 @@ strip-json-comments@~2.0.1:
 
 style-guide@Invoca/style-guide:
   version "1.0.0"
-<<<<<<< HEAD
   resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/cd650392d92a330c8de59687564ba5195ef37f6e"
-=======
-  resolved "https://codeload.github.com/Invoca/style-guide/tar.gz/29fe558b0b67213f74f074dc420764af00a2a76b"
->>>>>>> 9316ed6... Add and import jquery-deparam.
   dependencies:
     eslint ">= 4.19.1"
     eslint-config-standard "^11.0.0"
