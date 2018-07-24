@@ -18,7 +18,6 @@ import { extractColumnCSSClass, toColumnCSSClass } from "../utils/css";
 
 import cidMap from "./cid_map";
 import Config from "./config";
-import "jquery-deparam";
 
 class LocalDataTable extends View {
   constructor(options) {
@@ -465,15 +464,19 @@ class LocalDataTable extends View {
     this.dataTable.on("page", this._bulkCheckboxAdjust);
   }
 
+  _setQueryStringPageFromDataTable() {
+    let page = this.dataTable.fnPagingInfo().iPage;
+    if (page !== this._parsePageNumberFromQueryString() - 1) {
+      history.pushState({}, "pagination", this._createQueryStringWithPageNumber(page + 1));
+    }
+  }
+
   _setupPaginationHistory() {
     this.dataTable.on("page", () => {
-      let page = this.dataTable.fnPagingInfo().iPage;
-      if (page !== this._parsePageNumberFromQueryString() - 1) {
-        history.pushState({}, "pagination", this._createQueryStringWithPageNumber(page + 1));
-      }
+      this._setQueryStringPageFromDataTable();
     });
-    this.dataTable.on("someTrigger", () => {
-      console.log("Hey it worked!");
+    this.dataTable.on("pageLengthChange", () => {
+      this._setQueryStringPageFromDataTable();
     });
     window.onpopstate = () => {
       this._goToPageFromQueryString();

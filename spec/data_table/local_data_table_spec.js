@@ -5,6 +5,7 @@ import { inDom, createRowClass, createLocalDataTableClass } from "../support/spe
 
 import _ from "underscore";
 import $ from "jquery";
+import Backbone from "backbone";
 
 function createDataTableClass(constructorOptions, protoProperties) {
   return createLocalDataTableClass(_.extend({ rowClass: TestRow }, constructorOptions), protoProperties);
