@@ -171,9 +171,18 @@ describe("DataTable Plugin", function() {
         history.pushState({}, "pagination", "?");
       });
 
-      it("should not use url pagination if urlPagination is explicitly false", function() {
+      it("should not use url pagination if urlPagination is explicitly false via constructor options", function() {
         history.pushState({}, "pagination", "?");
         const NoUrlPagingTable = createDataTableClass({ urlPagination: false }, {});
+        table = new NoUrlPagingTable({ collection: this.collection });
+        table.render();
+        table.page("next");
+        expect(window.location.search).not.toMatch(/page=/);
+      });
+
+      it("should not use url pagination if urlPagination is explicitly false via prototype properties", function() {
+        history.pushState({}, "pagination", "?");
+        const NoUrlPagingTable = createDataTableClass({}, { urlPagination: false });
         table = new NoUrlPagingTable({ collection: this.collection });
         table.render();
         table.page("next");

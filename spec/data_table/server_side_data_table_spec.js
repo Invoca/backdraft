@@ -214,7 +214,7 @@ describe("DataTable Plugin", function() {
       history.pushState({}, "pagination", "?");
     });
 
-    it("should not use url pagination if urlPagination is explicitly false", function() {
+    it("should not use url pagination if urlPagination is explicitly false via constructor options", function() {
       history.pushState({}, "pagination", "?");
       const NoUrlPagingTable = createServerSideDataTableClass({
         rowClass: TestRow,
@@ -227,7 +227,28 @@ describe("DataTable Plugin", function() {
       });
       const table = new NoUrlPagingTable({ collection: this.collection });
       table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       table.page("next");
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      expect(window.location.search).not.toMatch(/page=/);
+    });
+
+    it("should not use url pagination if urlPagination is explicitly false via prototype properties", function() {
+      history.pushState({}, "pagination", "?");
+      const NoUrlPagingTable = createServerSideDataTableClass({
+        rowClass: TestRow,
+        appName: "SillyBilly"
+      }, {
+        sorting: [['name', 'desc']],
+        filteringEnabled: true,
+        serverSideFiltering: true,
+        urlPagination: false
+      });
+      const table = new NoUrlPagingTable({ collection: this.collection });
+      table.render();
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+      table.page("next");
+      jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
       expect(window.location.search).not.toMatch(/page=/);
     });
 
@@ -257,7 +278,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should store page in url", function() {
-      history.pushState({}, "pagination", "?page=1");
+      history.pushState({}, "pagination", "?");
       const table = new TestDataTable({ collection: this.collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
