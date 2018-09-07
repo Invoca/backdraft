@@ -489,7 +489,7 @@ class LocalDataTable extends View {
   }
 
   _afterRender() {
-    if (this.paginate) {
+    if (this.paginate && this.urlPagination) {
       this._goToPageFromQueryString();
     }
   }
@@ -542,8 +542,11 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
-    let displayStart = this._getSafeDisplayStartFromPageNumber();
-    let recordTotal = displayStart + this.paginateLength;
+    let displayStart, recordTotal;
+    if (this.urlPagination) {
+      displayStart = this._getSafeDisplayStartFromPageNumber();
+      recordTotal = displayStart + this.paginateLength;
+    }
     return {
       sDom: this.layout,
       bDeferRender: true,
