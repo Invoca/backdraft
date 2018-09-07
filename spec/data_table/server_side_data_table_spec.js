@@ -214,6 +214,23 @@ describe("DataTable Plugin", function() {
       history.pushState({}, "pagination", "?");
     });
 
+    it("should not use url pagination if urlPagination is explicitly false", function() {
+      history.pushState({}, "pagination", "?");
+      const NoUrlPagingTable = createServerSideDataTableClass({
+        rowClass: TestRow,
+        appName: "SillyBilly",
+        urlPagination: false
+      }, {
+        sorting: [['name', 'desc']],
+        filteringEnabled: true,
+        serverSideFiltering: true
+      });
+      const table = new NoUrlPagingTable({ collection: this.collection });
+      table.render();
+      table.page("next");
+      expect(window.location.search).not.toMatch(/page=/);
+    });
+
     it("should handling going back in browser history", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.render();

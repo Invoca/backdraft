@@ -29,6 +29,8 @@ class LocalDataTable extends View {
     _.extend(this, _.pick(this.options, ["selectedIds", "paginate"]));
     _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
       "_onColumnVisibilityChange", "_onColumnReorder");
+    var urlPagination = (this.options.urlPagination === undefined);
+    this.urlPagination = this.paginate && urlPagination;
 
     this.cache = new Cache();
     this.selectionManager = new SelectionManager();
@@ -77,7 +79,7 @@ class LocalDataTable extends View {
     this._enableRowHighlight();
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
-    this.paginate && this._setupPaginationHistory();
+    this.urlPagination && this._setupPaginationHistory();
     this.trigger("render");
     this._afterRender();
     return this;
