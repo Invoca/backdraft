@@ -5,6 +5,7 @@ import { inDom, createRowClass, createLocalDataTableClass } from "../support/spe
 
 import _ from "underscore";
 import $ from "jquery";
+import Backbone from "backbone";
 
 function createDataTableClass(constructorOptions, protoProperties) {
   return createLocalDataTableClass(_.extend({ rowClass: TestRow }, constructorOptions), protoProperties);
@@ -31,6 +32,14 @@ class TestCollection extends Collection {
   get model() {
     return TestModel;
   }
+}
+
+function createBulkData() {
+  let data = [];
+  for (var iter = 0; iter < 100; ++iter) {
+    data.push({ id: iter + 1, name: "hi " + iter });
+  }
+  return data;
 }
 
 describe("DataTable Plugin", function() {
@@ -144,6 +153,80 @@ describe("DataTable Plugin", function() {
       expect(table.$(".dataTables_paginate").length).toEqual(1);
     });
 
+    describe("local data table pagination history", function() {
+      let data, table;
+      beforeEach(function() {
+        Backbone.history.start({
+          pushState:  true,
+          hashChange: false,
+          root:       window.location.pathname
+        });
+        data = createBulkData();
+        table = new TestDataTable({ collection: this.collection });
+        this.collection.reset(data);
+      });
+
+      afterEach(function() {
+        Backbone.history.stop();
+        history.pushState({}, "pagination", "?");
+      });
+
+      it("should handle going back in browser history", function() {
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+        table.page("next");
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/11 to 20/);
+        table.page("next");
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/21 to 30/);
+        Backbone.history.navigate("?page=2", { trigger: false, replace: true });
+        $(window).trigger('popstate');
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/11 to 20/);
+      });
+
+      it("should load correct page in table from url", function() {
+        history.pushState({}, "pagination", "?page=5");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/41 to 50/);
+      });
+
+      it("should store page in url", function() {
+        history.pushState({}, "pagination", "?page=1");
+        table.render();
+        table.page("next");
+        expect(window.location.search).toMatch(/page=2/);
+        table.page("previous");
+        expect(window.location.search).toMatch(/page=1/);
+        table.page(7);
+        expect(window.location.search).toMatch(/page=8/);
+      });
+
+      it("should load into page 1 if no page parameter exists", function() {
+        history.pushState({}, "pagination", "?");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+      });
+
+      it("should load into page 1 if page parameter is out of bounds", function() {
+        history.pushState({}, "pagination", "?page=500");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+        expect(window.location.search).toMatch(/page=1/);
+      });
+
+      it("should load into page 1 if page parameter is not an integer", function() {
+        history.pushState({}, "pagination", "?page=three");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+      });
+
+      it("should load correctly with other variables in the url", function() {
+        history.pushState({}, "pagination", "?something=awesome&page=3");
+        table.render();
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/21 to 30/);
+        expect(window.location.search).toEqual("?something=awesome&page=3");
+      });
+    });
+
     it("should allow pagination to be disabled", function() {
       const Table = createDataTableClass({}, {
         paginate: false
@@ -160,10 +243,7 @@ describe("DataTable Plugin", function() {
     var data;
 
     beforeEach(function() {
-      data = [];
-      for (var iter = 0; iter < 100; ++iter) {
-        data.push({ id: iter + 1, name: "hi " + iter });
-      }
+      data = createBulkData();
     });
 
     describe("without pagination", function() {

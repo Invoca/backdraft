@@ -77,7 +77,9 @@ class LocalDataTable extends View {
     this._enableRowHighlight();
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
+    this.paginate && this._setupPaginationHistory();
     this.trigger("render");
+    this._afterRender();
     return this;
   }
 
@@ -462,6 +464,58 @@ class LocalDataTable extends View {
     this.dataTable.on("page", this._bulkCheckboxAdjust);
   }
 
+  _setQueryStringPageFromDataTable() {
+    let page = this.dataTable.fnPagingInfo().iPage;
+    if (page !== this._parsePageNumberFromQueryString() - 1) {
+      history.pushState({}, "pagination", this._createQueryStringWithPageNumber(page + 1));
+    }
+  }
+
+  _setupPaginationHistory() {
+    this.dataTable.on("page", () => {
+      this._setQueryStringPageFromDataTable();
+    });
+    this.dataTable.on("pageLengthChange", () => {
+      this._setQueryStringPageFromDataTable();
+    });
+    window.onpopstate = () => {
+      this._goToPageFromQueryString();
+    };
+  }
+
+  _afterRender() {
+    if (this.paginate) {
+      this._goToPageFromQueryString();
+    }
+  }
+
+  _goToPageFromQueryString() {
+    let pageNumber = this._parsePageNumberFromQueryString() - 1;
+    if (pageNumber >= 0) {
+      this.page(pageNumber);
+    }
+  }
+
+  _urlParameters() {
+    return $.deparam(window.location.href.split("?")[1] || "");
+  }
+
+  _createQueryStringWithPageNumber(pageNumber) {
+    let urlParameters = this._urlParameters();
+    urlParameters.page = pageNumber;
+    return "?" + $.param(urlParameters);
+  }
+
+  _parsePageNumberFromQueryString() {
+    let parameters = this._urlParameters();
+    let page = parseInt(parameters.page);
+    if (isNaN(page)) {
+      return 1;
+    } else {
+      return page;
+    }
+  }
+
   _initBulkHandling() {
     const bulkCheckbox = this.$el.find(this.BULK_COLUMN_HEADER_CHECKBOX_SELECTOR);
     if (!bulkCheckbox.length) return;
@@ -483,12 +537,17 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
+    let displayStart = this._getSafeDisplayStartFromPageNumber();
+    let recordTotal = displayStart + this.paginateLength;
     return {
       sDom: this.layout,
       bDeferRender: true,
       bPaginate: this.paginate,
       aLengthMenu: this.paginateLengthMenu,
       iDisplayLength: this.paginateLength,
+      iDisplayStart: displayStart,
+      iRecordsTotal: recordTotal,
+      iRecordsDisplay: recordTotal,
       bInfo: true,
       fnCreatedRow: this._onRowCreated,
       aoColumns: this._columnManager.dataTableColumnsConfig(),
@@ -498,6 +557,15 @@ class LocalDataTable extends View {
         sEmptyTable: this.emptyText
       }
     };
+  }
+
+  _getSafeDisplayStartFromPageNumber() {
+    let pageIndex = this._parsePageNumberFromQueryString() - 1;
+    if (pageIndex < 0) {
+      return 0;
+    } else {
+      return pageIndex * this.paginateLength;
+    }
   }
 
   _triggerChangeSelection(extraData) {
@@ -530,6 +598,8 @@ class LocalDataTable extends View {
       $('.DataTables_sort_interceptor', this).on("click", event => {
         if (self.lock("sort")) {
           event.stopImmediatePropagation();
+        } else {
+          history.pushState({}, "pagination", self._createQueryStringWithPageNumber(1));
         }
       });
       // default sort handler for column with index
