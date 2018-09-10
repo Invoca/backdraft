@@ -82,7 +82,7 @@ class LocalDataTable extends View {
     this._enableRowHighlight();
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
-    this.urlPagination && this._setupPaginationHistory();
+    this.paginate && this.urlPagination && this._setupPaginationHistory();
     this.trigger("render");
     this._afterRender();
     return this;
