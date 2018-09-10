@@ -197,6 +197,14 @@ describe("DataTable Plugin", function() {
           table.render();
           expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
         });
+
+        it("should not attempt url pagination if pagination is turned off", function() {
+          history.pushState({}, "pagination", "?page=5");
+          const NoUrlPagingTable = createDataTableClass({}, { paginate: false, urlPagination: true });
+          table = new NoUrlPagingTable({ collection: this.collection });
+          table.render();
+          expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+        });
       });
 
       it("should handle going back in browser history", function() {
