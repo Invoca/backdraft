@@ -171,6 +171,42 @@ describe("DataTable Plugin", function() {
         history.pushState({}, "pagination", "?");
       });
 
+      describe("url pagination explicitly false", function() {
+        it("should not use url pagination via constructor options", function() {
+          history.pushState({}, "pagination", "?");
+          const NoUrlPagingTable = createDataTableClass({ urlPagination: false }, {});
+          table = new NoUrlPagingTable({ collection: this.collection });
+          table.render();
+          table.page("next");
+          expect(window.location.search).not.toMatch(/page=/);
+        });
+
+        it("should not use url pagination via prototype properties", function() {
+          history.pushState({}, "pagination", "?");
+          const NoUrlPagingTable = createDataTableClass({}, { urlPagination: false });
+          table = new NoUrlPagingTable({ collection: this.collection });
+          table.render();
+          table.page("next");
+          expect(window.location.search).not.toMatch(/page=/);
+        });
+
+        it("should not load starting page based on url", function() {
+          history.pushState({}, "pagination", "?page=5");
+          const NoUrlPagingTable = createDataTableClass({}, { urlPagination: false });
+          table = new NoUrlPagingTable({ collection: this.collection });
+          table.render();
+          expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+        });
+
+        it("should not attempt url pagination if pagination is turned off", function() {
+          history.pushState({}, "pagination", "?page=5");
+          const NoUrlPagingTable = createDataTableClass({}, { paginate: false, urlPagination: true });
+          table = new NoUrlPagingTable({ collection: this.collection });
+          table.render();
+          expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+        });
+      });
+
       it("should handle going back in browser history", function() {
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);

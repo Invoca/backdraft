@@ -30,6 +30,9 @@ class LocalDataTable extends View {
     _.bindAll(this, "_onRowCreated", "_onBulkHeaderClick", "_onBulkRowClick", "_bulkCheckboxAdjust", "_onDraw",
       "_onColumnVisibilityChange", "_onColumnReorder");
 
+    this._initKeyWithValueOrDefault('urlPagination', this.options.urlPagination, true);
+    this.urlPagination = this.urlPagination && this.paginate;
+
     this.cache = new Cache();
     this.selectionManager = new SelectionManager();
     this.rowClass = this.options.rowClass || this._resolveRowClass();
@@ -41,6 +44,16 @@ class LocalDataTable extends View {
     this.listenTo(this.collection, "add", this._onAdd);
     this.listenTo(this.collection, "remove", this._onRemove);
     this.listenTo(this.collection, "reset", this._onReset);
+  }
+
+  _initKeyWithValueOrDefault(key, value, defaultValue) {
+    if (this[key] === undefined) {
+      if (value !== undefined) {
+        this[key] = value;
+      } else {
+        this[key] = defaultValue;
+      }
+    }
   }
 
   availableColumnTypes() {
@@ -77,7 +90,7 @@ class LocalDataTable extends View {
     this._enableRowHighlight();
     this.paginate && this._initPaginationHandling();
     this._triggerChangeSelection();
-    this.paginate && this._setupPaginationHistory();
+    this.urlPagination && this._setupPaginationHistory();
     this.trigger("render");
     this._afterRender();
     return this;
@@ -484,7 +497,7 @@ class LocalDataTable extends View {
   }
 
   _afterRender() {
-    if (this.paginate) {
+    if (this.urlPagination) {
       this._goToPageFromQueryString();
     }
   }
@@ -537,8 +550,11 @@ class LocalDataTable extends View {
   }
 
   _dataTableConfig() {
-    let displayStart = this._getSafeDisplayStartFromPageNumber();
-    let recordTotal = displayStart + this.paginateLength;
+    let displayStart, recordTotal;
+    if (this.urlPagination) {
+      displayStart = this._getSafeDisplayStartFromPageNumber();
+      recordTotal = displayStart + this.paginateLength;
+    }
     return {
       sDom: this.layout,
       bDeferRender: true,

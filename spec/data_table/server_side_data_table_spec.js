@@ -214,6 +214,63 @@ describe("DataTable Plugin", function() {
       history.pushState({}, "pagination", "?");
     });
 
+    describe("url pagination explicitly false", function() {
+      it("should not use url pagination via constructor options", function() {
+        history.pushState({}, "pagination", "?");
+        const NoUrlPagingTable = createServerSideDataTableClass({
+          rowClass: TestRow,
+          appName: "SillyBilly",
+          urlPagination: false
+        }, {
+          sorting: [['name', 'desc']],
+          filteringEnabled: true,
+          serverSideFiltering: true
+        });
+        const table = new NoUrlPagingTable({ collection: this.collection });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+        table.page("next");
+        jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+        expect(window.location.search).not.toMatch(/page=/);
+      });
+
+      it("should not use url pagination via prototype properties", function() {
+        history.pushState({}, "pagination", "?");
+        const NoUrlPagingTable = createServerSideDataTableClass({
+          rowClass: TestRow,
+          appName: "SillyBilly"
+        }, {
+          sorting: [['name', 'desc']],
+          filteringEnabled: true,
+          serverSideFiltering: true,
+          urlPagination: false
+        });
+        const table = new NoUrlPagingTable({ collection: this.collection });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+        table.page("next");
+        jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+        expect(window.location.search).not.toMatch(/page=/);
+      });
+
+      it("should not load starting page based on url", function() {
+        history.pushState({}, "pagination", "?page=5");
+        const NoUrlPagingTable = createServerSideDataTableClass({
+          rowClass: TestRow,
+          appName: "SillyBilly"
+        }, {
+          sorting: [['name', 'desc']],
+          filteringEnabled: true,
+          serverSideFiltering: true,
+          urlPagination: false
+        });
+        const table = new NoUrlPagingTable({ collection: this.collection });
+        table.render();
+        jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
+        expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
+      });
+    });
+
     it("should handling going back in browser history", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.render();
@@ -240,7 +297,7 @@ describe("DataTable Plugin", function() {
     });
 
     it("should store page in url", function() {
-      history.pushState({}, "pagination", "?page=1");
+      history.pushState({}, "pagination", "?");
       const table = new TestDataTable({ collection: this.collection });
       table.render();
       jasmine.Ajax.requests.mostRecent().response(this.mockResponse.get());
