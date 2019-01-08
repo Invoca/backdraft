@@ -1,5 +1,6 @@
 import Router from "../src/router";
 import View from "../src/view";
+import Backbone from "backbone";
 
 import $ from "jquery";
 
@@ -139,6 +140,68 @@ describe("Router", function() {
       expect(() => {
         router.nameHelper.show({ name: "image" });
       }).toThrow();
+    });
+  });
+
+  describe("navigate", function() {
+    class MyRouter extends Router {
+    }
+
+    class MyView extends View {
+      render() {
+        this.$el.html('');
+        return this;
+      }
+    }
+
+    beforeEach(function() {
+      this.router = new MyRouter({ $el: $('<div>') });
+    });
+
+    it("should call router.navigate right away if view does not define a beforeNavigate function", function() {
+      spyOn(Backbone.history, 'navigate');
+
+      const view = new MyView();
+      view.render();
+      this.router.activeView = view;
+
+      this.router.navigate("nextPage");
+      expect(Backbone.history.navigate).toHaveBeenCalledWith("nextPage", true);
+    });
+
+    describe("beforeNavigate hook", function() {
+      var navigateRightAway;
+
+      class MyView2 extends MyView {
+        beforeNavigate(doNavigation) {
+          if (navigateRightAway) {
+            doNavigation();
+          }
+        }
+      }
+
+      it("should defer to beforeNavigate on view if function is defined - and not navigate by default", function() {
+        spyOn(Backbone.history, 'navigate');
+
+        const view = new MyView2();
+        view.render();
+        this.router.activeView = view;
+
+        this.router.navigate("nextPage");
+        expect(Backbone.history.navigate).not.toHaveBeenCalled();
+      });
+
+      it("should defer to beforeNavigate on view if function is defined - and pass method to navigate when view is ready", function() {
+        spyOn(Backbone.history, 'navigate');
+
+        const view = new MyView2();
+        view.render();
+        this.router.activeView = view;
+
+        navigateRightAway = true;
+        this.router.navigate("nextPage");
+        expect(Backbone.history.navigate).toHaveBeenCalledWith("nextPage", true);
+      });
     });
   });
 
