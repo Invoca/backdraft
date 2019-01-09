@@ -148,6 +148,28 @@ describe("Router", function() {
       this.router = new Router({ $el: $('<div>') });
     });
 
+    it("calls router.navigate with provided options", function() {
+      spyOn(Backbone.Router.prototype, 'navigate');
+
+      const view = new View();
+      view.render();
+      this.router.activeView = view;
+
+      this.router.navigate("nextPage", { trigger: false });
+      expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", { trigger: false });
+    });
+
+    it("calls router.navigate with options defaulted to true if none are passed", function() {
+      spyOn(Backbone.Router.prototype, 'navigate');
+
+      const view = new View();
+      view.render();
+      this.router.activeView = view;
+
+      this.router.navigate("nextPage");
+      expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+    });
+
     describe("without beforeNavigate hook", function() {
       describe("when activeView is provided", function() {
         it("calls router.navigate right away", function() {
