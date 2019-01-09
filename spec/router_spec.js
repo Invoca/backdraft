@@ -170,8 +170,8 @@ describe("Router", function() {
       expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
     });
 
-    describe("without beforeNavigate hook", function() {
-      describe("when activeView is provided", function() {
+    describe("when activeView is provided", function() {
+      describe("without beforeNavigate hook", function() {
         it("calls router.navigate right away", function() {
           spyOn(Backbone.Router.prototype, 'navigate');
 
@@ -184,53 +184,53 @@ describe("Router", function() {
         });
       });
 
-      describe("when activeView is not provided", function() {
-        it("calls router.navigate right away", function() {
-          spyOn(Backbone.Router.prototype, 'navigate');
+      describe("with beforeNavigate hook", function() {
+        var navigateRightAway;
 
-          this.router.navigate("nextPage");
-          expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+        class View2 extends View {
+          beforeNavigate(doNavigation) {
+            if (navigateRightAway) {
+              doNavigation();
+            }
+          }
+        }
+
+        describe("when navigateRightAway is false", function() {
+          it("defers to beforeNavigate on view and not navigate by default", function() {
+            spyOn(Backbone.Router.prototype, 'navigate');
+
+            const view = new View2();
+            view.render();
+            this.router.activeView = view;
+
+            navigateRightAway = false;
+            this.router.navigate("nextPage");
+            expect(Backbone.Router.prototype.navigate).not.toHaveBeenCalled();
+          });
+        });
+
+        describe("when navigateRightAway is true", function() {
+          it("defers to beforeNavigate on view and pass method to navigate when view is ready", function() {
+            spyOn(Backbone.Router.prototype, 'navigate');
+
+            const view = new View2();
+            view.render();
+            this.router.activeView = view;
+
+            navigateRightAway = true;
+            this.router.navigate("nextPage");
+            expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+          });
         });
       });
     });
 
-    describe("with beforeNavigate hook", function() {
-      var navigateRightAway;
+    describe("when activeView is not provided", function() {
+      it("calls router.navigate right away", function() {
+        spyOn(Backbone.Router.prototype, 'navigate');
 
-      class View2 extends View {
-        beforeNavigate(doNavigation) {
-          if (navigateRightAway) {
-            doNavigation();
-          }
-        }
-      }
-
-      describe("when navigateRightAway is false", function() {
-        it("defers to beforeNavigate on view and not navigate by default", function() {
-          spyOn(Backbone.Router.prototype, 'navigate');
-
-          const view = new View2();
-          view.render();
-          this.router.activeView = view;
-
-          navigateRightAway = false;
-          this.router.navigate("nextPage");
-          expect(Backbone.Router.prototype.navigate).not.toHaveBeenCalled();
-        });
-      });
-
-      describe("when navigateRightAway is true", function() {
-        it("defers to beforeNavigate on view and pass method to navigate when view is ready", function() {
-          spyOn(Backbone.Router.prototype, 'navigate');
-
-          const view = new View2();
-          view.render();
-          this.router.activeView = view;
-
-          navigateRightAway = true;
-          this.router.navigate("nextPage");
-          expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
-        });
+        this.router.navigate("nextPage");
+        expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
       });
     });
   });
