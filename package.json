@@ -1,6 +1,6 @@
 {
   "name": "backdraft-app",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Plugin-based UI application framework built on top of and extending Backbone to create single page apps",
   "files": [
     "src/",
@@ -12,7 +12,8 @@
     "specs": "yarn run eslint; karma start --single-run",
     "specs_without_eslint": "karma start --single-run",
     "dev": "yarn run eslint; karma start",
-    "examples": "grunt examples"
+    "examples": "grunt examples",
+    "postversion": "git push --tags && yarn publish --new-version $npm_package_version && git push && echo \"Successfully released version $npm_package_version!\""
   },
   "author": "Invoca",
   "license": "MIT",
