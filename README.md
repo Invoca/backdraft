@@ -320,22 +320,17 @@ Thank you to all [the contributors](https://github.com/invoca/backdraft/contribu
 To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), do the following
 
 1. Ensure the following are complete:
-
+  * Tested
   * Green build
   * Code Reviewed
-  * Tested
 
-1. Update version: `yarn version --new-version <version>`
+2. Publish new version: `yarn version --new-version <version>`:
+  * creates commit with version change
+  * tags the commit with the version
+  * pushes the commit and tag to Github
+  * builds and publishes the node module 
 
-1. A commit is made with a version bump as well as a new tag. Run the following to push to Github:
-    ```
-    git push
-    git push --tags
-    ```
-
-1. Publish to NPM registry: `yarn publish` (documentation here: https://docs.npmjs.com/getting-started/publishing-npm-packages)
-
-1. If on a branch, ensure this version gets **merged to master**
+3. If on a branch, ensure this version gets **merged to master**
 
 License
 -------
