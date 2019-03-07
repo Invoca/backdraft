@@ -95,7 +95,7 @@ class BaseFilterMenu extends View {
 
     // if history is supported, add it to the url
     if (Backbone && Backbone.history) {
-      Backbone.history.navigate(`?${jQuery.param(params)}`, { trigger: false, replace: true });
+      Backbone.history.navigate(`?${$.param(params)}`, { trigger: false, replace: true });
     }
   }
 
