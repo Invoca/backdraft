@@ -12,7 +12,8 @@
     "specs": "yarn run eslint; karma start --single-run",
     "specs_without_eslint": "karma start --single-run",
     "dev": "yarn run eslint; karma start",
-    "examples": "grunt examples"
+    "examples": "grunt examples",
+    "postversion": "git push --tags && yarn publish . --tag $npm_package_version && git push && echo \"Successfully released version $npm_package_version!\""
   },
   "author": "Invoca",
   "license": "MIT",
