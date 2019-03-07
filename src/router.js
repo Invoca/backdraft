@@ -45,6 +45,16 @@ class Router extends Backbone.Router {
     return this._nameHelper;
   }
 
+  navigate(fragment, options) {
+    const doNavigation = super.navigate.bind(this, fragment, options || true);
+
+    if (this.activeView && this.activeView.beforeNavigate) {
+      this.activeView.beforeNavigate(doNavigation);
+    } else {
+      doNavigation();
+    }
+  }
+
   route(route, name, callback) {
     let nameHelperMethod;
     if (!_.isFunction(name)) {

@@ -1,5 +1,6 @@
 import Router from "../src/router";
 import View from "../src/view";
+import Backbone from "backbone";
 
 import $ from "jquery";
 
@@ -139,6 +140,98 @@ describe("Router", function() {
       expect(() => {
         router.nameHelper.show({ name: "image" });
       }).toThrow();
+    });
+  });
+
+  describe("navigate", function() {
+    beforeEach(function() {
+      this.router = new Router({ $el: $('<div>') });
+    });
+
+    it("calls router.navigate with provided options", function() {
+      spyOn(Backbone.Router.prototype, 'navigate');
+
+      const view = new View();
+      view.render();
+      this.router.activeView = view;
+
+      this.router.navigate("nextPage", { trigger: false });
+      expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", { trigger: false });
+    });
+
+    it("calls router.navigate with options defaulted to true if none are passed", function() {
+      spyOn(Backbone.Router.prototype, 'navigate');
+
+      const view = new View();
+      view.render();
+      this.router.activeView = view;
+
+      this.router.navigate("nextPage");
+      expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+    });
+
+    describe("when activeView is provided", function() {
+      describe("without beforeNavigate hook", function() {
+        it("calls router.navigate right away", function() {
+          spyOn(Backbone.Router.prototype, 'navigate');
+
+          const view = new View();
+          view.render();
+          this.router.activeView = view;
+
+          this.router.navigate("nextPage");
+          expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+        });
+      });
+
+      describe("with beforeNavigate hook", function() {
+        var navigateRightAway;
+
+        class View2 extends View {
+          beforeNavigate(doNavigation) {
+            if (navigateRightAway) {
+              doNavigation();
+            }
+          }
+        }
+
+        describe("when navigateRightAway is false", function() {
+          it("defers to beforeNavigate on view and not navigate by default", function() {
+            spyOn(Backbone.Router.prototype, 'navigate');
+
+            const view = new View2();
+            view.render();
+            this.router.activeView = view;
+
+            navigateRightAway = false;
+            this.router.navigate("nextPage");
+            expect(Backbone.Router.prototype.navigate).not.toHaveBeenCalled();
+          });
+        });
+
+        describe("when navigateRightAway is true", function() {
+          it("defers to beforeNavigate on view and pass method to navigate when view is ready", function() {
+            spyOn(Backbone.Router.prototype, 'navigate');
+
+            const view = new View2();
+            view.render();
+            this.router.activeView = view;
+
+            navigateRightAway = true;
+            this.router.navigate("nextPage");
+            expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+          });
+        });
+      });
+    });
+
+    describe("when activeView is not provided", function() {
+      it("calls router.navigate right away", function() {
+        spyOn(Backbone.Router.prototype, 'navigate');
+
+        this.router.navigate("nextPage");
+        expect(Backbone.Router.prototype.navigate).toHaveBeenCalledWith("nextPage", true);
+      });
     });
   });
 
