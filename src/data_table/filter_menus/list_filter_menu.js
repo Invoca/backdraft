@@ -43,13 +43,15 @@ class ListFilterMenu extends BaseFilterMenu {
 
   _onInputChange(event) {
     const filterInput = event.target;
+    // NOTE: filterInput.value must be unescaped because "<%=" escapes it (see template below)
+    const filterValue = _.unescape(filterInput.value);
     if (filterInput.checked) {
       this.filter.value = this.filter.value || [];
-      this.filter.value.push(filterInput.value);
+      this.filter.value.push(filterValue);
       this.parentView._toggleIcon(true);
     } else if (this.filter.value) {
       // remove filter from column manager if it is defined
-      const index = this.filter.value.indexOf(filterInput.value);
+      const index = this.filter.value.indexOf(filterValue);
       if (index > -1) {
         this.filter.value.splice(index, 1);
       }
@@ -82,7 +84,7 @@ _.extend(ListFilterMenu.prototype, {
       <% _.each(filter.options, function(element, index) { %>
         <li>
           <label>
-            <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%- element %>" /> 
+            <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%= element %>" /> 
             <%= element %>
           </label>
         </li>
