@@ -1,7 +1,15 @@
 import _ from "underscore";
 import BaseFilterMenu from "./base_filter_menu";
+import { htmlDecode } from "../../utils/helpers";
 
 class ListFilterMenu extends BaseFilterMenu {
+  constructor(options) {
+    super(options);
+
+    // filter.options are are HTML-encoded in the backend (API). Must decode them to construct correct filter URL.
+    this.filter.decodedOptions = _.map(this.filter.options, function(value) { return htmlDecode(value); });
+  }
+
   afterRender() {
     const filterArray = JSON.parse(this.parent.table._getFilteringSettings()) || [];
     // if there are filters in the url...
@@ -81,7 +89,7 @@ _.extend(ListFilterMenu.prototype, {
     <div class="filter-text">Show:</div>
     <a class="select-all" href="javascript:;">Select all</a>
     <ul class="filter-menu-list-container">
-      <% _.each(filter.options, function(element, index) { %>
+      <% _.each(filter.decodedOptions, function(element, index) { %>
         <li>
           <label>
             <input class="list list-item-input" type="checkbox" name="<%= attr %>" value="<%= element %>" /> 
