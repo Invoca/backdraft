@@ -29,7 +29,8 @@ class ColumnConfigGenerator {
   _getUrlFilterParams() {
     const urlParamString = window.location.href.split("?")[1];
     if (urlParamString && $.deparam(urlParamString) && ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json)) {
-      return JSON.parse($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
+      const filterParamsJson = ($.deparam(urlParamString).filter_json || $.deparam(urlParamString).ext_filter_json);
+      return JSON.parse(decodeURI(filterParamsJson));
     } else {
       return [];
     }
