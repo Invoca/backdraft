@@ -14,7 +14,9 @@ class ListFilterMenu extends BaseFilterMenu {
         // go through each of those list values
         matches[0].value.forEach((element, index, array) => {
           // check it
-          this.$el.find(`input[value="${element}"]`).prop("checked", true);
+          // TODO: use jQuery.escapeSelector() once upgraded to jQuery >=3.0
+          const selector = `${element}`.replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, "\\$&");
+          this.$el.find(`input[value="${selector}"]`).prop("checked", true);
         });
         // make the button show
         this.parentView._toggleIcon(true);
