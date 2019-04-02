@@ -23,12 +23,14 @@ class TestCollection extends Collection {
   }
 }
 
+const LIST_FILTERS = ["Basic", "Advanced", "Special_\\@="];
+
 const TestRow = createRowClass({
   columns: [
     { bulk: true },
     { attr: "name", title: "Name", filter: { type: "string" } },
     { attr: "cost", title: "Cost", filter: { type: "numeric" } },
-    { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
+    { attr: "type", title: "Type", filter: { type: "list", options: LIST_FILTERS } },
     { title: "Non attr column" }
   ],
 
@@ -1167,7 +1169,7 @@ describe("DataTable Plugin", function() {
               break;
             case "list":
               $(".toggle-filter-button", this).click();
-              $(".filter-menu input[value=Basic]").prop("checked", true).trigger("change");
+              $(".filter-menu input[value=Special_\\\\\\@\\=]").prop("checked", true).trigger("change");
               $(".btn-filter").trigger("click");
               break;
             }
@@ -1214,7 +1216,7 @@ describe("DataTable Plugin", function() {
           { attr: "name", title: "Name", filter: { type: "string" } },
           { attr: "cost", title: "Cost", filter: { type: "numeric" } },
           { attr: "cost2", title: "Cost", filter: { type: "numeric" } },
-          { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
+          { attr: "type", title: "Type", filter: { type: "list", options: LIST_FILTERS } },
           { title: "Non attr column" }
         ],
         renderers: {
@@ -1284,7 +1286,7 @@ describe("DataTable Plugin", function() {
             { bulk: true },
             { attr: "name", title: "Name", filter: { type: "string" } },
             { attr: "cost", title: "Cost", filter: { type: "numeric" } },
-            { attr: "type", title: "Type", filter: { type: "list", options: ["Basic", "Advanced"] } },
+            { attr: "type", title: "Type", filter: { type: "list", options: LIST_FILTERS } },
             { title: "Non attr column" }
           ],
           renderers: {
@@ -1318,7 +1320,7 @@ describe("DataTable Plugin", function() {
         expect(cg.columnsConfig[1].filter.type).toEqual("string");
         expect(cg.columnsConfig[2].filter.type).toEqual("numeric");
         expect(cg.columnsConfig[3].filter.type).toEqual("list");
-        expect(cg.columnsConfig[3].filter.options).toEqual(["Basic", "Advanced"]);
+        expect(cg.columnsConfig[3].filter.options).toEqual(LIST_FILTERS);
       });
 
       it("shouldn't create filter inputs for unfilterable columns", function() {
@@ -1384,10 +1386,10 @@ describe("DataTable Plugin", function() {
                 // test assignment
                 $(".toggle-filter-button", this).click();
                 $('.filter-menu input').prop("checked", true).trigger("change");
-                expect(col.filter.value).toEqual(["Basic", "Advanced"]);
+                expect(col.filter.value).toEqual(LIST_FILTERS);
                 // verify ajax
                 $(".btn-filter").trigger("click");
-                expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
+                expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: LIST_FILTERS }];
                 verifyFilterAjax(expectedFilterObj);
                 verifyUrlParams(expectedFilterObj);
 
@@ -1442,7 +1444,7 @@ describe("DataTable Plugin", function() {
         expect(oldFilterSettings).toEqual(newFilterSettings);
       });
 
-      it("should populate filter markup from url params", function() {
+      it("should populate filter markup from url params and handle special characters in filter names", function() {
         Backbone.history.navigate("?date_filter=today", { trigger: false, replace: true });
 
         // populate url with filters
@@ -1482,7 +1484,7 @@ describe("DataTable Plugin", function() {
                 break;
               case "list":
                 $(".toggle-filter-button", this).click();
-                expect($(".filter-menu input[value=Basic]").prop("checked")).toEqual(true);
+                expect($(".filter-menu input[value=Special_\\\\\\@\\=]").prop("checked")).toEqual(true);
                 break;
               }
             }
@@ -1638,11 +1640,11 @@ describe("DataTable Plugin", function() {
                 // test assignment
                 toggleButton.click();
                 $('.filter-menu input').prop("checked", true).trigger("change");
-                expect(col.filter.value).toEqual(["Basic", "Advanced"]);
+                expect(col.filter.value).toEqual(LIST_FILTERS);
 
                 // verify ajax
                 $(".btn-filter").trigger("click");
-                expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: ["Basic", "Advanced"] }];
+                expectedFilterObj = [{ type: "list", attr: col.attr, comparison: "value", value: LIST_FILTERS }];
                 verifyFilterAjax(expectedFilterObj);
                 verifyUrlParams(expectedFilterObj);
 
@@ -1708,9 +1710,9 @@ describe("DataTable Plugin", function() {
             var listFilterMenu = this.table.configGenerator().table.children["filter-type"].children["filter-menu"];
 
             listFilterMenu.enabled = false;
-            listFilterMenu.filter.value = ["Basic", "Advanced"];
+            listFilterMenu.filter.value = LIST_FILTERS;
 
-            expect(listFilterMenu.filter.value).toEqual(["Basic", "Advanced"]);
+            expect(listFilterMenu.filter.value).toEqual(LIST_FILTERS);
             listFilterMenu.clear();
             expect(listFilterMenu.filter.value).toEqual(null);
 
