@@ -282,7 +282,8 @@ class ServerSideDataTable extends LocalDataTable {
       fnDrawCallback: this._onDraw,
       oLanguage: {
         sProcessing: this.processingText
-      }
+      },
+      iDeferLoading: null
     });
   }
 
