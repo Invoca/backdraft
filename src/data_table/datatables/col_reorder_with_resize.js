@@ -215,7 +215,8 @@ export default function initializeColReorderPlugin() {
 
       /* Array array - internal data anodes cache */
       for (i = 0, iLen = oSettings.aoData.length; i < iLen; i++) {
-        fnArraySwitch(oSettings.aoData[i]._anHidden, iFrom, iTo);
+        // _anHidden has been deprecated in DataTables 1.10-
+        // fnArraySwitch(oSettings.aoData[i]._anHidden, iFrom, iTo);
       }
 
       /* Reposition the header elements in the header layout array */
