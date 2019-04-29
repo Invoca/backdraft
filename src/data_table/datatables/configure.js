@@ -24,6 +24,9 @@ export default function initializeBootstrap() {
   // Integration for 1.9-
   $.fn.dataTable.defaults.sPaginationType = 'bootstrap';
 
+  // Backwards compatibility for 1.9-
+  $.fn.dataTable.ext.legacy.ajax = true;
+
   /* Bootstrap style pagination control */
   $.extend($.fn.dataTableExt.oPagination, {
     "bootstrap": {
