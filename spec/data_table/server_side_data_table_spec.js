@@ -394,18 +394,6 @@ describe("DataTable Plugin", function() {
   });
 
   describe("server side rendering", function() {
-    it("should log a warning via DataTables when the keys returned do not match", function() {
-      const table = new TestDataTable({ collection: this.collection });
-      table.render();
-
-      try {
-        jasmine.Ajax.requests.mostRecent().response(this.mockResponse.getBadKey());
-        throw Error("DataTables did not throw an error when we expected it to. It should warn about a missing parameter based on bad server response.");
-      } catch (ex) {
-        expect(ex.message).toMatch(/Requested unknown parameter/);
-      }
-    });
-
     it("should disable filtering", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.render();
