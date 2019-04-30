@@ -246,7 +246,7 @@ describe("DataTable Plugin", function() {
         history.pushState({}, "pagination", "?page=500");
         table.render();
         expect(table.$el.find('.dataTables_info')[0].innerText).toMatch(/1 to 10/);
-        expect(window.location.search).toMatch(/page=1/);
+        expect(table.dataTable.api().page.info().start).toEqual(0);
       });
 
       it("should load into page 1 if page parameter is not an integer", function() {
