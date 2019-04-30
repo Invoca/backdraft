@@ -535,7 +535,7 @@ class LocalDataTable extends View {
     this.bulkCheckbox = bulkCheckbox;
     this.bulkCheckbox.click(this._onBulkHeaderClick);
     this.dataTable.on("click", this.BULK_COLUMN_CHECKBOXES_SELECTOR, this._onBulkRowClick);
-    this.dataTable.on("filter.dt", this._bulkCheckboxAdjust);
+    this.dataTable.on("search.dt", this._bulkCheckboxAdjust);
   }
 
   _enableRowHighlight() {
