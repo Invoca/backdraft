@@ -706,10 +706,9 @@ describe("DataTable Plugin", function() {
 
   describe("server side params", function() {
     it("should automatically include column attributes", function() {
-      var expectedAttrParams = $.param({ column_attrs: [undefined, "name", "cost", "type", undefined] });
       const table = new TestDataTable({ collection: this.collection });
       table.render();
-      expect(jasmine.Ajax.requests.mostRecent().url).toMatch(expectedAttrParams);
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("column_attrs%5B%5D=%2Cname%2Ccost%2Ctype");
     });
 
     it("should allow for addition of server params", function() {
@@ -723,7 +722,7 @@ describe("DataTable Plugin", function() {
       const table = new TestDataTable({ collection: this.collection });
       table.serverParams({ monkey: ["chicken", "goat"] });
       table.render();
-      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey%5B%5D=chicken&monkey%5B%5D=goat");
+      expect(jasmine.Ajax.requests.mostRecent().url).toMatch("monkey%5B%5D=chicken%2Cgoat");
     });
 
     it("should reload the table when server params are set", function() {
