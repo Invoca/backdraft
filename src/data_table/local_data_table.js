@@ -750,8 +750,10 @@ class LocalDataTable extends View {
       selectedModel && this._setRowSelectedState(selectedModel, null, true);
     }, this);
 
-    // add new data
-    this.dataTable.fnAddData(cidMap(collection));
+    // add new data (if collection is not empty)
+    if (collection.size() > 0) {
+      this.dataTable.fnAddData(cidMap(collection));
+    }
     this._triggerChangeSelection();
   }
 
