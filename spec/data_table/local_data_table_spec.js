@@ -371,7 +371,7 @@ describe("DataTable Plugin", function() {
         table.selectAllVisible(true);
 
         // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("page", function() {
+        table.dataTable.on("page.dt", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
             done();
@@ -389,7 +389,7 @@ describe("DataTable Plugin", function() {
         table.selectAllVisible(true);
 
         // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("page", function() {
+        table.dataTable.on("page.dt", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
             done();
@@ -476,7 +476,7 @@ describe("DataTable Plugin", function() {
         expect(table.selectedModels().length).toEqual(1);
 
         // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("filter", function() {
+        table.dataTable.on("search.dt", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
             done();
@@ -497,7 +497,7 @@ describe("DataTable Plugin", function() {
         expect(table.selectedModels().length).toEqual(19);
 
         // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("filter", function() {
+        table.dataTable.on("search.dt", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(true);
             done();
@@ -526,7 +526,7 @@ describe("DataTable Plugin", function() {
         table.render();
 
         // we need to test this using an async strategy because the checkbox is toggled async as well
-        table.dataTable.on("filter", function() {
+        table.dataTable.on("search.dt", function() {
           _.defer(function() {
             expect(table.$("th.bulk :checkbox").prop("checked")).toEqual(false);
             done();

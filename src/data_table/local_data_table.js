@@ -474,7 +474,7 @@ class LocalDataTable extends View {
   }
 
   _initPaginationHandling() {
-    this.dataTable.on("page", this._bulkCheckboxAdjust);
+    this.dataTable.on("page.dt", this._bulkCheckboxAdjust);
   }
 
   _setQueryStringPageFromDataTable() {
@@ -485,10 +485,10 @@ class LocalDataTable extends View {
   }
 
   _setupPaginationHistory() {
-    this.dataTable.on("page", () => {
+    this.dataTable.on("page.dt", () => {
       this._setQueryStringPageFromDataTable();
     });
-    this.dataTable.on("pageLengthChange", () => {
+    this.dataTable.on("length.dt", () => {
       this._setQueryStringPageFromDataTable();
     });
     window.onpopstate = () => {
@@ -535,7 +535,7 @@ class LocalDataTable extends View {
     this.bulkCheckbox = bulkCheckbox;
     this.bulkCheckbox.click(this._onBulkHeaderClick);
     this.dataTable.on("click", this.BULK_COLUMN_CHECKBOXES_SELECTOR, this._onBulkRowClick);
-    this.dataTable.on("filter", this._bulkCheckboxAdjust);
+    this.dataTable.on("filter.dt", this._bulkCheckboxAdjust);
   }
 
   _enableRowHighlight() {
