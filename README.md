@@ -334,4 +334,4 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
 
 License
 -------
-Backdraft is Copyright © 2014-2018 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.
+Backdraft is Copyright © 2014-2019 Invoca, Inc. [MIT](https://github.com/Invoca/backdraft/blob/master/LICENSE) license.
