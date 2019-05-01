@@ -52,11 +52,13 @@
     "webpack": "^3.10.0"
   },
   "resolutions": {
-    "datatables.net/jquery": "^jquery/jquery#1.10.2"
+    "datatables.net/jquery": "jquery/jquery#1.10.2"
   },
   "peerDependencies": {
     "backbone": "^1.1.2",
     "bootstrap": "^4.0.0",
+    "datatables.net": "^1.10.19",
+    "datatables.net-plugins": "^1.10.19",
     "jquery": "^1.10.2",
     "jquery-deparam": "^0.4.2",
     "popper.js": "^1.12.9",
