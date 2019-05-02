@@ -1,4 +1,3 @@
-import $ from "jquery";
 /*
  * DataTables 1.10 `two_button` pagination control compatibility file
  */
