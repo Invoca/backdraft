@@ -1,5 +1,5 @@
-import initializeBootstrap from "./datatables/configure";
-import initializeColReorderPlugin from "./datatables/col_reorder_with_resize";
+import initializeBootstrap from "./datatables/initialize_bootstrap";
+import initializeColReorderPlugin from "./datatables/initialize_col_reorder_plugin";
 
 initializeBootstrap();
 initializeColReorderPlugin();
