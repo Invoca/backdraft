@@ -2,7 +2,7 @@ import $ from "jquery";
 import _ from "underscore";
 import "bootstrap";
 import "jquery-deparam";
-import "./datatables";
+import "./configure_datatables";
 
 import View from "../view";
 import Cache from "../cache";
