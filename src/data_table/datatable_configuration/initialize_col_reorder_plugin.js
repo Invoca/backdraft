@@ -28,7 +28,7 @@
  */
 
 import jQuery from "jquery";
-import "../datatables";
+import "../../../vendor/jquery.dataTables-1.9.4";
 import {absolutePointAtViewportEdge, DomVisibility} from "../utils/dom_visibility";
 
 export default function initializeColReorderPlugin() {
