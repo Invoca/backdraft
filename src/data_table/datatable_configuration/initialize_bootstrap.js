@@ -1,5 +1,4 @@
 import $ from "jquery";
-import "../../../vendor/jquery.dataTables-1.9.4";
 
 export default function initializeBootstrap() {
   /* Set the defaults for DataTables initialisation */
