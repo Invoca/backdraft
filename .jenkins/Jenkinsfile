@@ -1,0 +1,43 @@
+@Library('jenkins-pipeline@v0.4.5')
+import com.invoca.docker.*;
+pipeline {
+  agent any
+  environment {
+    GITHUB_TOKEN = credentials('github_token')
+  }
+
+  stages {
+    stage('Setup') {
+      agent { docker 'node:10' }
+      steps {
+        script {
+          sh 'npm install'
+        }
+      }
+    }
+    stage('Unit Test') {
+      agent { docker 'node:10' }
+      steps {
+        script {
+          sh 'yarn run specs_without_eslint'
+        }
+      }
+      post {
+        success { updateGitHubStatus('clean-build', 'success', 'Unit tests.') }
+        failure { updateGitHubStatus('clean-build', 'failure', 'Unit tests.') }
+      }
+    }
+  }
+}
+
+void updateGitHubStatus(String context, String status, String description) {
+  gitHubStatus([
+    repoSlug:    'Invoca/$project',
+    sha:         env.GIT_COMMIT,
+    description: description,
+    context:     context,
+    targetURL:   env.BUILD_URL,
+    token:       env.GITHUB_TOKEN,
+    status:      status
+  ])
+}
