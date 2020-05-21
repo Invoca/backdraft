@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+  jenkins/backdraft: 'true'
+  namespace: jenkins
+  name: backdraft
+spec:
+  containers:
+  - name: node
+    image: node:10
+    tty: true
+    resources:
+    requests:
+      memory: \"100Mi\"
+    command:
+      - cat

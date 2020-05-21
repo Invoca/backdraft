@@ -1,14 +1,19 @@
 @Library('jenkins-pipeline@v0.4.5')
 import com.invoca.docker.*;
 pipeline {
-  agent any
+  agent {
+    kubernetes {
+      defaultContainer "node"
+      yamlFile ".jenkins/node_build_pod.yml"
+    }
+  }
+
   environment {
     GITHUB_TOKEN = credentials('github_token')
   }
 
   stages {
     stage('Setup') {
-      agent { docker 'node:10' }
       steps {
         script {
           sh 'npm install'
@@ -16,7 +21,6 @@ pipeline {
       }
     }
     stage('Unit Test') {
-      agent { docker 'node:10' }
       steps {
         script {
           sh 'yarn run specs_without_eslint'
