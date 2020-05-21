@@ -41,7 +41,7 @@ void updateGitHubStatus(String context, String status, String description) {
     sha:         env.GIT_COMMIT,
     description: description,
     context:     context,
-    targetURL:   env.BUILD_URL,
+    targetURL:   env.RUN_DISPLAY_URL,
     token:       env.GITHUB_TOKEN,
     status:      status
   ])
