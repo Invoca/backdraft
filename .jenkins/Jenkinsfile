@@ -16,6 +16,7 @@ pipeline {
     stage('Setup') {
       steps {
         script {
+          updateGitHubStatus('clean-build', 'pending', 'Unit tests.')
           sh 'npm install'
         }
       }
@@ -36,7 +37,7 @@ pipeline {
 
 void updateGitHubStatus(String context, String status, String description) {
   gitHubStatus([
-    repoSlug:    'Invoca/$project',
+    repoSlug:    'Invoca/backdraft',
     sha:         env.GIT_COMMIT,
     description: description,
     context:     context,
