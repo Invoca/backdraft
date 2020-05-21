@@ -1,0 +1,48 @@
+@Library('jenkins-pipeline@v0.4.5')
+import com.invoca.docker.*;
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer "node"
+      yamlFile ".jenkins/node_build_pod.yml"
+    }
+  }
+
+  environment {
+    GITHUB_TOKEN = credentials('github_token')
+  }
+
+  stages {
+    stage('Setup') {
+      steps {
+        script {
+          updateGitHubStatus('clean-build', 'pending', 'Unit tests.')
+          sh 'npm install'
+        }
+      }
+    }
+    stage('Unit Test') {
+      steps {
+        script {
+          sh 'yarn run specs_without_eslint'
+        }
+      }
+      post {
+        success { updateGitHubStatus('clean-build', 'success', 'Unit tests.') }
+        failure { updateGitHubStatus('clean-build', 'failure', 'Unit tests.') }
+      }
+    }
+  }
+}
+
+void updateGitHubStatus(String context, String status, String description) {
+  gitHubStatus([
+    repoSlug:    'Invoca/backdraft',
+    sha:         env.GIT_COMMIT,
+    description: description,
+    context:     context,
+    targetURL:   env.RUN_DISPLAY_URL,
+    token:       env.GITHUB_TOKEN,
+    status:      status
+  ])
+}
