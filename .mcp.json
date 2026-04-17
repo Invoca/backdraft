@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "buildkite": {
+      "type": "http",
+      "url": "https://mcp.buildkite.com/mcp/readonly"
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_PAT}"
+      }
+    },
+    "atlassian": {
+      "type": "sse",
+      "url": "https://mcp.atlassian.com/v1/sse"
+    }
+  }
+}
