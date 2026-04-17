@@ -6,9 +6,3 @@ examples_server/js/bundle.js
 npm-debug.log
 yarn-error.log
 
-
-# AI custom context (personal/team preferences, gitignored)
-.agents/USER_RULES.md
-.agents/TEAM_RULES.md
-.agents/LEARNING_LOG.md
-docs/temp/
