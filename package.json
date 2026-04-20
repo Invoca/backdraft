@@ -52,6 +52,9 @@
   "resolutions": {
     "axios": "^1.15.0"
   },
+  "overrides": {
+    "axios": "^1.15.0"
+  },
   "peerDependencies": {
     "backbone": "^1.1.2",
     "bootstrap": "^4.0.0",
