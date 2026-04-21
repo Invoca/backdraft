@@ -13,4 +13,6 @@ jobs:
       with:
         node-version: '10'
     - run: npm install
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - run: yarn run specs_without_eslint
