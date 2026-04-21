@@ -5,7 +5,7 @@ Written as a plugin-based framework, where the DataTables integration is a plugi
 ## Install
 
 ```
-npm install backdraft-app
+npm install @invoca/backdraft-app
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ First, define a new Backdraft app:
 // app.js
 import MainRouter from "./main_router";
 
-import App from "backdraft-app/src/app";
+import App from "@invoca/backdraft-app/src/app";
 
 class TableExample extends App {
   activate($el) {
@@ -40,7 +40,7 @@ Define the various components of your app:
 // main_router.js
 import IndexView from "./views/index_view";
 
-import Router from "backdraft-app/src/router";
+import Router from "@invoca/backdraft-app/src/router";
 
 export default class MainRouter extends Router {
   get routes() {
@@ -56,7 +56,7 @@ export default class MainRouter extends Router {
 };
 
 // models/book.js
-import Model from "backdraft-app/src/model";
+import Model from "@invoca/backdraft-app/src/model";
 
 export default class Book extends Model {
 };
@@ -64,7 +64,7 @@ export default class Book extends Model {
 // collections/books.js
 import Book from "../models/book";
 
-import Collection from "backdraft-app/src/collection";
+import Collection from "@invoca/backdraft-app/src/collection";
 
 export default class Books extends Collection {
   get model() {
@@ -75,7 +75,7 @@ export default class Books extends Collection {
 // views/book_table_view.js
 import BookRowView from "./book_row_view";
 
-import LocalDataTable from "backdraft-app/src/data_table/local_data_table";
+import LocalDataTable from "@invoca/backdraft-app/src/data_table/local_data_table";
 
 export default class BookTableView extends LocalDataTable {
   get rowClass() {
@@ -88,7 +88,7 @@ export default class BookTableView extends LocalDataTable {
 };
 
 // views/book_row_view.js
-import Row from "backdraft-app/src/data_table/row";
+import Row from "@invoca/backdraft-app/src/data_table/row";
 
 export default class BookRowView extends Row {
   get columns() {
@@ -108,7 +108,7 @@ Now create the view that pulls all the pieces together:
 import BookTableView from "./book_table_view";
 import Books from "../collections/books";
 
-import View from "backdraft-app/src/view";
+import View from "@invoca/backdraft-app/src/view";
 
 export default class IndexView extends View {
   render() {
@@ -317,7 +317,19 @@ Thank you to all [the contributors](https://github.com/invoca/backdraft/contribu
 
 ### Publishing - admins
 
-To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), do the following
+To publish a new version to the Invoca GitHub Packages npm registry, do the following:
+
+#### One-time setup
+
+Add a GitHub personal access token with `write:packages` scope to your shell environment (e.g. `~/.zshrc` or `~/.bashrc`):
+
+```sh
+export GITHUB_TOKEN=<your-github-token>
+```
+
+Create a token at https://github.com/settings/tokens.
+
+#### Publishing
 
 1. Ensure the following are complete:
   * Tested
@@ -328,7 +340,7 @@ To publish a new version to NPM (https://www.npmjs.com/package/backdraft-app), d
   * creates commit with version change
   * tags the commit with the version
   * pushes the commit and tag to Github
-  * builds and publishes the node module 
+  * publishes the package to fury.io
 
 3. If on a branch, ensure this version gets **merged to master**
 
