@@ -18,3 +18,4 @@ jobs:
     - run: yarn run specs_without_eslint
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OPENSSL_CONF: /dev/null
