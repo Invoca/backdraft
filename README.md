@@ -344,7 +344,7 @@ Create a token at https://github.com/settings/tokens.
   * creates commit with version change
   * tags the commit with the version
   * pushes the commit and tag to Github
-  * publishes the package to fury.io
+  * publishes the package to GitHub packages
 
 3. If on a branch, ensure this version gets **merged to master**
 
