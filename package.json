@@ -33,7 +33,7 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-webpack": "^3.0.2",
     "jasmine-core": "^2.99.1",
-    "jquery": "jquery/jquery#1.10.2",
+    "jquery": "1.10.2",
     "jquery-deparam": "0.4.2",
     "karma": "^2.0.0",
     "karma-cli": "^1.0.1",

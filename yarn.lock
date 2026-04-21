@@ -3467,9 +3467,10 @@ jquery-deparam@0.4.2:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/jquery-deparam/-/jquery-deparam-0.4.2.tgz#e4fdcfc2dad11af184250c6057b04b9363dcdcf4"
 
-jquery@jquery/jquery#1.10.2:
-  version "1.10.2"
-  resolved "https://codeload.github.com/jquery/jquery/tar.gz/16b079b164d62bd807c612806842a13bf9b04d17"
+jquery@1.10.2:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-1.11.0.tgz#c67ceee19b403650d682adcf39d5c9009814d949"
+  integrity sha512-hfN15gXeUqsx3HxHrHYzVzfWayuGwrCMONhvexiaIV/aUlLqC8Im+G7KrKTPkHzD7HCgeAaQ7VeHRn3Dlve8Hg==
 
 js-tokens@^3.0.0, js-tokens@^3.0.2:
   version "3.0.2"
