@@ -81,7 +81,7 @@ export default class BookTableView extends LocalDataTable {
   get rowClass() {
     return BookRowView;
   }
-  
+
   get paginate() {
     return false;
   }
@@ -114,15 +114,15 @@ export default class IndexView extends View {
   render() {
     const collection  = new Books();
     const data = [];
-  
+
     // fake data
     for (let iter = 0; iter < 10; ++iter) {
       data.push({ name : `Book ${iter + 1}` });
     }
-  
+
     collection.add(data);
     const table = new BookTableView({ collection });
-  
+
     this.$el.html(table.render().$el);
     return this;
   }
@@ -149,7 +149,7 @@ Finally, in an HTML page that loads the above scripts, activate the app at load 
 ## Legacy Usage
 
 The legacy usage uses the `Backdraft` object to define the components of the application.
- 
+
 First, define a new Backdraft app and what plugins it will use:
 
 ```javascript
@@ -293,14 +293,14 @@ Run the yarn `dev` script from the main directory to have the source and test fi
 Run the `specs` script to run all the tests and exit
 
     yarn run specs
-    
+
 Use the following two ENV variables to target specific tests:
 
 - `SPEC_FILTER` - target specific tests via [karma-jasmine's --grep feature](https://github.com/karma-runner/karma-jasmine/blob/4f70e5e77831998dc252b2f7ad1353398144588b/README.md#configuration).
-    
+
 - `SPEC_FILE_FILTER` - target specific tests by file path. This value must be a regex. For example:
 
-    `SPEC_FILE_FILTER="/data_table.*_spec.js/" yarn run specs`    
+    `SPEC_FILE_FILTER="/data_table.*_spec.js/" yarn run specs`
 
 See all available commands with:
 
@@ -316,6 +316,10 @@ If you'd like to contribute a feature or bugfix: Thanks! To make sure your chang
 Thank you to all [the contributors](https://github.com/invoca/backdraft/contributors)!
 
 ### Publishing - admins
+
+`@invoca/backdraft-app` is published to the Invoca GitHub Packages npm registry:
+
+https://github.com/Invoca/backdraft/pkgs/npm/backdraft-app
 
 To publish a new version to the Invoca GitHub Packages npm registry, do the following:
 
