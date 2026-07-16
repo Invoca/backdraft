@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backdraft
+  title: Backdraft
+  description: "Plugin-based UI application framework built on Backbone.js (the @invoca/backdraft-app package). Legacy: in maintenance mode since 2019 and being migrated to Titan (Backdraft-to-Titan / Web2Titan). No new development."
+  annotations:
+    github.com/project-slug: Invoca/backdraft
+    backstage.io/source-location: url:https://github.com/Invoca/backdraft/
+spec:
+  type: library
+  lifecycle: deprecated
+  owner: front-end-guild
+  system: legacy-frontend
