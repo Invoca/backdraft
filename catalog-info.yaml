@@ -10,5 +10,5 @@ metadata:
 spec:
   type: library
   lifecycle: deprecated
-  owner: reporting-backend
+  owner: aperture-reporting
   system: legacy-frontend
